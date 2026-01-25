@@ -1,0 +1,146 @@
+.registrForm {
+  width: 360px;
+  height: 487px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 30px;
+  gap: 48px;
+  padding: 40px;
+  background: #ffffff;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  width: 220px;
+  height: 35px;
+  transform: rotate(0deg);
+  opacity: 1;
+  display: block;
+}
+
+.formFrame {
+  width: 280px;
+  height: 324px;
+  transform: rotate(0deg);
+  opacity: 1;
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.inputField {
+  width: 280px;
+  height: 52px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 8px;
+  padding: 16px 18px;
+  gap: 10px;
+  border: 1px solid #d0cece;
+  background: #ffffff;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  outline: none;
+}
+
+.inputField::placeholder {
+  color: #999999;
+}
+
+.inputField:focus {
+  border-color: #bcec30;
+}
+
+.buttonFrame {
+  width: 280px;
+  height: 114px;
+  transform: rotate(0deg);
+  opacity: 1;
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.registerButton {
+  width: 280px;
+  height: 52px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 46px;
+  padding: 16px 26px;
+  gap: 10px;
+  background: #bcec30;
+  border: none;
+  cursor: pointer;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+
+.registerButton:hover {
+  opacity: 0.9;
+}
+
+.registerButton:active {
+  transform: scale(0.98);
+}
+
+.loginButton {
+  width: 280px;
+  height: 52px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 46px;
+  padding: 16px 26px;
+  gap: 10px;
+  border: 1px solid #000000;
+  background: transparent;
+  cursor: pointer;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity 0.2s,
+    transform 0.2s,
+    background 0.2s;
+}
+
+.loginButton:hover {
+  opacity: 0.8;
+  background: #f5f5f5;
+}
+
+.loginButton:active {
+  transform: scale(0.98);
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+  .registrForm {
+    width: 343px;
+    height: 487px;
+    transform: rotate(0deg);
+    opacity: 1;
+    border-radius: 30px;
+    gap: 48px;
+    padding: 40px;
+    background: #ffffff;
+    box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  }
+}
