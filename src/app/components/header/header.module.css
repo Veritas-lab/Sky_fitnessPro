@@ -1,0 +1,111 @@
+.header {
+  width: 100%;
+  padding-top: 50px;
+  padding-left: 140px;
+  padding-right: 143px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.leftSection {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.logoLink {
+  display: inline-block;
+  transform: rotate(0deg);
+  opacity: 1;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  align-self: flex-start;
+}
+
+.logoLink:hover {
+  opacity: 0.8;
+}
+
+.logo {
+  display: block;
+  width: 220px;
+  height: 35px;
+}
+
+.subtitle {
+  width: 327px;
+  height: 20px;
+  transform: rotate(0deg);
+  opacity: 0.5;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 18px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  margin: 0;
+}
+
+.loginButton {
+  width: 103px;
+  height: 52px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 46px;
+  padding: 16px 26px;
+  gap: 8px;
+  background: #bcec30;
+  border: none;
+  cursor: pointer;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+
+.loginButton:hover {
+  opacity: 0.9;
+}
+
+.loginButton:active {
+  transform: scale(0.98);
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+  .header {
+    padding-top: 40px;
+    padding-left: 16px;
+    padding-right: 16px;
+    justify-content: space-between;
+  }
+
+  .leftSection {
+    gap: 0;
+  }
+
+  .logo {
+    width: 220px;
+    height: 35px;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .loginButton {
+    width: 83px;
+    height: 36px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
