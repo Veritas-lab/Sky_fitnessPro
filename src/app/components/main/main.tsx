@@ -1,4 +1,21 @@
 import styles from "./main.module.css";
+import Card from "../card/card";
+
+const courses = [
+  { title: "Yoga", image: "/img/yoga.png", courseName: "Йога" },
+  {
+    title: "Stretching",
+    image: "/img/stretching.png",
+    courseName: "Стретчинг",
+  },
+  { title: "Fitness", image: "/img/fitness.png", courseName: "Фитнесс" },
+  {
+    title: "Step Aerobics",
+    image: "/img/step_aerobics.png",
+    courseName: "Степ-аэробика",
+  },
+  { title: "Bodyflex", image: "/img/bodyflex.png", courseName: "Бодифлекс" },
+];
 
 export default function Main() {
   return (
@@ -29,6 +46,20 @@ export default function Main() {
               fill="#BCEC30"
             />
           </svg>
+        </div>
+      </section>
+
+      {/* Секция с карточками курсов */}
+      <section className={styles.cardsSection}>
+        <div className={styles.cardsContainer}>
+          {courses.map((course) => (
+            <Card
+              key={course.title}
+              title={course.title}
+              image={course.image}
+              courseName={course.courseName}
+            />
+          ))}
         </div>
       </section>
     </div>

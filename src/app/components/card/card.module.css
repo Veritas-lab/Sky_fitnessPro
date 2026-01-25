@@ -1,0 +1,181 @@
+.card {
+  width: 360px;
+  height: 501px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 30px;
+  padding-bottom: 15px;
+  gap: 24px;
+  background: #ffffff;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.imageContainer {
+  position: relative;
+  width: 360px;
+  height: 325px;
+}
+
+.cardImage {
+  width: 360px;
+  height: 325px;
+  transform: rotate(0deg);
+  opacity: 1;
+  object-fit: cover;
+  border-radius: 30px;
+}
+
+.plusIcon {
+  position: absolute;
+  top: 23px;
+  left: 311px;
+  right: 23px;
+  width: 27px;
+  height: 27px;
+  transform: rotate(0deg);
+  opacity: 1;
+  display: block;
+}
+
+.cardFrame {
+  width: 300px;
+  height: 137px;
+  transform: rotate(0deg);
+  opacity: 1;
+  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  padding: 0 30px;
+}
+
+.courseTitle {
+  width: 300px;
+  height: 35px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 32px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  margin: 0;
+}
+
+.badgesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.firstRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.daysBadge {
+  width: 103px;
+  height: 38px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 50px;
+  gap: 6px;
+
+  background: #f7f7f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clockBadge {
+  width: 163px;
+  height: 38px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 50px;
+  gap: 6px;
+
+  background: #f7f7f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendarIcon {
+  width: 15px;
+  height: 15px;
+  transform: rotate(0deg);
+  opacity: 1;
+  display: block;
+}
+
+.daysText {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 16px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  vertical-align: bottom;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #202020;
+}
+
+.clockIcon {
+  width: 15px;
+  height: 15px;
+  transform: rotate(0deg);
+  opacity: 1;
+  display: block;
+}
+
+.clockText {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 16px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  vertical-align: bottom;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #202020;
+}
+
+.complexityBadge {
+  width: 129px;
+  height: 38px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 50px;
+  gap: 6px;
+  background: #f7f7f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.complexityIcon {
+  width: 18px;
+  height: 18px;
+  transform: rotate(0deg);
+  opacity: 1;
+  display: block;
+}
+
+.complexityText {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 16px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  vertical-align: bottom;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #202020;
+}

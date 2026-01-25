@@ -78,6 +78,19 @@
   display: block;
 }
 
+/* Секция с карточками курсов */
+.cardsSection {
+  padding-top: 50px;
+  padding-left: 140px;
+  padding-right: 140px;
+}
+
+.cardsContainer {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
 /* Общие стили для секций */
 .container {
   max-width: 1200px;
