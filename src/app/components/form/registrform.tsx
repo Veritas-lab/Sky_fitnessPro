@@ -2,7 +2,11 @@
 
 import styles from "./registrform.module.css";
 
-export default function RegistrForm() {
+interface RegistrFormProps {
+  onSwitchToAuth: () => void;
+}
+
+export default function RegistrForm({ onSwitchToAuth }: RegistrFormProps) {
   return (
     <form className={styles.registrForm}>
       <img src="/img/logo.svg" alt="Sky Fitness Pro" className={styles.logo} />
@@ -27,7 +31,11 @@ export default function RegistrForm() {
         <button type="submit" className={styles.registerButton}>
           Зарегистрироваться
         </button>
-        <button type="button" className={styles.loginButton}>
+        <button
+          type="button"
+          className={styles.loginButton}
+          onClick={onSwitchToAuth}
+        >
           Войти
         </button>
       </div>
