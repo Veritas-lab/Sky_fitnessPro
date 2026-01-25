@@ -5,7 +5,6 @@
   opacity: 1;
 }
 
-/* Секция с заголовком */
 .titleSection {
   padding-top: 60px;
   padding-left: 140px;
@@ -31,14 +30,12 @@
   margin: 0;
 }
 
-/* Контейнер для баннера и иконки */
 .promoContainer {
   position: relative;
   display: flex;
   flex-direction: column;
 }
 
-/* Промо-баннер */
 .promoBanner {
   width: 288px;
   height: 102px;
@@ -78,7 +75,6 @@
   display: block;
 }
 
-/* Секция с карточками курсов */
 .cardsSection {
   padding-top: 50px;
   padding-left: 140px;
@@ -91,7 +87,39 @@
   flex-wrap: wrap;
 }
 
-/* Общие стили для секций */
+.scrollTopButton {
+  width: 127px;
+  height: 52px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 46px;
+  padding: 16px 26px;
+  gap: 8px;
+  background: #bcec30;
+  border: none;
+  cursor: pointer;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 34px;
+  margin-left: calc(656px - 140px);
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+
+.scrollTopButton:hover {
+  opacity: 0.9;
+}
+
+.scrollTopButton:active {
+  transform: scale(0.98);
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -106,7 +134,6 @@
   color: #333;
 }
 
-/* Секция курсов */
 .courses {
   padding: 80px 0;
   background: #f8f9fa;
@@ -125,7 +152,6 @@
   grid-column: 1 / -1;
 }
 
-/* Секция преимуществ */
 .features {
   padding: 80px 0;
   background: white;
@@ -154,22 +180,63 @@
   line-height: 1.6;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
-  .heroTitle {
-    font-size: 2.5rem;
+  .main {
+    width: 100%;
+    height: auto;
   }
 
-  .heroSubtitle {
-    font-size: 1.1rem;
+  .titleSection {
+    padding-top: 34px;
+    padding-left: 16px;
+    padding-right: 16px;
+    flex-direction: column;
+    gap: 20px;
   }
 
-  .sectionTitle {
-    font-size: 2rem;
+  .mainTitle {
+    width: 327px;
+    height: 105px;
+    transform: rotate(0deg);
+    opacity: 1;
+    font-family: "Roboto", sans-serif;
+    font-weight: 500;
+    font-style: normal;
+    font-size: 32px;
+    line-height: 110%;
+    letter-spacing: 0px;
+    font-variant-numeric: lining-nums proportional-nums;
+    color: #000000;
+    margin: 0;
   }
 
-  .coursesGrid,
-  .featuresGrid {
-    grid-template-columns: 1fr;
+  .promoContainer {
+    display: none;
+  }
+
+  .cardsSection {
+    padding-top: 30px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .cardsContainer {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .scrollTopButton {
+    width: 127px;
+    height: 52px;
+    transform: rotate(0deg);
+    opacity: 1;
+    border-radius: 46px;
+    padding: 16px 26px;
+    gap: 8px;
+    background: #bcec30;
+    margin-left: 0;
+    margin-top: 24px;
+    margin-left: 216px;
   }
 }
