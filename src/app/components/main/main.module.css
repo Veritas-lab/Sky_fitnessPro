@@ -1,0 +1,164 @@
+.main {
+  width: 1440px;
+  height: 1559px;
+  transform: rotate(0deg);
+  opacity: 1;
+}
+
+/* Секция с заголовком */
+.titleSection {
+  padding-top: 60px;
+  padding-left: 140px;
+  padding-right: 140px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.mainTitle {
+  width: 947px;
+  height: 120px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 60px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  margin: 0;
+}
+
+/* Контейнер для баннера и иконки */
+.promoContainer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 120px;
+  margin-left: auto;
+  margin-top: 78px;
+}
+
+/* Промо-баннер */
+.promoBanner {
+  width: 288px;
+  height: 102px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 5px;
+  padding: 16px 20px;
+  background: #bcec30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.promoText {
+  width: 248px;
+  height: 70px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 32px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  margin: 0;
+  text-align: center;
+}
+
+.polygonIcon {
+  width: 30.24px;
+  height: 35.17px;
+  transform: rotate(0deg);
+  opacity: 1;
+  display: block;
+  margin-top: -1px;
+}
+
+/* Общие стили для секций */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.sectionTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 60px;
+  color: #333;
+}
+
+/* Секция курсов */
+.courses {
+  padding: 80px 0;
+  background: #f8f9fa;
+}
+
+.coursesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.placeholder {
+  text-align: center;
+  color: #666;
+  padding: 40px;
+  grid-column: 1 / -1;
+}
+
+/* Секция преимуществ */
+.features {
+  padding: 80px 0;
+  background: white;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 40px;
+}
+
+.feature {
+  text-align: center;
+  padding: 30px;
+}
+
+.feature h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.feature p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.1rem;
+  }
+
+  .sectionTitle {
+    font-size: 2rem;
+  }
+
+  .coursesGrid,
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+}
