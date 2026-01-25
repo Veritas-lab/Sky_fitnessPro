@@ -31,38 +31,6 @@ export default function Main() {
           </svg>
         </div>
       </section>
-
-      {/* Секция с курсами */}
-      <section className={styles.courses}>
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Наши программы</h2>
-          <div className={styles.coursesGrid}>
-            {/* Здесь будут карточки курсов */}
-            <p className={styles.placeholder}>Список курсов будет здесь</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Секция преимуществ */}
-      <section className={styles.features}>
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Почему выбирают нас</h2>
-          <div className={styles.featuresGrid}>
-            <div className={styles.feature}>
-              <h3>Персональный подход</h3>
-              <p>Программы, адаптированные под ваши цели</p>
-            </div>
-            <div className={styles.feature}>
-              <h3>Отслеживание прогресса</h3>
-              <p>Мониторинг ваших достижений в реальном времени</p>
-            </div>
-            <div className={styles.feature}>
-              <h3>Профессиональные тренеры</h3>
-              <p>Опытные специалисты помогут достичь результата</p>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
