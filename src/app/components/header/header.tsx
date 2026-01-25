@@ -1,7 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import styles from "./header.module.css";
 
-export default function Header() {
+interface HeaderProps {
+  onLoginClick: () => void;
+}
+
+export default function Header({ onLoginClick }: HeaderProps) {
   return (
     <header className={styles.header}>
       <div className={styles.leftSection}>
@@ -14,7 +20,9 @@ export default function Header() {
         </Link>
         <p className={styles.subtitle}>Онлайн-тренировки для занятий дома</p>
       </div>
-      <button className={styles.loginButton}>Войти</button>
+      <button className={styles.loginButton} onClick={onLoginClick}>
+        Войти
+      </button>
     </header>
   );
 }
