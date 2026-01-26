@@ -82,6 +82,9 @@ export default function CoursePage() {
               <div className={styles.courseTextBlock2}>
                 <span className={styles.courseTextNumber2}>2</span>
               </div>
+              <div className={styles.courseTextBlock3}>
+                {/* Контент будет добавлен */}
+              </div>
             </div>
           </div>
         )}
