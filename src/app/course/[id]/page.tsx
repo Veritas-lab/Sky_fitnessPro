@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { useParams } from "next/navigation";
 import Header from "../../components/header/header";
 import RegistrForm from "../../components/form/registrform";
@@ -22,11 +21,14 @@ export default function CoursePage() {
   const [courseId, setCourseId] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formType, setFormType] = useState<"register" | "auth">("register");
-  const [mounted, setMounted] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    if (params && typeof params.id === "string") {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (params?.id && typeof params.id === "string") {
       setCourseId(params.id);
     }
   }, [params]);
@@ -84,30 +86,32 @@ export default function CoursePage() {
           </div>
         )}
       </main>
-      {mounted &&
-        isFormOpen &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div className={pageStyles.modalOverlay} onClick={handleCloseForm}>
-            <div
-              className={pageStyles.modalContent}
-              onClick={(e) => e.stopPropagation()}
+      {isMounted && isFormOpen && (
+        <div 
+          className={pageStyles.modalOverlay} 
+          onClick={handleCloseForm}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className={pageStyles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className={pageStyles.closeButton}
+              onClick={handleCloseForm}
+              aria-label="Закрыть"
             >
-              <button
-                className={pageStyles.closeButton}
-                onClick={handleCloseForm}
-              >
-                ×
-              </button>
-              {formType === "register" ? (
-                <RegistrForm onSwitchToAuth={handleSwitchToAuth} />
-              ) : (
-                <AuthForm onSwitchToRegister={handleSwitchToRegister} />
-              )}
-            </div>
-          </div>,
-          document.body
-        )}
+              ×
+            </button>
+            {formType === "register" ? (
+              <RegistrForm onSwitchToAuth={handleSwitchToAuth} />
+            ) : (
+              <AuthForm onSwitchToRegister={handleSwitchToRegister} />
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
