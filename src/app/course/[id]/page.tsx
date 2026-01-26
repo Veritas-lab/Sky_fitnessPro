@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useParams } from "next/navigation";
 import Header from "../../components/header/header";
 import RegistrForm from "../../components/form/registrform";
@@ -21,8 +22,10 @@ export default function CoursePage() {
   const [courseId, setCourseId] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formType, setFormType] = useState<"register" | "auth">("register");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (params && typeof params.id === "string") {
       setCourseId(params.id);
     }
@@ -67,29 +70,44 @@ export default function CoursePage() {
         {courseId && (
           <div className={styles.courseFrame}>
             <h2 className={styles.courseTitle}>Подойдет для вас, если:</h2>
+            <div className={styles.courseTextBlocksContainer}>
+              <div className={styles.courseTextBlock}>
+                <span className={styles.courseTextNumber}>1</span>
+                <p className={styles.courseTextDescription}>
+                  Давно хотели попробовать йогу, но не решались начать
+                </p>
+              </div>
+              <div className={styles.courseTextBlock2}>
+                <span className={styles.courseTextNumber2}>2</span>
+              </div>
+            </div>
           </div>
         )}
       </main>
-      {isFormOpen && (
-        <div className={pageStyles.modalOverlay} onClick={handleCloseForm}>
-          <div
-            className={pageStyles.modalContent}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className={pageStyles.closeButton}
-              onClick={handleCloseForm}
+      {mounted &&
+        isFormOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className={pageStyles.modalOverlay} onClick={handleCloseForm}>
+            <div
+              className={pageStyles.modalContent}
+              onClick={(e) => e.stopPropagation()}
             >
-              ×
-            </button>
-            {formType === "register" ? (
-              <RegistrForm onSwitchToAuth={handleSwitchToAuth} />
-            ) : (
-              <AuthForm onSwitchToRegister={handleSwitchToRegister} />
-            )}
-          </div>
-        </div>
-      )}
+              <button
+                className={pageStyles.closeButton}
+                onClick={handleCloseForm}
+              >
+                ×
+              </button>
+              {formType === "register" ? (
+                <RegistrForm onSwitchToAuth={handleSwitchToAuth} />
+              ) : (
+                <AuthForm onSwitchToRegister={handleSwitchToRegister} />
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   );
 }

@@ -51,6 +51,89 @@
   margin: 0;
 }
 
+.courseTextBlocksContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 17px;
+  margin-top: 20px;
+}
+
+.courseTextBlock {
+  width: 368px;
+  height: 141px;
+  border-radius: 28px;
+  padding: 20px;
+  gap: 10px;
+  background: linear-gradient(115.81deg, #151720 34.98%, #1E212E 91.5%);
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.courseTextNumber {
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 75px;
+  line-height: 135%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  width: 35px;
+  height: 101px;
+  transform: rotate(0deg);
+  opacity: 1;
+  color: #BCEC30;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.courseTextDescription {
+  width: 268px;
+  height: 78px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #FFFFFF;
+  margin: 0;
+  flex-shrink: 0;
+  padding-top: 12px;
+}
+
+.courseTextBlock2 {
+  width: 431px;
+  height: 141px;
+  border-radius: 28px;
+  padding: 20px;
+  gap: 10px;
+  background: linear-gradient(115.81deg, #151720 34.98%, #1E212E 91.5%);
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.courseTextNumber2 {
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 75px;
+  line-height: 135%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  width: 43px;
+  height: 101px;
+  transform: rotate(0deg);
+  opacity: 1;
+  color: #BCEC30;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
 /* Мобильная версия */
 @media (max-width: 768px) {
   .courseMain {
