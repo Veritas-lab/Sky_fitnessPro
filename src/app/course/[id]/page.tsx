@@ -25,11 +25,16 @@ export default function CoursePage() {
 
   useEffect(() => {
     setIsMounted(true);
+    return () => {
+      setIsMounted(false);
+    };
   }, []);
 
   useEffect(() => {
     if (params?.id && typeof params.id === "string") {
       setCourseId(params.id);
+    } else {
+      setCourseId("");
     }
   }, [params]);
 
@@ -58,35 +63,106 @@ export default function CoursePage() {
     <>
       <Header onLoginClick={handleLoginClick} />
       <main className={styles.courseMain}>
-        <div className={styles.courseImageContainer}>
-          {courseId ? (
-            <img
-              src={courseImage}
-              alt={courseId}
-              className={styles.courseImage}
-            />
-          ) : (
-            <div>Загрузка...</div>
-          )}
-        </div>
-        {courseId && (
-          <div className={styles.courseFrame}>
-            <h2 className={styles.courseTitle}>Подойдет для вас, если:</h2>
-            <div className={styles.courseTextBlocksContainer}>
-              <div className={styles.courseTextBlock}>
-                <span className={styles.courseTextNumber}>1</span>
-                <p className={styles.courseTextDescription}>
-                  Давно хотели попробовать йогу, но не решались начать
-                </p>
-              </div>
-              <div className={styles.courseTextBlock2}>
-                <span className={styles.courseTextNumber2}>2</span>
-              </div>
-              <div className={styles.courseTextBlock3}>
-                {/* Контент будет добавлен */}
-              </div>
+        {isMounted && (
+          <>
+            <div className={styles.courseImageContainer}>
+              {courseId ? (
+                <img
+                  src={courseImage}
+                  alt={courseId}
+                  className={styles.courseImage}
+                />
+              ) : (
+                <div>Загрузка...</div>
+              )}
             </div>
-          </div>
+            {courseId && (
+              <div className={styles.courseFrame}>
+                <h2 className={styles.courseTitle}>Подойдет для вас, если:</h2>
+                <div className={styles.courseTextBlocksContainer}>
+                  <div className={styles.courseTextBlock}>
+                    <span className={styles.courseTextNumber}>1</span>
+                    <p className={styles.courseTextDescription}>
+                      Давно хотели попробовать йогу, но не решались начать
+                    </p>
+                  </div>
+                  <div className={styles.courseTextBlock2}>
+                    <span className={styles.courseTextNumber2}>2</span>
+                    <p className={styles.courseTextDescription2}>
+                      Хотите укрепить позвоночник, избавиться от болей в спине и суставах
+                    </p>
+                  </div>
+                  <div className={styles.courseTextBlock3}>
+                    <span className={styles.courseTextNumber3}>3</span>
+                    <p className={styles.courseTextDescription}>
+                      Ищете активность, полезную для тела и души
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {courseId && (
+              <div className={styles.directionsSection}>
+                <h2 className={styles.directionsTitle}>Направления</h2>
+                <div className={styles.directionsFrame}>
+                  <div className={styles.directionBlock}>
+                    <div className={styles.directionItem}>
+                      <img 
+                        src="/img/Sparcle.svg" 
+                        alt="icon" 
+                        className={styles.directionsIcon}
+                      />
+                      <span className={styles.directionsText}>Йога для новичков</span>
+                    </div>
+                    <div className={styles.directionItem}>
+                      <img 
+                        src="/img/Sparcle.svg" 
+                        alt="icon" 
+                        className={styles.directionsIcon}
+                      />
+                      <span className={styles.directionsText}>Классическая йога</span>
+                    </div>
+                  </div>
+                  <div className={styles.directionBlock}>
+                    <div className={styles.directionItem}>
+                      <img 
+                        src="/img/Sparcle.svg" 
+                        alt="icon" 
+                        className={styles.directionsIcon}
+                      />
+                      <span className={styles.directionsText}>Кундалини-йога</span>
+                    </div>
+                    <div className={styles.directionItem}>
+                      <img 
+                        src="/img/Sparcle.svg" 
+                        alt="icon" 
+                        className={styles.directionsIcon}
+                      />
+                      <span className={styles.directionsText}>Йогатерапия</span>
+                    </div>
+                  </div>
+                  <div className={styles.directionBlock}>
+                    <div className={styles.directionItem}>
+                      <img 
+                        src="/img/Sparcle.svg" 
+                        alt="icon" 
+                        className={styles.directionsIcon}
+                      />
+                      <span className={styles.directionsText}>Хатха-йога</span>
+                    </div>
+                    <div className={styles.directionItem}>
+                      <img 
+                        src="/img/Sparcle.svg" 
+                        alt="icon" 
+                        className={styles.directionsIcon}
+                      />
+                      <span className={styles.directionsText}>Аштанга-йога</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
       {isMounted && isFormOpen && (

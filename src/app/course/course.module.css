@@ -134,6 +134,24 @@
   flex-shrink: 0;
 }
 
+.courseTextDescription2 {
+  width: 323px;
+  height: 78px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #FFFFFF;
+  margin: 0;
+  flex-shrink: 0;
+  padding-top: 12px;
+}
+
 .courseTextBlock3 {
   width: 327px;
   height: 141px;
@@ -144,6 +162,107 @@
   display: flex;
   flex-direction: row;
   align-items: flex-start;
+}
+
+.courseTextNumber3 {
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 75px;
+  line-height: 135%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  width: 43px;
+  height: 101px;
+  transform: rotate(0deg);
+  opacity: 1;
+  color: #BCEC30;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.directionsSection {
+  width: 1160px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 60px;
+}
+
+.directionsTitle {
+  width: 810px;
+  height: 44px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+  font-size: 40px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  margin: 0;
+  margin-bottom: 20px;
+}
+
+.directionsFrame {
+  width: 1160px;
+  height: 146px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 28px;
+  padding: 30px;
+  background: #BCEC30;
+  display: flex;
+  flex-direction: row;
+  gap: 124px;
+  align-items: center;
+}
+
+.directionBlock {
+  width: 284px;
+  height: 86px;
+  gap: 34px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 28px;
+  padding: 30px;
+  background: #BCEC30;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.directionItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.directionsIcon {
+  width: 26px;
+  height: 26px;
+  transform: rotate(0deg);
+  opacity: 1;
+  flex-shrink: 0;
+}
+
+.directionsText {
+  width: 250px;
+  height: 26px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 /* Мобильная версия */
