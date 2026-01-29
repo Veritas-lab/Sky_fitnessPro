@@ -25,9 +25,6 @@ export default function CoursePage() {
 
   useEffect(() => {
     setIsMounted(true);
-    return () => {
-      setIsMounted(false);
-    };
   }, []);
 
   useEffect(() => {
@@ -162,15 +159,40 @@ export default function CoursePage() {
                 </div>
               </div>
             )}
+            {courseId && (
+              <div className={styles.courseContentBlock}>
+                <img 
+                  src="/img/runner.png" 
+                  alt="runner" 
+                  className={styles.courseRunnerImage}
+                />
+                <div className={styles.courseContentRight}>
+                  <h2 className={styles.courseContentTitle}>
+                    Начните путь<br />к новому телу
+                  </h2>
+                  <ul className={styles.courseContentList}>
+                    <li>проработка всех групп мышц</li>
+                    <li>тренировка суставов</li>
+                    <li>улучшение циркуляции крови</li>
+                    <li>упражнения заряжают бодростью</li>
+                    <li>помогают противостоять стрессам</li>
+                  </ul>
+                  <button className={styles.courseContentButton}>
+                    Войдите, чтобы добавить курс
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </main>
-      {isMounted && isFormOpen && (
+      {isMounted && isFormOpen ? (
         <div 
           className={pageStyles.modalOverlay} 
           onClick={handleCloseForm}
           role="dialog"
           aria-modal="true"
+          suppressHydrationWarning
         >
           <div
             className={pageStyles.modalContent}
@@ -180,6 +202,7 @@ export default function CoursePage() {
               className={pageStyles.closeButton}
               onClick={handleCloseForm}
               aria-label="Закрыть"
+              type="button"
             >
               ×
             </button>
@@ -190,7 +213,7 @@ export default function CoursePage() {
             )}
           </div>
         </div>
-      )}
+      ) : null}
     </>
   );
 }
