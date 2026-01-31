@@ -1,0 +1,130 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modalContent {
+  position: absolute;
+  top: 120px;
+  left: 1034px;
+  width: 266px;
+  height: 258px;
+  background: #ffffff;
+  border-radius: 30px;
+  padding: 30px;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.userName {
+  font-family: "Roboto", sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+  color: #000000;
+  margin: 0 0 8px 0;
+  padding: 0;
+  text-align: center;
+}
+
+.userEmail {
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #666666;
+  margin: 0 0 20px 0;
+  padding: 0;
+  text-align: center;
+}
+
+.buttonsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 12px;
+  padding: 0;
+}
+
+.profileButton {
+  width: 100%;
+  padding: 16px 32px;
+  border-radius: 46px;
+  border: none;
+  background: #bcec30;
+  color: #000000;
+  font-family: "Roboto", sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.profileButton:hover {
+  opacity: 0.9;
+}
+
+.profileButton:active {
+  transform: scale(0.98);
+}
+
+.logoutButton {
+  width: 100%;
+  padding: 16px 32px;
+  border-radius: 46px;
+  border: 1px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  font-family: "Roboto", sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s, background 0.2s;
+}
+
+.logoutButton:hover {
+  opacity: 0.8;
+  background: #f5f5f5;
+}
+
+.logoutButton:active {
+  transform: scale(0.98);
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+  .modalContent {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 300px;
+    height: auto;
+    min-height: 258px;
+    padding: 30px 20px;
+    gap: 24px;
+  }
+
+  .userName {
+    font-size: 20px;
+  }
+
+  .userEmail {
+    font-size: 14px;
+  }
+
+  .profileButton,
+  .logoutButton {
+    font-size: 16px;
+    padding: 14px 24px;
+  }
+}

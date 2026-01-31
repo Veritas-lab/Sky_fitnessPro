@@ -36,7 +36,7 @@ const courseImages: Record<string, string> = {
 };
 
 const mockUser: User = {
-  email: "sergey.petrov96",
+  email: "sergey.petrov96@mail.ru",
   name: "Сергей",
   courses: [
     {
@@ -155,7 +155,9 @@ export default function ProfilePage() {
 
   return (
     <>
-      {user && isMounted && <AuthHeader userName={user.name} />}
+      {user && isMounted && (
+        <AuthHeader userName={user.name} userEmail={user.email} />
+      )}
       <main className={styles.main}>
         {isLoading ? (
           <div className={styles.container}>

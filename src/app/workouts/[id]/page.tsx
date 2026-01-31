@@ -135,7 +135,7 @@ export default function WorkoutPage() {
     <>
       {isMounted && userName && (
         <Suspense fallback={null}>
-          <AuthHeader userName={userName} />
+          <AuthHeader userName={userName} userEmail="sergey.petrov96@mail.ru" />
         </Suspense>
       )}
       <main className={styles.main}>
