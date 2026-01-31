@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import styles from "./registrform.module.css";
 
 interface RegistrFormProps {
@@ -9,7 +10,13 @@ interface RegistrFormProps {
 export default function RegistrForm({ onSwitchToAuth }: RegistrFormProps) {
   return (
     <form className={styles.registrForm}>
-      <img src="/img/logo.svg" alt="Sky Fitness Pro" className={styles.logo} />
+      <Image
+        src="/img/logo.svg"
+        alt="Sky Fitness Pro"
+        width={220}
+        height={35}
+        className={styles.logo}
+      />
       <div className={styles.formFrame}>
         <input
           type="email"

@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import Image from "next/image";
+import WorkoutSelectionModal from "../components/modal/workoutSelectionModal";
 import styles from "./profile.module.css";
 
 const AuthHeader = dynamic(() => import("../components/header/authHeader"), {
@@ -36,7 +38,7 @@ const courseImages: Record<string, string> = {
 };
 
 const mockUser: User = {
-  email: "sergey.petrov96",
+  email: "sergey.petrov96@mail.ru",
   name: "Сергей",
   courses: [
     {
@@ -77,6 +79,8 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const mountedRef = useRef(false);
 
   useLayoutEffect(() => {
@@ -148,14 +152,57 @@ export default function ProfilePage() {
 
   const handleStartWorkout = (course: Course) => {
     if (!mountedRef.current) return;
-    // TODO: Получить workoutId из API или использовать первый workout курса
-    const workoutId = course.workoutId || "workout1";
-    router.push(`/workouts/${workoutId}`);
+    setSelectedCourse(course);
+    setIsWorkoutModalOpen(true);
+  };
+
+  const handleCloseWorkoutModal = () => {
+    setIsWorkoutModalOpen(false);
+    setSelectedCourse(null);
+  };
+
+  // Mock данные тренировок для курса
+  const getWorkoutsForCourse = (courseId: string) => {
+    const workouts = [
+      {
+        id: "workout1",
+        name: "Утренняя практика",
+        subtitle: "Йога на каждый день",
+        day: 1,
+      },
+      {
+        id: "workout2",
+        name: "Красота и здоровье",
+        subtitle: "Йога на каждый день",
+        day: 2,
+      },
+      {
+        id: "workout3",
+        name: "Асаны стоя",
+        subtitle: "Йога на каждый день",
+        day: 3,
+      },
+      {
+        id: "workout4",
+        name: "Растягиваем мышцы бедра",
+        subtitle: "Йога на каждый день",
+        day: 4,
+      },
+      {
+        id: "workout5",
+        name: "Гибкость спины",
+        subtitle: "Йога на каждый день",
+        day: 5,
+      },
+    ];
+    return workouts;
   };
 
   return (
     <>
-      {user && isMounted && <AuthHeader userName={user.name} />}
+      {user && isMounted && (
+        <AuthHeader userName={user.name} userEmail={user.email} />
+      )}
       <main className={styles.main}>
         {isLoading ? (
           <div className={styles.container}>
@@ -170,9 +217,11 @@ export default function ProfilePage() {
             <h1 className={styles.title}>Профиль</h1>
 
             <div className={styles.userInfoBlock}>
-              <img
+              <Image
                 src="/img/Profile_1.png"
                 alt="Profile"
+                width={200}
+                height={200}
                 className={styles.profileAvatar}
               />
               <div className={styles.userData}>
@@ -190,9 +239,10 @@ export default function ProfilePage() {
                 {user.courses.map((course) => (
                   <div key={course.id} className={styles.courseCard}>
                     <div className={styles.courseImageWrapper}>
-                      <img
+                      <Image
                         src={course.image}
                         alt={course.name}
+                        fill
                         className={styles.courseImage}
                       />
                       <button
@@ -201,9 +251,11 @@ export default function ProfilePage() {
                         aria-label="Удалить курс"
                         title="Удалить курс"
                       >
-                        <img
+                        <Image
                           src="/img/minus.svg"
                           alt="Удалить курс"
+                          width={30}
+                          height={30}
                           className={styles.deleteIcon}
                         />
                       </button>
@@ -213,9 +265,11 @@ export default function ProfilePage() {
                       <div className={styles.courseDetails}>
                         <div className={styles.firstRow}>
                           <div className={styles.daysBadge}>
-                            <img
+                            <Image
                               src="/img/calendar.svg"
                               alt="Calendar"
+                              width={16}
+                              height={16}
                               className={styles.calendarIcon}
                             />
                             <span className={styles.daysText}>
@@ -223,9 +277,11 @@ export default function ProfilePage() {
                             </span>
                           </div>
                           <div className={styles.clockBadge}>
-                            <img
+                            <Image
                               src="/img/clock.svg"
                               alt="Clock"
+                              width={16}
+                              height={16}
                               className={styles.clockIcon}
                             />
                             <span className={styles.clockText}>
@@ -235,9 +291,11 @@ export default function ProfilePage() {
                           </div>
                         </div>
                         <div className={styles.complexityBadge}>
-                          <img
+                          <Image
                             src="/img/complexity.svg"
                             alt="Complexity"
+                            width={16}
+                            height={16}
                             className={styles.complexityIcon}
                           />
                           <span className={styles.complexityText}>
@@ -280,6 +338,13 @@ export default function ProfilePage() {
           </div>
         )}
       </main>
+      {isWorkoutModalOpen && selectedCourse && (
+        <WorkoutSelectionModal
+          courseName={selectedCourse.name}
+          workouts={getWorkoutsForCourse(selectedCourse.id)}
+          onClose={handleCloseWorkoutModal}
+        />
+      )}
     </>
   );
 }

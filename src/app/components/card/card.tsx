@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./card.module.css";
 
 interface CardProps {
@@ -23,34 +24,52 @@ export default function Card({ title, image, courseName }: CardProps) {
     <Link href={courseUrl} className={styles.cardLink}>
       <div className={styles.card}>
         <div className={styles.imageContainer}>
-          <img src={image} alt={title} className={styles.cardImage} />
-          <img src="/img/plus.svg" alt="Add" className={styles.plusIcon} />
+          <Image
+            src={image}
+            alt={title}
+            width={360}
+            height={325}
+            className={styles.cardImage}
+          />
+          <Image
+            src="/img/plus.svg"
+            alt="Add"
+            width={30}
+            height={30}
+            className={styles.plusIcon}
+          />
         </div>
         <div className={styles.cardFrame}>
           <h3 className={styles.courseTitle}>{courseName}</h3>
           <div className={styles.badgesContainer}>
             <div className={styles.firstRow}>
               <div className={styles.daysBadge}>
-                <img
+                <Image
                   src="/img/calendar.svg"
                   alt="Calendar"
+                  width={16}
+                  height={16}
                   className={styles.calendarIcon}
                 />
                 <span className={styles.daysText}>25 дней</span>
               </div>
               <div className={styles.clockBadge}>
-                <img
+                <Image
                   src="/img/clock.svg"
                   alt="Clock"
+                  width={16}
+                  height={16}
                   className={styles.clockIcon}
                 />
                 <span className={styles.clockText}>20-50 мин/день</span>
               </div>
             </div>
             <div className={styles.complexityBadge}>
-              <img
+              <Image
                 src="/img/complexity.svg"
                 alt="Complexity"
+                width={16}
+                height={16}
                 className={styles.complexityIcon}
               />
               <span className={styles.complexityText}>Сложность</span>

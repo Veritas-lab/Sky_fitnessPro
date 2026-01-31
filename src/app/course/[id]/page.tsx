@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Image from "next/image";
 import Header from "../../components/header/header";
 import RegistrForm from "../../components/form/registrform";
 import AuthForm from "../../components/form/authform";
@@ -73,14 +74,16 @@ export default function CoursePage() {
         <div className={styles.courseImageContainer}>
           {courseId ? (
             <>
-              <img
+              <Image
                 src={courseCardImage}
                 alt={courseId}
+                fill
                 className={styles.courseImage}
               />
-              <img
+              <Image
                 src={courseImage}
                 alt={courseId}
+                fill
                 className={styles.courseImageMobile}
               />
             </>
@@ -120,9 +123,11 @@ export default function CoursePage() {
             <div className={styles.directionsFrame}>
               <div className={styles.directionBlock}>
                 <div className={styles.directionItem}>
-                  <img
+                  <Image
                     src="/img/Sparcle.svg"
                     alt="icon"
+                    width={24}
+                    height={24}
                     className={styles.directionsIcon}
                   />
                   <span className={styles.directionsText}>
@@ -130,9 +135,11 @@ export default function CoursePage() {
                   </span>
                 </div>
                 <div className={styles.directionItem}>
-                  <img
+                  <Image
                     src="/img/Sparcle.svg"
                     alt="icon"
+                    width={24}
+                    height={24}
                     className={styles.directionsIcon}
                   />
                   <span className={styles.directionsText}>
@@ -142,17 +149,21 @@ export default function CoursePage() {
               </div>
               <div className={styles.directionBlock}>
                 <div className={styles.directionItem}>
-                  <img
+                  <Image
                     src="/img/Sparcle.svg"
                     alt="icon"
+                    width={24}
+                    height={24}
                     className={styles.directionsIcon}
                   />
                   <span className={styles.directionsText}>Кундалини-йога</span>
                 </div>
                 <div className={styles.directionItem}>
-                  <img
+                  <Image
                     src="/img/Sparcle.svg"
                     alt="icon"
+                    width={24}
+                    height={24}
                     className={styles.directionsIcon}
                   />
                   <span className={styles.directionsText}>Йогатерапия</span>
@@ -160,17 +171,21 @@ export default function CoursePage() {
               </div>
               <div className={styles.directionBlock}>
                 <div className={styles.directionItem}>
-                  <img
+                  <Image
                     src="/img/Sparcle.svg"
                     alt="icon"
+                    width={24}
+                    height={24}
                     className={styles.directionsIcon}
                   />
                   <span className={styles.directionsText}>Хатха-йога</span>
                 </div>
                 <div className={styles.directionItem}>
-                  <img
+                  <Image
                     src="/img/Sparcle.svg"
                     alt="icon"
+                    width={24}
+                    height={24}
                     className={styles.directionsIcon}
                   />
                   <span className={styles.directionsText}>Аштанга-йога</span>
@@ -181,19 +196,25 @@ export default function CoursePage() {
         )}
         {courseId && (
           <>
-            <img
+            <Image
               src="/img/runner.png"
               alt="runner"
+              width={500}
+              height={500}
               className={styles.courseRunnerImage}
             />
-            <img
+            <Image
               src="/img/runner.png"
               alt="runner"
+              width={300}
+              height={300}
               className={styles.courseRunnerImageMobile}
             />
-            <img
+            <Image
               src="/img/vector.png"
               alt="vector"
+              width={200}
+              height={200}
               className={styles.courseVectorImageMobile}
             />
             <div className={styles.courseContentBlock}>
