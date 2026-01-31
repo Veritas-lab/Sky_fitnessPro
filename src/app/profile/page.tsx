@@ -220,8 +220,8 @@ export default function ProfilePage() {
               <Image
                 src="/img/Profile_1.png"
                 alt="Profile"
-                width={100}
-                height={100}
+                width={200}
+                height={200}
                 className={styles.profileAvatar}
               />
               <div className={styles.userData}>
@@ -242,8 +242,7 @@ export default function ProfilePage() {
                       <Image
                         src={course.image}
                         alt={course.name}
-                        width={360}
-                        height={325}
+                        fill
                         className={styles.courseImage}
                       />
                       <button

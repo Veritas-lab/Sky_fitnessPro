@@ -77,15 +77,13 @@ export default function CoursePage() {
               <Image
                 src={courseCardImage}
                 alt={courseId}
-                width={1160}
-                height={639}
+                fill
                 className={styles.courseImage}
               />
               <Image
                 src={courseImage}
                 alt={courseId}
-                width={343}
-                height={325}
+                fill
                 className={styles.courseImageMobile}
               />
             </>

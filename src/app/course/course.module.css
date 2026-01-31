@@ -10,6 +10,7 @@
 }
 
 .courseImageContainer {
+  position: relative;
   width: 1160px;
   height: 310px;
   transform: rotate(0deg);
@@ -436,6 +437,7 @@
   }
 
   .courseImageContainer {
+    position: relative;
     width: 343px;
     height: 389px;
   }
