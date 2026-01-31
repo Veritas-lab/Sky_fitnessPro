@@ -48,7 +48,7 @@
   position: relative;
   width: 1160px;
   height: 639px;
-  margin-top: 100px;
+  margin-top: 40px;
   overflow: hidden;
   border-radius: 30px;
   box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
@@ -77,7 +77,7 @@
   font-size: 32px;
   font-weight: 600;
   color: #000000;
-  margin: 0 0 30px 0;
+ 
 }
 
 .exercisesList {
@@ -89,7 +89,8 @@
 
 .exerciseItem {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
   padding: 12px 0;
 }
 
@@ -101,9 +102,24 @@
   margin: 0;
 }
 
+.progressBar {
+  width: 320px;
+  height: 6px;
+  border-radius: 50px;
+  background: #e0e0e0;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #bcec30;
+  border-radius: 50px;
+  transition: width 0.3s ease;
+}
+
 .actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .saveButton {
@@ -152,7 +168,7 @@
   }
 
   .exercisesTitle {
-    font-size: 24px;
+    font-size: 32px;
     margin-bottom: 20px;
   }
 
@@ -162,6 +178,10 @@
 
   .exerciseName {
     font-size: 14px;
+  }
+
+  .progressBar {
+    width: 100%;
   }
 
   .saveButton {

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect, Suspense } from "react";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import styles from "./workout.module.css";
 
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
   ssr: false,
+  loading: () => null,
 });
 
 interface Exercise {
@@ -53,16 +54,26 @@ export default function WorkoutPage() {
 
     // TODO: Получить имя пользователя из API или localStorage
     // Mock data для верстки
-    setUserName("Сергей");
+    const timer = setTimeout(() => {
+      if (mountedRef.current) {
+        setUserName("Сергей");
+      }
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
     if (!mountedRef.current || !workoutId) return;
 
+    let isCancelled = false;
+
     // TODO: Заменить на реальный API запрос
     // Mock data для верстки
     const timer = setTimeout(() => {
-      if (mountedRef.current) {
+      if (mountedRef.current && !isCancelled) {
         // Пример данных тренировки
         const mockWorkout: Workout = {
           _id: workoutId,
@@ -82,13 +93,16 @@ export default function WorkoutPage() {
             { _id: "9", name: "Поднятие ног, согнутых в коленях", quantity: 20 },
           ],
         };
-        setWorkout(mockWorkout);
-        setProgress(new Array(mockWorkout.exercises.length).fill(0));
-        setIsLoading(false);
+        if (mountedRef.current && !isCancelled) {
+          setWorkout(mockWorkout);
+          setProgress(new Array(mockWorkout.exercises.length).fill(0));
+          setIsLoading(false);
+        }
       }
     }, 0);
 
     return () => {
+      isCancelled = true;
       clearTimeout(timer);
     };
   }, [workoutId]);
@@ -112,13 +126,18 @@ export default function WorkoutPage() {
   };
 
   const getExerciseProgress = (index: number): number => {
-    if (!workout || !workout.exercises[index] || workout.exercises[index].quantity === 0) return 0;
-    return Math.round((progress[index] / workout.exercises[index].quantity) * 100);
+    if (!mountedRef.current || !workout || !workout.exercises || !workout.exercises[index] || workout.exercises[index].quantity === 0) return 0;
+    const currentProgress = progress[index] || 0;
+    return Math.round((currentProgress / workout.exercises[index].quantity) * 100);
   };
 
   return (
     <>
-      {isMounted && userName && <AuthHeader userName={userName} />}
+      {isMounted && userName && (
+        <Suspense fallback={null}>
+          <AuthHeader userName={userName} />
+        </Suspense>
+      )}
       <main className={styles.main}>
         {isLoading ? (
           <div className={styles.container}>
@@ -133,17 +152,19 @@ export default function WorkoutPage() {
             <h1 className={styles.title}>{workout.courseName || workout.name}</h1>
 
             {/* Видео секция */}
-            <div className={styles.videoSection}>
-              <div className={styles.videoWrapper}>
-                <iframe
-                  src={workout.video}
-                  title={workout.name}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className={styles.video}
-                />
+            {workout.video && (
+              <div className={styles.videoSection}>
+                <div className={styles.videoWrapper}>
+                  <iframe
+                    src={workout.video}
+                    title={workout.name}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className={styles.video}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Упражнения секция */}
             <div className={styles.exercisesSection}>
@@ -157,6 +178,14 @@ export default function WorkoutPage() {
                         <span className={styles.exerciseName}>
                           {exercise.name} {getExerciseProgress(index)}%
                         </span>
+                        <div className={styles.progressBar}>
+                          <div
+                            className={styles.progressFill}
+                            style={{
+                              width: `${getExerciseProgress(index)}%`,
+                            }}
+                          />
+                        </div>
                       </div>
                     ))
                   : null}
