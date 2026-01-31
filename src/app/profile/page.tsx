@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import styles from "./page.module.css";
+import styles from "./profile.module.css";
 
 const AuthHeader = dynamic(() => import("../components/header/authHeader"), {
   ssr: false,
@@ -17,6 +18,7 @@ interface Course {
   dailyDuration: { from: number; to: number };
   difficulty: string;
   progress: number;
+  workoutId?: string; // ID первой тренировки курса
 }
 
 interface User {
@@ -45,6 +47,7 @@ const mockUser: User = {
       dailyDuration: { from: 20, to: 50 },
       difficulty: "Сложность",
       progress: 40,
+      workoutId: "workout1",
     },
     {
       id: "stretching",
@@ -54,6 +57,7 @@ const mockUser: User = {
       dailyDuration: { from: 20, to: 50 },
       difficulty: "Сложность",
       progress: 0,
+      workoutId: "workout2",
     },
     {
       id: "fitness",
@@ -63,19 +67,28 @@ const mockUser: User = {
       dailyDuration: { from: 20, to: 50 },
       difficulty: "Сложность",
       progress: 100,
+      workoutId: "workout3",
     },
   ],
 };
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
-  const mountedRef = useRef(true);
+  const mountedRef = useRef(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     mountedRef.current = true;
     setIsMounted(true);
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mountedRef.current) return;
 
     // TODO: Заменить на реальный API запрос
     // Mock data для верстки
@@ -102,7 +115,6 @@ export default function ProfilePage() {
     // fetchUser();
 
     return () => {
-      mountedRef.current = false;
       clearTimeout(timer);
     };
   }, []);
@@ -132,6 +144,13 @@ export default function ProfilePage() {
     if (progress === 0) return "Начать тренировки";
     if (progress === 100) return "Начать заново";
     return "Продолжить";
+  };
+
+  const handleStartWorkout = (course: Course) => {
+    if (!mountedRef.current) return;
+    // TODO: Получить workoutId из API или использовать первый workout курса
+    const workoutId = course.workoutId || "workout1";
+    router.push(`/workouts/${workoutId}`);
   };
 
   return (
@@ -237,7 +256,10 @@ export default function ProfilePage() {
                           />
                         </div>
                       </div>
-                      <button className={styles.courseButton}>
+                      <button
+                        className={styles.courseButton}
+                        onClick={() => handleStartWorkout(course)}
+                      >
                         {getButtonText(course.progress)}
                       </button>
                     </div>
