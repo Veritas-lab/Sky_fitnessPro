@@ -1,0 +1,437 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.loading,
+.error {
+  font-family: "Roboto", sans-serif;
+  font-size: 18px;
+  text-align: center;
+  color: #000000;
+}
+
+.error {
+  color: #c33;
+}
+
+.main {
+  width: 100%;
+  min-height: calc(100vh - 200px);
+  padding: 40px 140px;
+}
+
+.profileContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  font-family: "Roboto", sans-serif;
+  font-size: 40px;
+  font-weight: 600;
+  font-style: normal;
+  color: #000000;
+  margin: 0 0 40px 0;
+}
+
+.userInfoBlock {
+  background: #ffffff;
+  border-radius: 30px;
+  padding: 40px;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  margin-bottom: 40px;
+}
+
+.profileAvatar {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.userData {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+
+.userName {
+  font-family: "Roboto", sans-serif;
+  font-size: 32px;
+  font-weight: 500;
+  color: #000000;
+  margin: 0;
+}
+
+.userLogin {
+  font-family: "Roboto", sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: #000000;
+  margin: 0;
+}
+
+.logoutButton {
+  width: 192px;
+  height: 52px;
+  gap: 10px;
+  border-radius: 46px;
+  padding-top: 16px;
+  padding-right: 26px;
+  padding-bottom: 16px;
+  padding-left: 26px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #000000;
+  background: transparent;
+  cursor: pointer;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 18px;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s, transform 0.2s, background 0.2s;
+  margin-top: 44px;
+  align-self: flex-start;
+}
+
+.logoutButton:hover {
+  opacity: 0.8;
+  background: #f5f5f5;
+}
+
+.logoutButton:active {
+  transform: scale(0.98);
+}
+
+.coursesTitle {
+  font-family: "Roboto", sans-serif;
+  font-size: 40px;
+  font-weight: 600;
+  font-style: normal;
+  color: #000000;
+  margin: 0 0 40px 0;
+}
+
+.coursesList {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.courseCard {
+  width: 360px;
+  height: 649px;
+  gap: 24px;
+  border-radius: 30px;
+  padding-bottom: 15px;
+  background: #ffffff;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.courseImageWrapper {
+  position: relative;
+  width: 360px;
+  height: 325px;
+  border-radius: 30px;
+  overflow: hidden;
+}
+
+.courseImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 30px;
+}
+
+.deleteButton {
+  position: absolute;
+  top: 23px;
+  right: 23px;
+  width: 27px;
+  height: 27px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.deleteButton:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.deleteIcon {
+  width: 27px;
+  height: 27px;
+  transform: rotate(0deg);
+  opacity: 1;
+  display: block;
+}
+
+.courseInfo {
+  padding: 0 24px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.courseName {
+  font-family: "Roboto", sans-serif;
+  font-size: 32px;
+  font-weight: 400;
+  color: #000000;
+}
+
+.courseDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.firstRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.daysBadge {
+  width: 103px;
+  height: 38px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 50px;
+  gap: 6px;
+  background: #f7f7f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clockBadge {
+  width: 163px;
+  height: 38px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 50px;
+  gap: 6px;
+  background: #f7f7f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendarIcon {
+  width: 15px;
+  height: 15px;
+  transform: rotate(0deg);
+  opacity: 1;
+  display: block;
+}
+
+.daysText {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 16px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  vertical-align: bottom;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #202020;
+}
+
+.clockIcon {
+  width: 15px;
+  height: 15px;
+  transform: rotate(0deg);
+  opacity: 1;
+  display: block;
+}
+
+.clockText {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 16px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  vertical-align: bottom;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #202020;
+}
+
+.complexityBadge {
+  width: 129px;
+  height: 38px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 50px;
+  gap: 6px;
+  background: #f7f7f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.complexityIcon {
+  width: 18px;
+  height: 18px;
+  transform: rotate(0deg);
+  opacity: 1;
+  display: block;
+}
+
+.complexityText {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 16px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  vertical-align: bottom;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #202020;
+}
+
+.progressSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progressText {
+  font-family: "Roboto", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #000000;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #4a90e2;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.courseButton {
+  width: 100%;
+  height: 52px;
+  border-radius: 46px;
+  padding: 16px 26px;
+  background: #bcec30;
+  border: none;
+  cursor: pointer;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s, transform 0.2s;
+  margin-top: auto;
+}
+
+.courseButton:hover {
+  opacity: 0.9;
+}
+
+.courseButton:active {
+  transform: scale(0.98);
+}
+
+.noCourses {
+  font-family: "Roboto", sans-serif;
+  font-size: 18px;
+  color: #666666;
+  text-align: center;
+  padding: 40px 0;
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+  .main {
+    padding: 20px 16px;
+  }
+
+  .title,
+  .coursesTitle {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 30px;
+  }
+
+  .userInfoBlock {
+    flex-direction: column;
+    padding: 24px;
+    gap: 20px;
+  }
+
+  .profileAvatar {
+    width: 150px;
+    height: 150px;
+    align-self: center;
+  }
+
+  .userData {
+    gap: 16px;
+  }
+
+  .userName {
+    font-size: 32px;
+  }
+
+  .userLogin {
+    font-size: 16px;
+  }
+
+  .logoutButton {
+    width: 100%;
+    margin-top: 44px;
+  }
+
+  .coursesList {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .courseImageWrapper {
+    height: 180px;
+  }
+
+  .courseInfo {
+    padding: 20px;
+  }
+
+  .courseName {
+    font-size: 20px;
+  }
+}
