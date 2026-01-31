@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../components/header/header";
 import RegistrForm from "../../components/form/registrform";
@@ -31,7 +31,7 @@ export default function CoursePage() {
   const [formType, setFormType] = useState<"register" | "auth">("register");
   const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setIsMounted(true);
   }, []);
 
@@ -201,7 +201,7 @@ export default function CoursePage() {
       </main>
       {isMounted && isFormOpen && (
         <div 
-          key="modal"
+          key={`modal-${isFormOpen}`}
           className={pageStyles.modalOverlay} 
           onClick={handleCloseForm}
           role="dialog"
