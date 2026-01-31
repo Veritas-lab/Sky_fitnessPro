@@ -1,0 +1,96 @@
+.header {
+  width: 100%;
+  padding-top: 50px;
+  padding-left: 140px;
+  padding-right: 143px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logoLink {
+  display: inline-block;
+  transform: rotate(0deg);
+  opacity: 1;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.logoLink:hover {
+  opacity: 0.8;
+}
+
+.logo {
+  display: block;
+  width: 220px;
+  height: 35px;
+}
+
+.profileBlock {
+  width: 168.36px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.profileBlock:hover {
+  opacity: 0.8;
+}
+
+.profileIcon {
+  width: 50px;
+  height: 50px;
+  display: block;
+}
+
+.userName {
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  white-space: nowrap;
+}
+
+.arrowIcon {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+  .header {
+    padding-top: 40px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .logo {
+    width: 180px;
+    height: 29px;
+  }
+
+  .profileBlock {
+    width: auto;
+    height: 40px;
+    gap: 12px;
+  }
+
+  .profileIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .userName {
+    font-size: 14px;
+  }
+
+  .arrowIcon {
+    width: 20px;
+    height: 20px;
+  }
+}
