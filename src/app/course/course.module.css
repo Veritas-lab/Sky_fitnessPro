@@ -317,13 +317,18 @@
   height: 604px;
   transform: rotate(-3deg);
   opacity: 1;
-position: absolute; 
-
+  position: absolute; 
   right: 32px;
-
   bottom: 17px;
-
   z-index: 2;
+}
+
+.courseRunnerImageMobile {
+  display: none;
+}
+
+.courseVectorImageMobile {
+  display: none;
 }
 
 .courseContentRight {
@@ -421,11 +426,12 @@ position: absolute;
 @media (max-width: 768px) {
   .courseMain {
     width: 375px;
-    height: 2075px;
-  
+    min-height: 2075px;
+    height: auto;
     padding-top: 40px;
     padding-left: 16px;
     padding-right: 16px;
+    position: relative;
   }
 
   .courseImageContainer {
@@ -515,7 +521,7 @@ position: absolute;
     flex-direction: column;
     gap: 24px;
     margin-top: 0;
-    margin-bottom: 0;
+    margin-bottom: 156px;
   }
 
   .courseFrame + .directionsSection {
@@ -555,8 +561,38 @@ position: absolute;
     font-size: 18px;
   }
 
-  .directionsSection + .courseContentBlock {
-    margin-top: 80px;
+
+  .courseRunnerImage {
+    display: none;
+  }
+
+  .courseRunnerImageMobile {
+    display: block;
+    width: 313px;
+    height: 348px;
+    position: absolute;
+    top: 1315px;
+    left: 97px;
+    right: auto;
+    bottom: auto;
+    transform: rotate(-2deg);
+    object-fit: contain;
+    z-index: 1;
+  }
+
+  .courseVectorImageMobile {
+    display: block;
+    width: 474px;
+    height: 369px;
+    position: absolute;
+    top: 1453px;
+    left: -54px;
+    right: auto;
+    bottom: auto;
+    transform: rotate(0deg);
+    opacity: 1;
+    object-fit: contain;
+    z-index: 0;
   }
 
   .courseContentBlock {
@@ -565,48 +601,19 @@ position: absolute;
     transform: rotate(0deg);
     opacity: 1;
     border-radius: 30px;
+    background: #FFFFFF;
+    box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
     margin-top: 0;
+    margin-bottom: 50px;
     flex-direction: column;
     padding: 20px;
     position: relative;
     overflow: visible;
-    
+    z-index: 10;
   }
 
   .courseContentBlock::before {
-    display: block;
-    content: "";
-    position: absolute;
-    width: 474.935546875px;
-    height: 369.5717468261719px;
-    top: -100px;
-    left: -54px;
-    right: auto;
-    bottom: auto;
-    transform: rotate(0deg);
-    opacity: 1;
-    background-image: url("/img/vector.png");
-    background-size: 474.935546875px 369.5717468261719px;
-    background-position: center;
-    background-repeat: no-repeat;
-    clip-path: none;
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  .courseRunnerImage {
-    display: block;
-    width: 388.77276055866236px;
-    height: 388.77276055866236px;
-    position: absolute;
-    top: -150px;
-    left: 60.52px;
-    right: auto;
-    bottom: auto;
-    transform: rotate(2.99deg);
-    opacity: 1;
-    object-fit: contain;
-    z-index: 1;
+    display: none;
   }
 
   .courseContentRight {
@@ -615,7 +622,6 @@ position: absolute;
     gap: 20px;
     position: relative;
     z-index: 10;
- 
   }
 
   .courseContentTitle {
@@ -631,6 +637,17 @@ position: absolute;
   }
 
   .courseContentButton {
-    width: 100%;
+    width: 283px;
+    height: 50px;
+    gap: 10px;
+    border-radius: 46px;
+    padding-top: 16px;
+    padding-right: 26px;
+    padding-bottom: 16px;
+    padding-left: 26px;
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 16px;
   }
 }

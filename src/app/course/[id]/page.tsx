@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../components/header/header";
 import RegistrForm from "../../components/form/registrform";
@@ -31,7 +31,7 @@ export default function CoursePage() {
   const [formType, setFormType] = useState<"register" | "auth">("register");
   const [isMounted, setIsMounted] = useState(false);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     setIsMounted(true);
   }, []);
 
@@ -175,33 +175,39 @@ export default function CoursePage() {
           </div>
         )}
         {courseId && (
-          <div className={styles.courseContentBlock}>
+          <>
             <img 
               src="/img/runner.png" 
               alt="runner" 
-              className={styles.courseRunnerImage}
+              className={styles.courseRunnerImageMobile}
             />
-            <div className={styles.courseContentRight}>
-              <h2 className={styles.courseContentTitle}>
-                Начните путь<br />к новому телу
-              </h2>
-              <ul className={styles.courseContentList}>
-                <li>проработка всех групп мышц</li>
-                <li>тренировка суставов</li>
-                <li>улучшение циркуляции крови</li>
-                <li>упражнения заряжают бодростью</li>
-                <li>помогают противостоять стрессам</li>
-              </ul>
-              <button className={styles.courseContentButton}>
-                Войдите, чтобы добавить курс
-              </button>
+            <img 
+              src="/img/vector.png" 
+              alt="vector" 
+              className={styles.courseVectorImageMobile}
+            />
+            <div className={styles.courseContentBlock}>
+              <div className={styles.courseContentRight}>
+                <h2 className={styles.courseContentTitle}>
+                  Начните путь<br />к новому телу
+                </h2>
+                <ul className={styles.courseContentList}>
+                  <li>проработка всех групп мышц</li>
+                  <li>тренировка суставов</li>
+                  <li>улучшение циркуляции крови</li>
+                  <li>упражнения заряжают бодростью</li>
+                  <li>помогают противостоять стрессам</li>
+                </ul>
+                <button className={styles.courseContentButton}>
+                  Войдите, чтобы добавить курс
+                </button>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </main>
       {isMounted && isFormOpen && (
         <div 
-          key={`modal-${isFormOpen}`}
           className={pageStyles.modalOverlay} 
           onClick={handleCloseForm}
           role="dialog"
