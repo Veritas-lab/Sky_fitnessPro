@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import styles from "./authform.module.css";
 
 interface AuthFormProps {
@@ -9,7 +10,13 @@ interface AuthFormProps {
 export default function AuthForm({ onSwitchToRegister }: AuthFormProps) {
   return (
     <form className={styles.authForm}>
-      <img src="/img/logo.svg" alt="Sky Fitness Pro" className={styles.logo} />
+      <Image
+        src="/img/logo.svg"
+        alt="Sky Fitness Pro"
+        width={220}
+        height={35}
+        className={styles.logo}
+      />
       <div className={styles.formFrame}>
         <input type="text" placeholder="Логин" className={styles.inputField} />
         <input

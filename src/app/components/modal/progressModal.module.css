@@ -9,20 +9,20 @@
 }
 
 .modalContent {
-  position: absolute;
-  top: 120px;
-  left: 1034px;
-  width: 266px;
-  height: 258px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 426px;
+  height: 595px;
   background: #ffffff;
   border-radius: 30px;
-  padding: 30px;
+  padding: 40px;
   box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0;
+  gap: 48px;
+  max-height: 80vh;
 }
 
 .closeButton {
@@ -49,36 +49,71 @@
   opacity: 0.7;
 }
 
-.userName {
+.title {
   font-family: "Roboto", sans-serif;
   font-size: 24px;
-  font-weight: 400;
+  font-weight: 600;
   color: #000000;
-  margin: 0 0 8px 0;
+  margin: 0;
   padding: 0;
   text-align: center;
 }
 
-.userEmail {
-  font-family: "Roboto", sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  color: #666666;
-  margin: 0 0 20px 0;
-  padding: 0;
-  text-align: center;
+.exercisesList {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 8px;
+  margin: 0;
 }
 
-.buttonsContainer {
+.exerciseItem {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  width: 100%;
-  margin: 12px;
+}
+
+.question {
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  margin: 0;
   padding: 0;
 }
 
-.profileButton {
+.progressInput {
+  width: 100%;
+  height: 48px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  background: #ffffff;
+  transition: border-color 0.2s;
+}
+
+.progressInput:focus {
+  outline: none;
+  border-color: #bcec30;
+}
+
+.progressInput::-webkit-inner-spin-button,
+.progressInput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.progressInput[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.saveButton {
   width: 100%;
   padding: 16px 32px;
   border-radius: 46px;
@@ -90,36 +125,15 @@
   font-weight: 400;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.2s;
+  margin: 0;
+  flex-shrink: 0;
 }
 
-.profileButton:hover {
+.saveButton:hover {
   opacity: 0.9;
 }
 
-.profileButton:active {
-  transform: scale(0.98);
-}
-
-.logoutButton {
-  width: 100%;
-  padding: 16px 32px;
-  border-radius: 46px;
-  border: 1px solid #000000;
-  background: #ffffff;
-  color: #000000;
-  font-family: "Roboto", sans-serif;
-  font-size: 18px;
-  font-weight: 400;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.2s, background 0.2s;
-}
-
-.logoutButton:hover {
-  opacity: 0.8;
-  background: #f5f5f5;
-}
-
-.logoutButton:active {
+.saveButton:active {
   transform: scale(0.98);
 }
 
@@ -131,30 +145,32 @@
     left: 50%;
     transform: translate(-50%, -50%);
     width: 90%;
-    max-width: 300px;
+    max-width: 426px;
     height: auto;
-    min-height: auto;
+    min-height: 400px;
+    max-height: 85vh;
     padding: 24px 20px;
-    gap: 0;
+    gap: 24px;
   }
 
-  .userName {
+  .title {
     font-size: 20px;
-    margin-bottom: 6px;
   }
 
-  .userEmail {
+  .exercisesList {
+    gap: 20px;
+  }
+
+  .question {
     font-size: 14px;
-    margin-bottom: 16px;
   }
 
-  .buttonsContainer {
-    margin: 0;
-    gap: 10px;
+  .progressInput {
+    height: 44px;
+    font-size: 14px;
   }
 
-  .profileButton,
-  .logoutButton {
+  .saveButton {
     font-size: 16px;
     padding: 14px 24px;
   }

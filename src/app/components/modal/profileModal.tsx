@@ -33,6 +33,9 @@ export default function ProfileModal({
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <button className={styles.closeButton} onClick={onClose}>
+          ×
+        </button>
         <h2 className={styles.userName}>{userName}</h2>
         <p className={styles.userEmail}>{userEmail}</p>
         <div className={styles.buttonsContainer}>

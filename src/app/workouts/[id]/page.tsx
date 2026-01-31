@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useLayoutEffect, Suspense } from "react";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import ProgressModal from "../../components/modal/progressModal";
+import SuccessModal from "../../components/modal/successModal";
 import styles from "./workout.module.css";
 
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
@@ -33,6 +35,8 @@ export default function WorkoutPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [progress, setProgress] = useState<number[]>([]);
   const [userName, setUserName] = useState<string>("Пользователь");
+  const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const mountedRef = useRef(false);
 
   useLayoutEffect(() => {
@@ -84,13 +88,25 @@ export default function WorkoutPage() {
           exercises: [
             { _id: "1", name: "Наклоны вперед", quantity: 15 },
             { _id: "2", name: "Наклоны назад", quantity: 10 },
-            { _id: "3", name: "Поднятие ног, согнутых в коленях", quantity: 20 },
+            {
+              _id: "3",
+              name: "Поднятие ног, согнутых в коленях",
+              quantity: 20,
+            },
             { _id: "4", name: "Наклоны вперед", quantity: 15 },
             { _id: "5", name: "Наклоны назад", quantity: 10 },
-            { _id: "6", name: "Поднятие ног, согнутых в коленях", quantity: 20 },
+            {
+              _id: "6",
+              name: "Поднятие ног, согнутых в коленях",
+              quantity: 20,
+            },
             { _id: "7", name: "Наклоны вперед", quantity: 15 },
             { _id: "8", name: "Наклоны назад", quantity: 10 },
-            { _id: "9", name: "Поднятие ног, согнутых в коленях", quantity: 20 },
+            {
+              _id: "9",
+              name: "Поднятие ног, согнутых в коленях",
+              quantity: 20,
+            },
           ],
         };
         if (mountedRef.current && !isCancelled) {
@@ -107,28 +123,48 @@ export default function WorkoutPage() {
     };
   }, [workoutId]);
 
-  const handleProgressChange = (index: number, value: number) => {
-    if (!mountedRef.current) return;
-    const newProgress = [...progress];
-    newProgress[index] = Math.max(0, Math.min(value, workout?.exercises[index].quantity || 0));
-    setProgress(newProgress);
+  const handleOpenProgressModal = () => {
+    if (!mountedRef.current || !workout) return;
+    setIsProgressModalOpen(true);
   };
 
-  const handleSaveProgress = () => {
-    if (!mountedRef.current || !workout || typeof window === "undefined") return;
+  const handleCloseProgressModal = () => {
+    if (!mountedRef.current) return;
+    setIsProgressModalOpen(false);
+  };
+
+  const handleSaveProgress = (newProgress: number[]) => {
+    if (!mountedRef.current || !workout || typeof window === "undefined")
+      return;
     try {
+      setProgress(newProgress);
       // TODO: Реализовать сохранение прогресса через API
-      console.log("Saving progress:", progress);
-      alert("Прогресс сохранен!");
-    } catch (error) {
+      console.log("Saving progress:", newProgress);
+      // Показываем модальное окно успеха
+      setIsSuccessModalOpen(true);
+    } catch {
       // Игнорируем ошибки
     }
   };
 
+  const handleCloseSuccessModal = () => {
+    if (!mountedRef.current) return;
+    setIsSuccessModalOpen(false);
+  };
+
   const getExerciseProgress = (index: number): number => {
-    if (!mountedRef.current || !workout || !workout.exercises || !workout.exercises[index] || workout.exercises[index].quantity === 0) return 0;
+    if (
+      !mountedRef.current ||
+      !workout ||
+      !workout.exercises ||
+      !workout.exercises[index] ||
+      workout.exercises[index].quantity === 0
+    )
+      return 0;
     const currentProgress = progress[index] || 0;
-    return Math.round((currentProgress / workout.exercises[index].quantity) * 100);
+    return Math.round(
+      (currentProgress / workout.exercises[index].quantity) * 100
+    );
   };
 
   return (
@@ -149,7 +185,9 @@ export default function WorkoutPage() {
           </div>
         ) : (
           <div className={styles.workoutContainer}>
-            <h1 className={styles.title}>{workout.courseName || workout.name}</h1>
+            <h1 className={styles.title}>
+              {workout.courseName || workout.name}
+            </h1>
 
             {/* Видео секция */}
             {workout.video && (
@@ -174,7 +212,10 @@ export default function WorkoutPage() {
               <div className={styles.exercisesList}>
                 {workout.exercises && workout.exercises.length > 0
                   ? workout.exercises.map((exercise, index) => (
-                      <div key={exercise._id || index} className={styles.exerciseItem}>
+                      <div
+                        key={exercise._id || index}
+                        className={styles.exerciseItem}
+                      >
                         <span className={styles.exerciseName}>
                           {exercise.name} {getExerciseProgress(index)}%
                         </span>
@@ -195,7 +236,7 @@ export default function WorkoutPage() {
               <div className={styles.actions}>
                 <button
                   className={styles.saveButton}
-                  onClick={handleSaveProgress}
+                  onClick={handleOpenProgressModal}
                 >
                   Заполнить свой прогресс
                 </button>
@@ -204,6 +245,17 @@ export default function WorkoutPage() {
           </div>
         )}
       </main>
+      {isProgressModalOpen && workout && (
+        <ProgressModal
+          exercises={workout.exercises}
+          initialProgress={progress}
+          onSave={handleSaveProgress}
+          onClose={handleCloseProgressModal}
+        />
+      )}
+      {isSuccessModalOpen && (
+        <SuccessModal onClose={handleCloseSuccessModal} autoCloseDelay={2000} />
+      )}
     </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import ProfileModal from "../modal/profileModal";
 import styles from "./authHeader.module.css";
 
@@ -32,17 +33,21 @@ export default function AuthHeader({
     <>
       <header className={styles.header}>
         <Link href="/" className={styles.logoLink}>
-          <img
+          <Image
             src="/img/logo.svg"
             alt="Sky Fitness Pro"
+            width={220}
+            height={35}
             className={styles.logo}
           />
         </Link>
         <div className={styles.profileBlock}>
           <Link href="/profile" className={styles.profileLink}>
-            <img
+            <Image
               src="/img/Profile.svg"
               alt="Profile"
+              width={24}
+              height={24}
               className={styles.profileIcon}
             />
             <span className={styles.userName}>{userName}</span>
@@ -52,7 +57,13 @@ export default function AuthHeader({
             onClick={handleArrowClick}
             aria-label="Открыть меню профиля"
           >
-            <img src="/img/strelka.svg" alt="Arrow" className={styles.arrowIcon} />
+            <Image
+              src="/img/strelka.svg"
+              alt="Arrow"
+              width={16}
+              height={16}
+              className={styles.arrowIcon}
+            />
           </button>
         </div>
       </header>
