@@ -200,6 +200,7 @@
   font-size: 32px;
   font-weight: 400;
   color: #000000;
+  margin-top: 0;
 }
 
 .courseDetails {
@@ -364,6 +365,18 @@
   opacity: 0.9;
 }
 
+.scrollTopButton {
+  display: none; /* Скрыта на десктопе */
+}
+
+.scrollTopButton:hover {
+  opacity: 0.9;
+}
+
+.scrollTopButton:active {
+  transform: scale(0.98);
+}
+
 .courseButton:active {
   transform: scale(0.98);
 }
@@ -384,29 +397,31 @@
 
   .title,
   .coursesTitle {
-    font-size: 28px;
-    font-weight: 600;
-    margin-bottom: 30px;
+    font-size: 24px;
+    font-weight: 500;
+    margin-bottom: 24px;
   }
 
   .userInfoBlock {
+    height: 365px;
     flex-direction: column;
-    padding: 24px;
+    padding: 30px;
     gap: 20px;
   }
 
   .profileAvatar {
-    width: 150px;
-    height: 150px;
+    width: 140px;
+    height: 140px;
     align-self: center;
+ 
   }
 
   .userData {
-    gap: 16px;
+    gap: 20px;
   }
 
   .userName {
-    font-size: 32px;
+    font-size: 24px;
   }
 
   .userLogin {
@@ -414,8 +429,19 @@
   }
 
   .logoutButton {
-    width: 100%;
-    margin-top: 44px;
+    width: 283px;
+    height: 50px;
+    gap: 10px;
+    border-radius: 46px;
+    padding: 0;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #000000;
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 16px;
+margin: 0 auto;
   }
 
   .coursesList {
@@ -423,15 +449,63 @@
     gap: 20px;
   }
 
+  .courseCard {
+    width: 343px;
+    height: 638px;
+    gap: 24px;
+    border-radius: 30px;
+    padding-bottom: 15px;
+  }
+
   .courseImageWrapper {
-    height: 180px;
+    width: 343px;
+    height: 325px;
+    border-radius: 30px;
   }
 
   .courseInfo {
-    padding: 20px;
+    padding: 0 20px 20px 20px;
   }
 
   .courseName {
     font-size: 20px;
+    margin-top: 0;
+  }
+
+  .courseButton {
+    margin-top: 40px;
+  }
+
+  .scrollTopButton {
+    display: flex; /* Показываем в мобильной версии */
+    align-items: center;
+    justify-content: center;
+    width: 127px;
+    height: 52px;
+    transform: rotate(0deg);
+    opacity: 1;
+    border-radius: 46px;
+    padding: 16px 26px;
+    gap: 8px;
+    background: #bcec30;
+    border: none;
+    cursor: pointer;
+    font-family: "Roboto", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: #000000;
+    margin-top: 24px;
+    margin-left: 216px;
+    transition:
+      opacity 0.2s,
+      transform 0.2s;
+  }
+
+  .scrollTopButton:hover {
+    opacity: 0.9;
+  }
+
+  .scrollTopButton:active {
+    transform: scale(0.98);
   }
 }

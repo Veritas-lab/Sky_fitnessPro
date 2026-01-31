@@ -24,11 +24,7 @@ export default function AuthHeader({ userName }: AuthHeaderProps) {
           className={styles.profileIcon}
         />
         <span className={styles.userName}>{userName}</span>
-        <img
-          src="/img/strelka.svg"
-          alt="Arrow"
-          className={styles.arrowIcon}
-        />
+        <img src="/img/strelka.svg" alt="Arrow" className={styles.arrowIcon} />
       </Link>
     </header>
   );
