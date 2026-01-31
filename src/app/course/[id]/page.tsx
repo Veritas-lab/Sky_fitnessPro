@@ -101,7 +101,8 @@ export default function CoursePage() {
               <div className={styles.courseTextBlock2}>
                 <span className={styles.courseTextNumber2}>2</span>
                 <p className={styles.courseTextDescription2}>
-                  Хотите укрепить позвоночник, избавиться от болей в спине и суставах
+                  Хотите укрепить позвоночник, избавиться от болей в спине и
+                  суставах
                 </p>
               </div>
               <div className={styles.courseTextBlock3}>
@@ -119,35 +120,39 @@ export default function CoursePage() {
             <div className={styles.directionsFrame}>
               <div className={styles.directionBlock}>
                 <div className={styles.directionItem}>
-                  <img 
-                    src="/img/Sparcle.svg" 
-                    alt="icon" 
+                  <img
+                    src="/img/Sparcle.svg"
+                    alt="icon"
                     className={styles.directionsIcon}
                   />
-                  <span className={styles.directionsText}>Йога для новичков</span>
+                  <span className={styles.directionsText}>
+                    Йога для новичков
+                  </span>
                 </div>
                 <div className={styles.directionItem}>
-                  <img 
-                    src="/img/Sparcle.svg" 
-                    alt="icon" 
+                  <img
+                    src="/img/Sparcle.svg"
+                    alt="icon"
                     className={styles.directionsIcon}
                   />
-                  <span className={styles.directionsText}>Классическая йога</span>
+                  <span className={styles.directionsText}>
+                    Классическая йога
+                  </span>
                 </div>
               </div>
               <div className={styles.directionBlock}>
                 <div className={styles.directionItem}>
-                  <img 
-                    src="/img/Sparcle.svg" 
-                    alt="icon" 
+                  <img
+                    src="/img/Sparcle.svg"
+                    alt="icon"
                     className={styles.directionsIcon}
                   />
                   <span className={styles.directionsText}>Кундалини-йога</span>
                 </div>
                 <div className={styles.directionItem}>
-                  <img 
-                    src="/img/Sparcle.svg" 
-                    alt="icon" 
+                  <img
+                    src="/img/Sparcle.svg"
+                    alt="icon"
                     className={styles.directionsIcon}
                   />
                   <span className={styles.directionsText}>Йогатерапия</span>
@@ -155,17 +160,17 @@ export default function CoursePage() {
               </div>
               <div className={styles.directionBlock}>
                 <div className={styles.directionItem}>
-                  <img 
-                    src="/img/Sparcle.svg" 
-                    alt="icon" 
+                  <img
+                    src="/img/Sparcle.svg"
+                    alt="icon"
                     className={styles.directionsIcon}
                   />
                   <span className={styles.directionsText}>Хатха-йога</span>
                 </div>
                 <div className={styles.directionItem}>
-                  <img 
-                    src="/img/Sparcle.svg" 
-                    alt="icon" 
+                  <img
+                    src="/img/Sparcle.svg"
+                    alt="icon"
                     className={styles.directionsIcon}
                   />
                   <span className={styles.directionsText}>Аштанга-йога</span>
@@ -176,20 +181,26 @@ export default function CoursePage() {
         )}
         {courseId && (
           <>
-            <img 
-              src="/img/runner.png" 
-              alt="runner" 
+            <img
+              src="/img/runner.png"
+              alt="runner"
+              className={styles.courseRunnerImage}
+            />
+            <img
+              src="/img/runner.png"
+              alt="runner"
               className={styles.courseRunnerImageMobile}
             />
-            <img 
-              src="/img/vector.png" 
-              alt="vector" 
+            <img
+              src="/img/vector.png"
+              alt="vector"
               className={styles.courseVectorImageMobile}
             />
             <div className={styles.courseContentBlock}>
               <div className={styles.courseContentRight}>
                 <h2 className={styles.courseContentTitle}>
-                  Начните путь<br />к новому телу
+                  Начните путь
+                  <br />к новому телу
                 </h2>
                 <ul className={styles.courseContentList}>
                   <li>проработка всех групп мышц</li>
@@ -207,12 +218,11 @@ export default function CoursePage() {
         )}
       </main>
       {isMounted && isFormOpen && (
-        <div 
-          className={pageStyles.modalOverlay} 
+        <div
+          className={pageStyles.modalOverlay}
           onClick={handleCloseForm}
           role="dialog"
           aria-modal="true"
-          suppressHydrationWarning
         >
           <div
             className={pageStyles.modalContent}
