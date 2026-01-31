@@ -1,0 +1,656 @@
+.courseMain {
+  width: 100%;
+  padding-top: 60px;
+  padding-left: 140px;
+  padding-right: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.courseImageContainer {
+  width: 1160px;
+  height: 310px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 30px;
+  overflow: hidden;
+}
+
+.courseImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 30px;
+  display: block;
+}
+
+.courseImageMobile {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 30px;
+  display: none;
+}
+
+.courseFrame {
+  width: 1160px;
+  height: 225px;
+  transform: rotate(0deg);
+  opacity: 1;
+  gap: 17px;
+  margin-top: 60px;
+  display: flex;
+  flex-direction: column;
+}
+
+.courseTitle {
+  width: 810px;
+  height: 44px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+  font-size: 40px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  margin: 0;
+}
+
+.courseTextBlocksContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 17px;
+  margin-top: 20px;
+}
+
+.courseTextBlock {
+  width: 368px;
+  height: 141px;
+  border-radius: 28px;
+  padding: 20px;
+  gap: 10px;
+  background: linear-gradient(115.81deg, #151720 34.98%, #1E212E 91.5%);
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.courseTextNumber {
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 75px;
+  line-height: 135%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  width: 35px;
+  height: 101px;
+  transform: rotate(0deg);
+  opacity: 1;
+  color: #BCEC30;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.courseTextDescription {
+  width: 268px;
+  height: 78px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #FFFFFF;
+  margin: 0;
+  flex-shrink: 0;
+  padding-top: 12px;
+}
+
+.courseTextBlock2 {
+  width: 431px;
+  height: 141px;
+  border-radius: 28px;
+  padding: 20px;
+  gap: 10px;
+  background: linear-gradient(115.81deg, #151720 34.98%, #1E212E 91.5%);
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.courseTextNumber2 {
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 75px;
+  line-height: 135%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  width: 43px;
+  height: 101px;
+  transform: rotate(0deg);
+  opacity: 1;
+  color: #BCEC30;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.courseTextDescription2 {
+  width: 323px;
+  height: 78px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #FFFFFF;
+  margin: 0;
+  flex-shrink: 0;
+  padding-top: 12px;
+}
+
+.courseTextBlock3 {
+  width: 327px;
+  height: 141px;
+  border-radius: 28px;
+  padding: 20px;
+  gap: 10px;
+  background: linear-gradient(115.81deg, #151720 34.98%, #1E212E 91.5%);
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.courseTextNumber3 {
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 75px;
+  line-height: 135%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  width: 43px;
+  height: 101px;
+  transform: rotate(0deg);
+  opacity: 1;
+  color: #BCEC30;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.directionsSection {
+  width: 1160px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 60px;
+}
+
+.directionsTitle {
+  width: 810px;
+  height: 44px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+  font-size: 40px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  margin: 0;
+  margin-bottom: 20px;
+}
+
+.directionsFrame {
+  width: 1160px;
+  height: 146px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 28px;
+  padding: 30px;
+  background: #BCEC30;
+  display: flex;
+  flex-direction: row;
+  gap: 124px;
+  align-items: center;
+}
+
+.directionBlock {
+  width: 284px;
+  height: 86px;
+  gap: 34px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 28px;
+  padding: 30px;
+  background: #BCEC30;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.directionItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.directionsIcon {
+  width: 26px;
+  height: 26px;
+  transform: rotate(0deg);
+  opacity: 1;
+  flex-shrink: 0;
+}
+
+.directionsText {
+  width: 250px;
+  height: 26px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.courseContentBlock {
+  width: 1160px;
+  height: 486px;
+
+  opacity: 1;
+  border-radius: 30px;
+  background: #FFFFFF;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  margin-top: 102px;
+  margin-bottom: 50px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 40px;
+  position: relative;
+  overflow: visible;
+}
+
+.courseContentBlock::before {
+  content: "";
+  position: absolute;
+  width: 670px;
+  height: 391px;
+  top: 140px;
+  right: 23px;
+  left: 478px;
+  transform: rotate(-1deg);
+  background-image: url("/img/vector.png");
+  background-size: 670px 391px;
+  background-position: center;
+  background-repeat: no-repeat;
+  clip-path: inset(0 0 46px 0);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.courseRunnerImage {
+  width: 487px;
+  height: 545px;
+  position: absolute;
+  top: 930px;
+  left: calc(50% + 50px);
+  transform: rotate(-2deg);
+  opacity: 1;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.courseRunnerImageMobile {
+  display: none;
+}
+
+.courseVectorImageMobile {
+  display: none;
+}
+
+.courseContentRight {
+  width: 437px;
+  height: 406px;
+  gap: 28px;
+  transform: rotate(0deg);
+  opacity: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.courseContentTitle {
+  width: 398px;
+  height: 120px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 60px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  vertical-align: middle;
+  padding: 0;
+}
+
+.courseContentList {
+  width: 437px;
+  height: 178px;
+  transform: rotate(0deg);
+  opacity: 0.6;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  vertical-align: middle;
+}
+
+.courseContentList li {
+  margin: 0;
+  color: #000000;
+  position: relative;
+  padding-left: 20px;
+}
+
+.courseContentList li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #000000;
+  font-size: 24px;
+}
+
+.courseContentButton {
+  width: 437px;
+  height: 52px;
+  gap: 10px;
+  transform: rotate(0deg);
+  opacity: 1;
+  border-radius: 46px;
+  padding: 16px 26px;
+  background: #BCEC30;
+  border: none;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 18px;
+  line-height: 110%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  color: #000000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+  .courseMain {
+    width: 375px;
+    min-height: 2075px;
+    height: auto;
+    padding-top: 40px;
+    padding-left: 16px;
+    padding-right: 16px;
+    position: relative;
+  }
+
+  .courseImageContainer {
+    width: 343px;
+    height: 389px;
+  }
+
+  .courseImage {
+    display: none;
+  }
+
+  .courseImageMobile {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 30px;
+  }
+
+
+  .courseFrame {
+    width: 100%;
+    max-width: 343px;
+    height: auto;
+    min-height: 389px;
+    margin-top: 40px;
+    margin-bottom: 0;
+  }
+
+  .courseTitle {
+    width: 100%;
+    max-width: 327px;
+    height: auto;
+    font-size: 24px;
+    line-height: 110%;
+  }
+
+  .courseTextBlocksContainer {
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .courseTextBlock,
+  .courseTextBlock2,
+  .courseTextBlock3 {
+    width: 100%;
+    max-width: 343px;
+    height: 140px;
+    min-height: 100px;
+    padding: 16px;
+  }
+
+  .courseTextNumber,
+  .courseTextNumber2,
+  .courseTextNumber3 {
+ 
+    font-size: 75px;
+  
+  }
+
+  .courseTextDescription {
+    width: 243px;
+    height: 40px;
+ padding-top: 30px;
+
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px;
+   
+  }
+
+  .courseTextDescription2 {
+    width: 243px;
+    height: 40px;
+    padding-top: 10px;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px;
+  }
+
+  .directionsSection {
+    width: 343px;
+    height: auto;
+    min-height: 386px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .courseFrame + .directionsSection {
+    margin-top: 40px;
+  }
+
+  .directionsTitle {
+    width: 100%;
+    height: auto;
+    font-size: 24px;
+    margin-bottom: 20px;
+    margin-top: 0;
+  }
+
+  .directionsFrame {
+    width: 343px;
+    height: auto;
+
+    flex-direction: column;
+    gap: 24px;
+    
+  }
+
+  .directionBlock {
+    width: 283px;
+    height: 76px;
+    gap: 24px;
+    padding: 0;
+    margin: 0;
+  }
+
+  
+
+  .directionsText {
+    width: auto;
+    height: auto;
+    font-size: 18px;
+  }
+
+
+  .courseRunnerImage {
+    display: none;
+  }
+
+  .courseRunnerImageMobile {
+    display: block;
+    width: 313px;
+    height: 348px;
+    position: absolute;
+    top: 1315px;
+    left: 97px;
+    right: auto;
+    bottom: auto;
+    transform: rotate(-2deg);
+    object-fit: contain;
+    z-index: 1;
+  }
+
+  .courseVectorImageMobile {
+    display: block;
+    width: 474px;
+    height: 369px;
+    position: absolute;
+    top: 1453px;
+    left: -54px;
+    right: auto;
+    bottom: auto;
+    transform: rotate(0deg);
+    opacity: 1;
+    object-fit: contain;
+    z-index: 0;
+  }
+
+  .courseContentBlock {
+    width: 343px;
+    height: 412px;
+    transform: rotate(0deg);
+    opacity: 1;
+    border-radius: 30px;
+    background: #FFFFFF;
+    box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+    margin-top: 156px;
+    margin-bottom: 0;
+    flex-direction: column;
+    padding: 30px;
+    position: relative;
+    overflow: visible;
+    z-index: 10;
+  }
+
+  .courseContentBlock::before {
+    display: none;
+  }
+
+  .courseContentRight {
+    width: 100%;
+    height: 352px;
+    gap: 28px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .courseContentTitle {
+    width: 100%;
+    height: auto;
+    font-size: 32px;
+
+  }
+
+  .courseContentList {
+    width: 100%;
+    height: auto;
+    font-size: 18px;
+  
+  }
+
+  .courseContentButton {
+    width: 283px;
+    height: 50px;
+    gap: 10px;
+    border-radius: 46px;
+    padding-top: 16px;
+    padding-right: 26px;
+    padding-bottom: 16px;
+    padding-left: 26px;
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 16px;
+  }
+}

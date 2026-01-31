@@ -1,3 +1,17 @@
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
+}
+
+.cardLink:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
 .card {
   width: 360px;
   height: 501px;
@@ -11,6 +25,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .imageContainer {
