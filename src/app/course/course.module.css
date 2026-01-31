@@ -23,6 +23,15 @@
   height: 100%;
   object-fit: cover;
   border-radius: 30px;
+  display: block;
+}
+
+.courseImageMobile {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 30px;
+  display: none;
 }
 
 .courseFrame {
@@ -290,22 +299,18 @@
   position: absolute;
   width: 670px;
   height: 391px;
-  top: 127px;
+  top: 140px;
   right: 23px;
   left: 478px;
-  transform: rotate(-3deg);
+  transform: rotate(-1deg);
   background-image: url("/img/vector.png");
   background-size: 670px 391px;
   background-position: center;
   background-repeat: no-repeat;
-  clip-path: inset(0 0 40px 0);
+  clip-path: inset(0 0 46px 0);
   z-index: 0;
   pointer-events: none;
 }
-
-
-
-
 
 .courseRunnerImage {
   width: 604x;
@@ -320,9 +325,6 @@ position: absolute;
 
   z-index: 2;
 }
-
-
-
 
 .courseContentRight {
   width: 437px;
@@ -418,22 +420,38 @@ position: absolute;
 /* Мобильная версия */
 @media (max-width: 768px) {
   .courseMain {
+    width: 375px;
+    height: 2075px;
+    transform: rotate(0deg);
+    opacity: 1;
     padding-top: 40px;
     padding-left: 16px;
     padding-right: 16px;
   }
 
   .courseImageContainer {
-    width: 100%;
-    max-width: 343px;
-    height: 310px;
+    width: 343px;
+    height: 389px;
   }
+
+  .courseImage {
+    display: none;
+  }
+
+  .courseImageMobile {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 30px;
+  }
+
 
   .courseFrame {
     width: 100%;
     max-width: 343px;
-    height: 225px;
-  
+    height: 389px;
+    margin-top: 40px;
   }
 
   .courseTitle {
@@ -442,5 +460,170 @@ position: absolute;
     height: auto;
     font-size: 24px;
     line-height: 110%;
+  }
+
+  .courseTextBlocksContainer {
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .courseTextBlock,
+  .courseTextBlock2,
+  .courseTextBlock3 {
+    width: 100%;
+    max-width: 343px;
+    height: 140px;
+    min-height: 100px;
+    padding: 16px;
+  }
+
+  .courseTextNumber,
+  .courseTextNumber2,
+  .courseTextNumber3 {
+ 
+    font-size: 75px;
+  
+  }
+
+  .courseTextDescription {
+    width: 243px;
+    height: 40px;
+ padding-top: 30px;
+
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px;
+   
+  }
+
+  .courseTextDescription2 {
+    width: 243px;
+    height: 40px;
+    padding-top: 10px;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px;
+  }
+
+  .directionsSection {
+    width: 343px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 40px;
+  }
+
+  .courseFrame + .directionsSection {
+    margin-top: 40px;
+  }
+
+  .directionsTitle {
+    width: 100%;
+    height: auto;
+    font-size: 24px;
+    margin-bottom: 0;
+    margin-top: 120px;
+  }
+
+  .directionsFrame {
+    width: 343px;
+    height: 336px;
+
+
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .directionBlock {
+    width: 283px;
+    height: 76px;
+    gap: 24px;
+    padding: 30px;
+
+ 
+  }
+
+  .directionsText {
+    width: auto;
+    height: auto;
+    font-size: 18px;
+  }
+
+  .directionsSection + .courseContentBlock {
+    margin-top: 80px;
+  }
+
+  .courseContentBlock {
+    width: 343px;
+    height: 389px;
+    transform: rotate(0deg);
+    opacity: 1;
+    border-radius: 30px;
+    margin-top: 0;
+    flex-direction: column;
+    padding: 20px;
+    position: relative;
+    overflow: visible;
+  }
+
+  .courseContentBlock::before {
+    display: block;
+    content: "";
+    position: fixed;
+    width: 474.935546875px;
+    height: 369.5717468261719px;
+    top: 1453.92px;
+    left: -54px;
+    right: auto;
+    bottom: auto;
+    transform: rotate(0deg);
+    opacity: 1;
+    background-image: url("/img/vector.png");
+    background-size: 474.935546875px 369.5717468261719px;
+    background-position: center;
+    background-repeat: no-repeat;
+    clip-path: none;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .courseRunnerImage {
+    display: block;
+    width: 388.77276055866236px;
+    height: 388.77276055866236px;
+    position: fixed;
+    top: 1356.48px;
+    left: 60.52px;
+    right: auto;
+    bottom: auto;
+    transform: rotate(2.99deg);
+    opacity: 1;
+    object-fit: contain;
+    z-index: 0;
+  }
+
+  .courseContentRight {
+    width: 100%;
+    height: auto;
+    gap: 20px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .courseContentTitle {
+    width: 100%;
+    height: auto;
+    font-size: 32px;
+  }
+
+  .courseContentList {
+    width: 100%;
+    height: auto;
+    font-size: 18px;
+  }
+
+  .courseContentButton {
+    width: 100%;
   }
 }
