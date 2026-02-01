@@ -177,11 +177,18 @@ export default function WorkoutPage() {
                 const course = authData.courses.find((c) => c.id === courseId);
                 
                 if (course && course.workouts && course.workouts[workoutId]) {
-                  savedProgress = course.workouts[workoutId];
+                  const loadedProgress = course.workouts[workoutId];
+                  if (Array.isArray(loadedProgress) && loadedProgress.length === mockWorkout.exercises.length) {
+                    savedProgress = loadedProgress.map((val, idx) => {
+                      const numVal = typeof val === "number" ? val : parseInt(String(val)) || 0;
+                      const maxVal = mockWorkout.exercises[idx]?.quantity || 0;
+                      return Math.max(0, Math.min(numVal, maxVal));
+                    });
+                  }
                 }
               }
             } catch {
-              // Игнорируем ошибки
+              // Игнорируем ошибки, используем значения по умолчанию
             }
           }
           
@@ -212,7 +219,7 @@ export default function WorkoutPage() {
   };
 
   const calculateCourseProgress = (course: Course): number => {
-    if (!course.workouts || Object.keys(course.workouts).length === 0) {
+    if (!course || !course.workouts || Object.keys(course.workouts).length === 0) {
       return 0;
     }
 
@@ -222,24 +229,42 @@ export default function WorkoutPage() {
     }
 
     const totalWorkoutsInCourse = 5;
+    if (totalWorkoutsInCourse <= 0) {
+      return 0;
+    }
+
     let completedWorkouts = 0;
 
     workoutIds.forEach((workoutId) => {
-      const workoutProgress = course.workouts?.[workoutId];
-      if (workoutProgress && workoutProgress.length > 0) {
-        const hasProgress = workoutProgress.some((val) => val > 0);
-        if (hasProgress) {
-          completedWorkouts++;
+      try {
+        const workoutProgress = course.workouts?.[workoutId];
+        if (Array.isArray(workoutProgress) && workoutProgress.length > 0) {
+          const hasProgress = workoutProgress.some((val) => {
+            const numVal = typeof val === "number" ? val : parseInt(String(val)) || 0;
+            return numVal > 0;
+          });
+          if (hasProgress) {
+            completedWorkouts++;
+          }
         }
+      } catch {
+        // Игнорируем ошибки при обработке прогресса тренировки
       }
     });
 
-    return Math.min(100, Math.round((completedWorkouts / totalWorkoutsInCourse) * 100));
+    const progress = (completedWorkouts / totalWorkoutsInCourse) * 100;
+    return Math.min(100, Math.max(0, Math.round(progress)));
   };
 
   const handleSaveProgress = (newProgress: number[]) => {
-    if (!mountedRef.current || !workout || typeof window === "undefined")
+    if (!mountedRef.current || !workout || typeof window === "undefined" || !workoutId) {
       return;
+    }
+
+    if (!Array.isArray(newProgress) || newProgress.length === 0) {
+      return;
+    }
+
     try {
       setProgress(newProgress);
 
@@ -249,8 +274,15 @@ export default function WorkoutPage() {
         return;
       }
 
-      const authData: AuthData & { courses?: Course[] } = JSON.parse(savedAuth);
-      if (!authData.courses || !workout.courseName) {
+      let authData: AuthData & { courses?: Course[] };
+      try {
+        authData = JSON.parse(savedAuth);
+      } catch {
+        setIsSuccessModalOpen(true);
+        return;
+      }
+
+      if (!authData.courses || !workout.courseName || !authData.userEmail) {
         setIsSuccessModalOpen(true);
         return;
       }
@@ -275,10 +307,25 @@ export default function WorkoutPage() {
         updatedCourse.progress = calculateCourseProgress(updatedCourse);
 
         authData.courses[courseIndex] = updatedCourse;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
         
-        const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
-        localStorage.setItem(HISTORY_KEY, JSON.stringify({ courses: authData.courses }));
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "QuotaExceededError") {
+            console.error("LocalStorage переполнен. Невозможно сохранить прогресс.");
+          }
+          setIsSuccessModalOpen(true);
+          return;
+        }
+        
+        try {
+          const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
+          localStorage.setItem(HISTORY_KEY, JSON.stringify({ courses: authData.courses }));
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "QuotaExceededError") {
+            console.error("LocalStorage переполнен. История не сохранена.");
+          }
+        }
       }
 
       setIsSuccessModalOpen(true);
