@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./profileModal.module.css";
 
@@ -17,23 +18,53 @@ export default function ProfileModal({
   onLogout,
 }: ProfileModalProps) {
   const router = useRouter();
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const handleProfileClick = () => {
-    onClose();
-    router.push("/profile");
+    if (!mountedRef.current) return;
+    mountedRef.current = false;
+    try {
+      onClose();
+      router.push("/profile");
+    } catch {
+      // Игнорируем ошибки
+    }
   };
 
   const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
+    if (!mountedRef.current) return;
+    mountedRef.current = false;
+    try {
+      if (onLogout) {
+        onLogout();
+      }
+      onClose();
+    } catch {
+      // Игнорируем ошибки
     }
-    onClose();
+  };
+
+  const handleClose = () => {
+    if (!mountedRef.current) return;
+    mountedRef.current = false;
+    try {
+      onClose();
+    } catch {
+      // Игнорируем ошибки при закрытии
+    }
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
+    <div className={styles.modalOverlay} onClick={handleClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeButton} onClick={onClose}>
+        <button className={styles.closeButton} onClick={handleClose}>
           ×
         </button>
         <h2 className={styles.userName}>{userName}</h2>

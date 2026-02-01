@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./card.module.css";
@@ -6,6 +9,8 @@ interface CardProps {
   title: string;
   image: string;
   courseName: string;
+  isAuthenticated?: boolean;
+  onAddCourse?: (courseId: string) => void;
 }
 
 const courseIdMap: Record<string, string> = {
@@ -16,9 +21,24 @@ const courseIdMap: Record<string, string> = {
   Bodyflex: "bodyflex",
 };
 
-export default function Card({ title, image, courseName }: CardProps) {
+export default function Card({
+  title,
+  image,
+  courseName,
+  isAuthenticated = false,
+  onAddCourse,
+}: CardProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
   const courseId = courseIdMap[title] || title.toLowerCase();
   const courseUrl = `/course/${courseId}`;
+
+  const handlePlusClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isAuthenticated && onAddCourse) {
+      onAddCourse(courseId);
+    }
+  };
 
   return (
     <Link href={courseUrl} className={styles.cardLink}>
@@ -31,13 +51,36 @@ export default function Card({ title, image, courseName }: CardProps) {
             height={325}
             className={styles.cardImage}
           />
-          <Image
-            src="/img/plus.svg"
-            alt="Add"
-            width={30}
-            height={30}
-            className={styles.plusIcon}
-          />
+          {isAuthenticated && (
+            <div
+              className={styles.plusIconContainer}
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+            >
+              <button
+                className={styles.plusIcon}
+                onClick={handlePlusClick}
+                aria-label="Добавить курс"
+                type="button"
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                }}
+              >
+                <Image
+                  src="/img/plus.svg"
+                  alt="Add"
+                  width={30}
+                  height={30}
+                />
+              </button>
+              {showTooltip && (
+                <div className={styles.tooltip}>Добавить курс</div>
+              )}
+            </div>
+          )}
         </div>
         <div className={styles.cardFrame}>
           <h3 className={styles.courseTitle}>{courseName}</h3>

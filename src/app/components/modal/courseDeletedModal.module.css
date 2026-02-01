@@ -1,0 +1,183 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+  backdrop-filter: blur(4px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 30px;
+  padding: 60px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  min-width: 300px;
+  max-width: 500px;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.textContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  animation: textFadeIn 0.6s ease-out 0.2s both;
+}
+
+@keyframes textFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.textLine1,
+.textLine2 {
+  font-family: "Roboto", sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  color: #000000;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.textLine1 {
+  animation: textSlideIn1 0.5s ease-out 0.3s both;
+}
+
+.textLine2 {
+  animation: textSlideIn2 0.5s ease-out 0.4s both;
+}
+
+@keyframes textSlideIn1 {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes textSlideIn2 {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.icon {
+  animation: iconDraw 0.8s ease-out 0.7s both;
+}
+
+@keyframes iconDraw {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.icon path {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: iconPath 0.6s ease-out 1s both;
+}
+
+@keyframes iconPath {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .modalContent {
+    padding: 40px 30px;
+    gap: 30px;
+    margin: 20px;
+    max-width: 90%;
+  }
+
+  .textLine1,
+  .textLine2 {
+    font-size: 24px;
+  }
+
+  .iconContainer {
+    animation: scaleIn 0.5s ease-out 0.2s both;
+  }
+
+  .icon {
+    width: 40px;
+    height: 40px;
+  }
+}

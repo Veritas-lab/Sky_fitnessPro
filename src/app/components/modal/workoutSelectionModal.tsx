@@ -51,16 +51,31 @@ export default function WorkoutSelectionModal({
       return;
     try {
       router.push(`/workouts/${selectedWorkouts[0]}`);
-      onClose();
+      mountedRef.current = false;
+      try {
+        onClose();
+      } catch {
+        // Игнорируем ошибки при закрытии
+      }
     } catch {
       // Игнорируем ошибки
     }
   };
 
+  const handleClose = () => {
+    if (!mountedRef.current) return;
+    mountedRef.current = false;
+    try {
+      onClose();
+    } catch {
+      // Игнорируем ошибки при закрытии
+    }
+  };
+
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
+    <div className={styles.modalOverlay} onClick={handleClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeButton} onClick={onClose}>
+        <button className={styles.closeButton} onClick={handleClose}>
           ×
         </button>
         <h2 className={styles.title}>Выберите тренировку</h2>

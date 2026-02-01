@@ -44,6 +44,7 @@ export default function ProgressModal({
 
   const handleProgressChange = (index: number, value: string) => {
     if (!mountedRef.current) return;
+    if (index < 0 || index >= exercises.length || index >= progressValues.length) return;
 
     // Разрешаем пустую строку или только цифры
     if (value === "" || /^\d+$/.test(value)) {
@@ -55,6 +56,8 @@ export default function ProgressModal({
 
   const handleBlur = (index: number) => {
     if (!mountedRef.current) return;
+    if (index < 0 || index >= exercises.length || index >= progressValues.length) return;
+    
     const value = progressValues[index];
     const numValue = parseInt(value) || 0;
     const maxValue = exercises[index]?.quantity || 0;
@@ -67,17 +70,40 @@ export default function ProgressModal({
 
   const handleSave = () => {
     if (!mountedRef.current || typeof window === "undefined") return;
+    if (!exercises || exercises.length === 0) return;
+    
     try {
       // Преобразуем строковые значения в числа и валидируем их
       const numericProgress = progressValues.map((value, index) => {
+        if (index >= exercises.length) return 0;
         const numValue = parseInt(value) || 0;
         const maxValue = exercises[index]?.quantity || 0;
         return Math.max(0, Math.min(numValue, maxValue));
       });
+      
+      if (numericProgress.length !== exercises.length) {
+        return;
+      }
+      
       onSave(numericProgress);
-      onClose();
+      mountedRef.current = false;
+      try {
+        onClose();
+      } catch {
+        // Игнорируем ошибки при закрытии
+      }
     } catch {
       // Игнорируем ошибки
+    }
+  };
+
+  const handleClose = () => {
+    if (!mountedRef.current) return;
+    mountedRef.current = false;
+    try {
+      onClose();
+    } catch {
+      // Игнорируем ошибки при закрытии
     }
   };
 
@@ -98,9 +124,9 @@ export default function ProgressModal({
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
+    <div className={styles.modalOverlay} onClick={handleClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeButton} onClick={onClose}>
+        <button className={styles.closeButton} onClick={handleClose}>
           ×
         </button>
         <h2 className={styles.title}>Мой прогресс</h2>

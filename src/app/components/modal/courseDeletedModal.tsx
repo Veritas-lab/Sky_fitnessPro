@@ -1,22 +1,21 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import styles from "./successModal.module.css";
+import styles from "./courseDeletedModal.module.css";
 
-interface SuccessModalProps {
+interface CourseDeletedModalProps {
   onClose: () => void;
-  autoCloseDelay?: number; // Автоматическое закрытие через N миллисекунд
+  autoCloseDelay?: number;
 }
 
-export default function SuccessModal({
+export default function CourseDeletedModal({
   onClose,
-  autoCloseDelay = 2000,
-}: SuccessModalProps) {
+  autoCloseDelay = 3000,
+}: CourseDeletedModalProps) {
   const mountedRef = useRef(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onCloseRef = useRef(onClose);
 
-  // Обновляем ref при изменении onClose
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
@@ -24,7 +23,6 @@ export default function SuccessModal({
   useEffect(() => {
     mountedRef.current = true;
 
-    // Автоматическое закрытие через указанное время
     if (autoCloseDelay > 0) {
       timeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
@@ -69,12 +67,12 @@ export default function SuccessModal({
     <div className={styles.modalOverlay} onClick={handleClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.textContainer}>
-          <p className={styles.textLine1}>Ваш прогресс</p>
-          <p className={styles.textLine2}>засчитан!</p>
+          <p className={styles.textLine1}>Курс удален.</p>
+          <p className={styles.textLine2}>Прогресс утерян.</p>
         </div>
-        <div className={styles.checkmarkContainer}>
+        <div className={styles.iconContainer}>
           <svg
-            className={styles.checkmark}
+            className={styles.icon}
             width="48"
             height="48"
             viewBox="0 0 48 48"
