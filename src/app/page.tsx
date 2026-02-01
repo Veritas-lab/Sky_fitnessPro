@@ -7,81 +7,65 @@ import Main from "./components/main/main";
 import RegistrForm from "./components/form/registrform";
 import AuthForm from "./components/form/authform";
 import CourseAddModal from "./components/modal/courseAddModal";
-import { isAuthenticated as checkAuth, removeToken } from "./services/authToken";
+import {
+  isAuthenticated as checkAuth,
+  removeToken,
+  getToken,
+} from "./services/authToken";
+import { getUserData } from "./services/auth/authApi";
+import {
+  getAllCourses,
+  Course as ApiCourse,
+  addCourseToUser,
+} from "./services/courses/coursesApi";
 import styles from "./page.module.css";
 
-interface Course {
-  id: string;
-  name: string;
+interface DisplayCourse {
+  _id: string;
+  nameRU: string;
+  nameEN: string;
   image: string;
   duration: number;
   dailyDuration: { from: number; to: number };
   difficulty: string;
-  progress: number;
-  workoutId?: string;
+  courseId: string;
 }
 
-interface AuthData {
-  isAuthenticated: boolean;
-  userName: string;
-  userEmail: string;
-  courses?: Course[];
-}
-
-const STORAGE_KEY = "sky_fitness_auth";
-
-const courseDataMap: Record<string, Omit<Course, "id">> = {
-  yoga: {
-    name: "Йога",
-    image: "/img/yoga.png",
-    duration: 25,
-    dailyDuration: { from: 20, to: 50 },
-    difficulty: "Сложность",
-    progress: 0,
-    workoutId: "workout1",
-  },
-  stretching: {
-    name: "Стретчинг",
-    image: "/img/stretching.png",
-    duration: 25,
-    dailyDuration: { from: 20, to: 50 },
-    difficulty: "Сложность",
-    progress: 0,
-    workoutId: "workout2",
-  },
-  fitness: {
-    name: "Фитнес",
-    image: "/img/fitness.png",
-    duration: 25,
-    dailyDuration: { from: 20, to: 50 },
-    difficulty: "Сложность",
-    progress: 0,
-    workoutId: "workout3",
-  },
-  "step-aerobics": {
-    name: "Степ-аэробика",
-    image: "/img/step_aerobics.png",
-    duration: 25,
-    dailyDuration: { from: 20, to: 50 },
-    difficulty: "Сложность",
-    progress: 0,
-  },
-  bodyflex: {
-    name: "Бодифлекс",
-    image: "/img/bodyflex.png",
-    duration: 25,
-    dailyDuration: { from: 20, to: 50 },
-    difficulty: "Сложность",
-    progress: 0,
-  },
+const courseImages: Record<string, string> = {
+  yoga: "/img/yoga.png",
+  stretching: "/img/stretching.png",
+  fitness: "/img/fitness.png",
+  "step-aerobics": "/img/step_aerobics.png",
+  bodyflex: "/img/bodyflex.png",
 };
+
+const courseNameMap: Record<string, string> = {
+  Yoga: "yoga",
+  Stretching: "stretching",
+  Fitness: "fitness",
+  "Step Aerobics": "step-aerobics",
+  "StepAerobics": "step-aerobics",
+  Bodyflex: "bodyflex",
+};
+
+const courseNameRUMap: Record<string, string> = {
+  "Йога": "yoga",
+  "Стретчинг": "stretching",
+  "Фитнес": "fitness",
+  "Степ-аэробика": "step-aerobics",
+  "Бодифлекс": "bodyflex",
+};
+
+const courseOrder = ["yoga", "stretching", "fitness", "step-aerobics", "bodyflex"];
 
 export default function Home() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formType, setFormType] = useState<"register" | "auth">("register");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userName, setUserName] = useState<string>("Сергей");
-  const [userEmail, setUserEmail] = useState<string>("sergey.petrov96@mail.ru");
+  const [userName, setUserName] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [courses, setCourses] = useState<DisplayCourse[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
   const [courseAddModal, setCourseAddModal] = useState<{
     isOpen: boolean;
     type: "success" | "alreadyAdded" | "error";
@@ -96,39 +80,95 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && checkAuth()) {
-      const savedAuth = localStorage.getItem(STORAGE_KEY);
-      if (savedAuth) {
-        try {
-          const authData: AuthData = JSON.parse(savedAuth);
-          if (authData.isAuthenticated && authData.userEmail) {
-            setIsAuthenticated(authData.isAuthenticated);
-            setUserName(authData.userName);
-            setUserEmail(authData.userEmail);
-            
-            if (!authData.courses || authData.courses.length === 0) {
-              const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
-              const savedHistory = localStorage.getItem(HISTORY_KEY);
-              if (savedHistory) {
-                try {
-                  const history = JSON.parse(savedHistory);
-                  if (history.courses && history.courses.length > 0) {
-                    const updatedAuthData: AuthData = {
-                      ...authData,
-                      courses: history.courses,
-                    };
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
-                  }
-                } catch {
-                }
-              }
+    if (!mountedRef.current || typeof window === "undefined") return;
+
+    const loadData = async () => {
+      try {
+        const allCourses = await getAllCourses();
+
+        const displayCourses: DisplayCourse[] = allCourses.map(
+          (course: ApiCourse) => {
+            let courseId = courseNameMap[course.nameEN];
+            if (!courseId) {
+              courseId = courseNameRUMap[course.nameRU];
             }
+            if (!courseId) {
+              const normalizedName = course.nameEN
+                .toLowerCase()
+                .replace(/\s+/g, "-");
+              courseId = normalizedName;
+            }
+
+            const imageKey = courseId;
+            let image = courseImages[imageKey];
+            
+            if (!image) {
+              const normalizedKey = course.nameEN
+                .toLowerCase()
+                .replace(/\s+/g, "-");
+              image = courseImages[normalizedKey];
+            }
+            
+            if (!image) {
+              image = "/img/fitness.png";
+            }
+
+            return {
+              _id: course._id,
+              nameRU: course.nameRU,
+              nameEN: course.nameEN,
+              image: image,
+              duration: 25,
+              dailyDuration: { from: 20, to: 50 },
+              difficulty: "Сложность",
+              courseId: courseId,
+            };
           }
-        } catch {
-          localStorage.removeItem(STORAGE_KEY);
+        );
+
+        const sortedCourses = displayCourses.sort((a, b) => {
+          const indexA = courseOrder.indexOf(a.courseId);
+          const indexB = courseOrder.indexOf(b.courseId);
+          if (indexA === -1 && indexB === -1) return 0;
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          return indexA - indexB;
+        });
+
+        if (mountedRef.current) {
+          setCourses(sortedCourses);
+          setIsLoadingCourses(false);
+        }
+      } catch {
+        if (mountedRef.current) {
+          setIsLoadingCourses(false);
         }
       }
-    }
+
+      if (checkAuth()) {
+        const token = getToken();
+        if (token) {
+          try {
+            const userData = await getUserData(token);
+            if (mountedRef.current) {
+              setIsAuthenticated(true);
+              setUserEmail(userData.email);
+              const name = userData.email.split("@")[0] || "Пользователь";
+              const capitalizedName =
+                name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+              setUserName(capitalizedName);
+            }
+          } catch {
+            if (mountedRef.current) {
+              setIsAuthenticated(false);
+              removeToken();
+            }
+          }
+        }
+      }
+    };
+
+    loadData();
   }, []);
 
   const handleLoginClick = () => {
@@ -142,8 +182,7 @@ export default function Home() {
       if (mountedRef.current) {
         try {
           setIsFormOpen(false);
-        } catch {
-        }
+        } catch {}
       }
     });
   };
@@ -156,86 +195,62 @@ export default function Home() {
     setFormType("register");
   };
 
-  const handleAuthSuccess = (name: string, email: string) => {
+  const handleAuthSuccess = async (name: string, email: string) => {
     setUserName(name);
     setUserEmail(email);
     setIsAuthenticated(true);
     setIsFormOpen(false);
-    if (typeof window !== "undefined") {
-      const HISTORY_KEY = `sky_fitness_history_${email}`;
-      const savedHistory = localStorage.getItem(HISTORY_KEY);
-      let savedCourses: Course[] = [];
-
-      if (savedHistory) {
-        try {
-          const history = JSON.parse(savedHistory);
-          savedCourses = history.courses || [];
-        } catch {
-          savedCourses = [];
-        }
-      }
-
-      const authData: AuthData = {
-        isAuthenticated: true,
-        userName: name,
-        userEmail: email,
-        courses: savedCourses,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
-    }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     if (typeof window !== "undefined") {
       removeToken();
-      localStorage.removeItem(STORAGE_KEY);
     }
   };
 
-  const handleAddCourse = (courseId: string) => {
-    if (typeof window === "undefined" || !isAuthenticated) {
+  const handleAddCourse = async (courseId: string) => {
+    if (
+      typeof window === "undefined" ||
+      !isAuthenticated ||
+      !mountedRef.current
+    ) {
       setCourseAddModal({ isOpen: true, type: "error" });
       return;
     }
 
-    const savedAuth = localStorage.getItem(STORAGE_KEY);
-    if (!savedAuth) {
+    const token = getToken();
+    if (!token) {
       setCourseAddModal({ isOpen: true, type: "error" });
       return;
     }
 
     try {
-      const authData: AuthData = JSON.parse(savedAuth);
-      const courses = authData.courses || [];
+      const allCourses = await getAllCourses();
+      const courseNameEN =
+        Object.entries(courseNameMap).find(([, id]) => id === courseId)?.[0] ||
+        courseId;
 
-      const courseExists = courses.some((course) => course.id === courseId);
+      const foundCourse = allCourses.find(
+        (course: ApiCourse) =>
+          course.nameEN.toLowerCase() === courseNameEN.toLowerCase() ||
+          course.nameRU.toLowerCase() === courseNameEN.toLowerCase()
+      );
+
+      if (!foundCourse) {
+        setCourseAddModal({ isOpen: true, type: "error" });
+        return;
+      }
+
+      const userData = await getUserData(token);
+      const courseExists = userData.selectedCourses.includes(foundCourse._id);
+
       if (courseExists) {
         setCourseAddModal({ isOpen: true, type: "alreadyAdded" });
         return;
       }
 
-      const courseData = courseDataMap[courseId];
-      if (!courseData) {
-        setCourseAddModal({ isOpen: true, type: "error" });
-        return;
-      }
-
-      const newCourse: Course = {
-        id: courseId,
-        ...courseData,
-      };
-
-      const updatedAuthData: AuthData = {
-        ...authData,
-        courses: [...courses, newCourse],
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
-      
-      const HISTORY_KEY = `sky_fitness_history_${userEmail}`;
-      localStorage.setItem(HISTORY_KEY, JSON.stringify({ courses: updatedAuthData.courses }));
-      
+      await addCourseToUser(foundCourse._id);
       setCourseAddModal({ isOpen: true, type: "success" });
     } catch {
       setCourseAddModal({ isOpen: true, type: "error" });
@@ -248,8 +263,7 @@ export default function Home() {
       if (mountedRef.current) {
         try {
           setCourseAddModal({ isOpen: false, type: "success" });
-        } catch {
-        }
+        } catch {}
       }
     });
   };
@@ -267,6 +281,8 @@ export default function Home() {
       )}
       <main>
         <Main
+          courses={courses}
+          isLoadingCourses={isLoadingCourses}
           isAuthenticated={isAuthenticated}
           onAddCourse={handleAddCourse}
         />

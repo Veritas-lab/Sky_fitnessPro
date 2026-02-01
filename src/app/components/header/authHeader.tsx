@@ -41,8 +41,7 @@ export default function AuthHeader({
       if (mountedRef.current) {
         try {
           setIsModalOpen(false);
-        } catch {
-        }
+        } catch {}
       }
     });
   };

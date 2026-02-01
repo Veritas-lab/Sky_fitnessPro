@@ -26,24 +26,18 @@ export default function CourseAddModal({
     mountedRef.current = true;
 
     if (autoCloseDelay > 0 && type !== "error") {
-      timeoutRef.current = setTimeout(() => {
-        if (mountedRef.current) {
-          const timeoutId = timeoutRef.current;
+      const timeoutId = setTimeout(() => {
+        if (mountedRef.current && timeoutRef.current === timeoutId) {
           mountedRef.current = false;
-          if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-            timeoutRef.current = null;
-          }
+          timeoutRef.current = null;
           requestAnimationFrame(() => {
-            if (timeoutId === timeoutRef.current || timeoutRef.current === null) {
-              try {
-                onCloseRef.current();
-              } catch {
-              }
-            }
+            try {
+              onCloseRef.current();
+            } catch {}
           });
         }
       }, autoCloseDelay);
+      timeoutRef.current = timeoutId;
     }
 
     return () => {
@@ -67,8 +61,7 @@ export default function CourseAddModal({
       requestAnimationFrame(() => {
         try {
           onCloseRef.current();
-        } catch {
-        }
+        } catch {}
       });
     }
   };
@@ -113,14 +106,15 @@ export default function CourseAddModal({
   const iconColor = getIconColor();
 
   return (
-    <div className={styles.modalOverlay} onClick={type === "error" ? handleClose : undefined}>
+    <div
+      className={styles.modalOverlay}
+      onClick={type === "error" ? handleClose : undefined}
+    >
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.textContainer}>
           <p className={styles.textLine1}>{text.line1}</p>
           <p className={styles.textLine2}>{text.line2}</p>
-          {text.line3 && (
-            <p className={styles.textLine3}>{text.line3}</p>
-          )}
+          {text.line3 && <p className={styles.textLine3}>{text.line3}</p>}
         </div>
         {type !== "error" && (
           <div className={styles.iconContainer}>

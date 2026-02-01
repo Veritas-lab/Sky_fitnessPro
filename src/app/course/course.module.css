@@ -37,7 +37,8 @@
 
 .courseFrame {
   width: 1160px;
-  height: 225px;
+  min-height: 225px;
+  height: auto;
   transform: rotate(0deg);
   opacity: 1;
   gap: 17px;
@@ -71,7 +72,8 @@
 
 .courseTextBlock {
   width: 368px;
-  height: 141px;
+  min-height: 141px;
+  height: auto;
   border-radius: 28px;
   padding: 20px;
   gap: 10px;
@@ -100,7 +102,8 @@
 
 .courseTextDescription {
   width: 268px;
-  height: 78px;
+  min-height: 78px;
+  height: auto;
   transform: rotate(0deg);
   opacity: 1;
   font-family: "Roboto", sans-serif;
@@ -118,7 +121,8 @@
 
 .courseTextBlock2 {
   width: 431px;
-  height: 141px;
+  min-height: 141px;
+  height: auto;
   border-radius: 28px;
   padding: 20px;
   gap: 10px;
@@ -147,7 +151,8 @@
 
 .courseTextDescription2 {
   width: 323px;
-  height: 78px;
+  min-height: 78px;
+  height: auto;
   transform: rotate(0deg);
   opacity: 1;
   font-family: "Roboto", sans-serif;
@@ -165,7 +170,8 @@
 
 .courseTextBlock3 {
   width: 327px;
-  height: 141px;
+  min-height: 141px;
+  height: auto;
   border-radius: 28px;
   padding: 20px;
   gap: 10px;
@@ -218,7 +224,8 @@
 
 .directionsFrame {
   width: 1160px;
-  height: 146px;
+  min-height: 146px;
+  height: auto;
   transform: rotate(0deg);
   opacity: 1;
   border-radius: 28px;
@@ -261,7 +268,8 @@
 
 .directionsText {
   width: 250px;
-  height: 26px;
+  min-height: 26px;
+  height: auto;
   transform: rotate(0deg);
   opacity: 1;
   font-family: "Roboto", sans-serif;
@@ -654,5 +662,59 @@
     font-weight: 400;
     font-style: normal;
     font-size: 16px;
+  }
+}
+
+.skeletonText {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  flex: 1;
+}
+
+.skeletonLine {
+  width: 100%;
+  height: 20px;
+  background: linear-gradient(90deg, #2a2d3a 25%, #3a3d4a 50%, #2a2d3a 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeletonLineShort {
+  width: 60%;
+  height: 20px;
+  background: linear-gradient(90deg, #2a2d3a 25%, #3a3d4a 50%, #2a2d3a 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeletonIcon {
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(90deg, #a0b050 25%, #bcec30 50%, #a0b050 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeletonDirectionText {
+  width: 200px;
+  height: 26px;
+  background: linear-gradient(90deg, #a0b050 25%, #bcec30 50%, #a0b050 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
   }
 }

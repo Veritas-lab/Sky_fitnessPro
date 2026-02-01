@@ -12,33 +12,22 @@ import CourseAddModal from "../../components/modal/courseAddModal";
 import {
   isAuthenticated as checkAuth,
   removeToken,
+  getToken,
 } from "../../services/authToken";
+import { getUserData } from "../../services/auth/authApi";
+import {
+  getAllCourses,
+  getCourseById,
+  addCourseToUser,
+  Course as ApiCourse,
+  CourseDetail,
+} from "../../services/courses/coursesApi";
 import styles from "../course.module.css";
 import pageStyles from "../../page.module.css";
 
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
   ssr: false,
 });
-
-const STORAGE_KEY = "sky_fitness_auth";
-
-interface Course {
-  id: string;
-  name: string;
-  image: string;
-  duration: number;
-  dailyDuration: { from: number; to: number };
-  difficulty: string;
-  progress: number;
-  workoutId?: string;
-}
-
-interface AuthData {
-  isAuthenticated: boolean;
-  userName: string;
-  userEmail: string;
-  courses?: Course[];
-}
 
 const courseImages: Record<string, string> = {
   yoga: "/img/yoga.png",
@@ -71,6 +60,8 @@ export default function CoursePage() {
     isOpen: boolean;
     type: "success" | "alreadyAdded" | "error";
   }>({ isOpen: false, type: "success" });
+  const [courseData, setCourseData] = useState<CourseDetail | null>(null);
+  const [isLoadingCourse, setIsLoadingCourse] = useState(true);
   const mountedRef = useRef(false);
 
   useLayoutEffect(() => {
@@ -84,41 +75,31 @@ export default function CoursePage() {
   useEffect(() => {
     if (!mountedRef.current) return;
 
-    if (typeof window !== "undefined" && checkAuth()) {
-      const savedAuth = localStorage.getItem(STORAGE_KEY);
-      if (savedAuth) {
-        try {
-          const authData: AuthData = JSON.parse(savedAuth);
-          if (authData.isAuthenticated && authData.userName && authData.userEmail) {
+    const loadUserData = async () => {
+      if (typeof window !== "undefined" && checkAuth()) {
+        const token = getToken();
+        if (token) {
+          try {
+            const userData = await getUserData(token);
             if (mountedRef.current) {
               setIsAuthenticated(true);
-              setUserName(authData.userName);
-              setUserEmail(authData.userEmail);
-              
-              if (!authData.courses || authData.courses.length === 0) {
-                const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
-                const savedHistory = localStorage.getItem(HISTORY_KEY);
-                if (savedHistory) {
-                  try {
-                    const history = JSON.parse(savedHistory);
-                    if (history.courses && history.courses.length > 0) {
-                      const updatedAuthData: AuthData = {
-                        ...authData,
-                        courses: history.courses,
-                      };
-                      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
-                    }
-                  } catch {
-                  }
-                }
-              }
+              setUserEmail(userData.email);
+              const name = userData.email.split("@")[0] || "Пользователь";
+              const capitalizedName =
+                name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+              setUserName(capitalizedName);
             }
+        } catch (error) {
+          if (mountedRef.current) {
+            setIsAuthenticated(false);
+            removeToken();
           }
-        } catch {
-          localStorage.removeItem(STORAGE_KEY);
+        }
         }
       }
-    }
+    };
+
+    loadUserData();
   }, []);
 
   useEffect(() => {
@@ -143,6 +124,46 @@ export default function CoursePage() {
     }
   }, [params]);
 
+  useEffect(() => {
+    if (!mountedRef.current || !courseId) return;
+
+    const loadCourseData = async () => {
+      setIsLoadingCourse(true);
+      try {
+        const allCourses = await getAllCourses();
+        const courseNameMap: Record<string, string> = {
+          yoga: "yoga",
+          stretching: "stretching",
+          fitness: "fitness",
+          "step-aerobics": "step-aerobics",
+          bodyflex: "bodyflex",
+        };
+
+        const courseNameEN =
+          courseNameMap[courseId] || courseId.toLowerCase();
+        const foundCourse = allCourses.find(
+          (course: ApiCourse) =>
+            course.nameEN.toLowerCase() === courseNameEN.toLowerCase() ||
+            course.nameRU.toLowerCase() === courseNameEN.toLowerCase()
+        );
+
+        if (foundCourse) {
+          const courseDetail = await getCourseById(foundCourse._id);
+          if (mountedRef.current) {
+            setCourseData(courseDetail);
+          }
+        }
+      } catch (error) {
+      } finally {
+        if (mountedRef.current) {
+          setIsLoadingCourse(false);
+        }
+      }
+    };
+
+    loadCourseData();
+  }, [courseId]);
+
   const courseImage = courseId
     ? courseImages[courseId] || "/img/fitness.png"
     : "/img/fitness.png";
@@ -158,24 +179,26 @@ export default function CoursePage() {
 
   const handleCloseForm = () => {
     if (!mountedRef.current) return;
+    const wasMounted = mountedRef.current;
+    mountedRef.current = false;
     requestAnimationFrame(() => {
-      if (mountedRef.current) {
+      if (wasMounted) {
         try {
           setIsFormOpen(false);
-        } catch {
-        }
+        } catch {}
       }
     });
   };
 
   const handleCloseAuthPrompt = () => {
     if (!mountedRef.current) return;
+    const wasMounted = mountedRef.current;
+    mountedRef.current = false;
     requestAnimationFrame(() => {
-      if (mountedRef.current) {
+      if (wasMounted) {
         try {
           setShowAuthPrompt(false);
-        } catch {
-        }
+        } catch {}
       }
     });
   };
@@ -188,32 +211,32 @@ export default function CoursePage() {
     setFormType("register");
   };
 
-  const handleAuthSuccess = (name: string, email: string) => {
+  const handleAuthSuccess = async (name: string, email: string) => {
+    if (!mountedRef.current) return;
+    const wasMounted = mountedRef.current;
     setUserName(name);
     setUserEmail(email);
     setIsAuthenticated(true);
     setIsFormOpen(false);
-    if (typeof window !== "undefined") {
-      const HISTORY_KEY = `sky_fitness_history_${email}`;
-      const savedHistory = localStorage.getItem(HISTORY_KEY);
-      let savedCourses: Course[] = [];
-
-      if (savedHistory) {
+    if (typeof window !== "undefined" && wasMounted) {
+      const token = getToken();
+      if (token) {
         try {
-          const history = JSON.parse(savedHistory);
-          savedCourses = history.courses || [];
-        } catch {
-          savedCourses = [];
+          const userData = await getUserData(token);
+          if (mountedRef.current) {
+            setUserEmail(userData.email);
+            const newName = userData.email.split("@")[0] || "Пользователь";
+            const capitalizedName =
+              newName.charAt(0).toUpperCase() + newName.slice(1).toLowerCase();
+            setUserName(capitalizedName);
+          }
+        } catch (error) {
+          if (mountedRef.current) {
+            setIsAuthenticated(false);
+            removeToken();
+          }
         }
       }
-
-      const authData: AuthData = {
-        isAuthenticated: true,
-        userName: name,
-        userEmail: email,
-        courses: savedCourses,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
     }
   };
 
@@ -222,78 +245,78 @@ export default function CoursePage() {
     setIsAuthenticated(false);
     if (typeof window !== "undefined") {
       removeToken();
-      localStorage.removeItem(STORAGE_KEY);
       router.push("/");
     }
   };
 
-  const handleAddCourse = () => {
-    if (!mountedRef.current || !courseId || typeof window === "undefined") {
+  const handleAddCourse = async () => {
+    if (
+      !mountedRef.current ||
+      !courseId ||
+      typeof window === "undefined" ||
+      !isAuthenticated
+    ) {
       setCourseAddModal({ isOpen: true, type: "error" });
       return;
     }
 
-    const savedAuth = localStorage.getItem(STORAGE_KEY);
-    if (!savedAuth) {
+    const token = getToken();
+    if (!token) {
       setCourseAddModal({ isOpen: true, type: "error" });
       return;
     }
 
     try {
-      const authData: AuthData = JSON.parse(savedAuth);
-      const courses = authData.courses || [];
+      const allCourses = await getAllCourses();
+      const courseNameMap: Record<string, string> = {
+        yoga: "yoga",
+        stretching: "stretching",
+        fitness: "fitness",
+        "step-aerobics": "step-aerobics",
+        bodyflex: "bodyflex",
+      };
 
-      const courseExists = courses.some((course) => course.id === courseId);
+      const courseNameEN =
+        courseNameMap[courseId] || courseId.toLowerCase();
+      const foundCourse = allCourses.find(
+        (course: ApiCourse) =>
+          course.nameEN.toLowerCase() === courseNameEN.toLowerCase() ||
+          course.nameRU.toLowerCase() === courseNameEN.toLowerCase()
+      );
+
+      if (!foundCourse) {
+        setCourseAddModal({ isOpen: true, type: "error" });
+        return;
+      }
+
+      const userData = await getUserData(token);
+      const courseExists = userData.selectedCourses.includes(foundCourse._id);
+
       if (courseExists) {
         setCourseAddModal({ isOpen: true, type: "alreadyAdded" });
         return;
       }
 
-      const courseNameMap: Record<string, string> = {
-        yoga: "Йога",
-        stretching: "Стретчинг",
-        fitness: "Фитнес",
-        "step-aerobics": "Степ-аэробика",
-        bodyflex: "Бодифлекс",
-      };
-
-      const courseImage = courseImages[courseId] || "/img/fitness.png";
-      const courseName = courseNameMap[courseId] || "Курс";
-
-      const newCourse: Course = {
-        id: courseId,
-        name: courseName,
-        image: courseImage,
-        duration: 25,
-        dailyDuration: { from: 20, to: 50 },
-        difficulty: "Сложность",
-        progress: 0,
-      };
-
-      const updatedAuthData: AuthData = {
-        ...authData,
-        courses: [...courses, newCourse],
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
-      
-      const HISTORY_KEY = `sky_fitness_history_${userEmail}`;
-      localStorage.setItem(HISTORY_KEY, JSON.stringify({ courses: updatedAuthData.courses }));
-      
-      setCourseAddModal({ isOpen: true, type: "success" });
-    } catch {
-      setCourseAddModal({ isOpen: true, type: "error" });
+      await addCourseToUser(foundCourse._id);
+      if (mountedRef.current) {
+        setCourseAddModal({ isOpen: true, type: "success" });
+      }
+    } catch (error) {
+      if (mountedRef.current) {
+        setCourseAddModal({ isOpen: true, type: "error" });
+      }
     }
   };
 
   const handleCloseCourseAddModal = () => {
     if (!mountedRef.current) return;
+    const wasMounted = mountedRef.current;
+    mountedRef.current = false;
     requestAnimationFrame(() => {
-      if (mountedRef.current) {
+      if (wasMounted) {
         try {
           setCourseAddModal({ isOpen: false, type: "success" });
-        } catch {
-        }
+        } catch {}
       }
     });
   };
@@ -333,104 +356,126 @@ export default function CoursePage() {
         {courseId && (
           <div className={styles.courseFrame}>
             <h2 className={styles.courseTitle}>Подойдет для вас, если:</h2>
-            <div className={styles.courseTextBlocksContainer}>
-              <div className={styles.courseTextBlock}>
-                <span className={styles.courseTextNumber}>1</span>
-                <p className={styles.courseTextDescription}>
-                  Давно хотели попробовать йогу, но не решались начать
-                </p>
+            {isLoadingCourse ? (
+              <div className={styles.courseTextBlocksContainer}>
+                <div className={styles.courseTextBlock}>
+                  <span className={styles.courseTextNumber}>1</span>
+                  <div className={styles.skeletonText}>
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLineShort} />
+                  </div>
+                </div>
+                <div className={styles.courseTextBlock2}>
+                  <span className={styles.courseTextNumber2}>2</span>
+                  <div className={styles.skeletonText}>
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLineShort} />
+                  </div>
+                </div>
+                <div className={styles.courseTextBlock3}>
+                  <span className={styles.courseTextNumber3}>3</span>
+                  <div className={styles.skeletonText}>
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLineShort} />
+                  </div>
+                </div>
               </div>
-              <div className={styles.courseTextBlock2}>
-                <span className={styles.courseTextNumber2}>2</span>
-                <p className={styles.courseTextDescription2}>
-                  Хотите укрепить позвоночник, избавиться от болей в спине и
-                  суставах
-                </p>
+            ) : courseData && courseData.fitting && courseData.fitting.length > 0 ? (
+              <div className={styles.courseTextBlocksContainer}>
+                {courseData.fitting.slice(0, 3).map((item, index) => {
+                  const blockClass =
+                    index === 0
+                      ? styles.courseTextBlock
+                      : index === 1
+                      ? styles.courseTextBlock2
+                      : styles.courseTextBlock3;
+                  const numberClass =
+                    index === 0
+                      ? styles.courseTextNumber
+                      : index === 1
+                      ? styles.courseTextNumber2
+                      : styles.courseTextNumber3;
+                  const descriptionClass =
+                    index === 1
+                      ? styles.courseTextDescription2
+                      : styles.courseTextDescription;
+
+                  return (
+                    <div key={index} className={blockClass}>
+                      <span className={numberClass}>{index + 1}</span>
+                      <p className={descriptionClass}>{item}</p>
+                    </div>
+                  );
+                })}
               </div>
-              <div className={styles.courseTextBlock3}>
-                <span className={styles.courseTextNumber3}>3</span>
-                <p className={styles.courseTextDescription}>
-                  Ищете активность, полезную для тела и души
-                </p>
-              </div>
-            </div>
+            ) : null}
           </div>
         )}
         {courseId && (
           <div className={styles.directionsSection}>
             <h2 className={styles.directionsTitle}>Направления</h2>
-            <div className={styles.directionsFrame}>
-              <div className={styles.directionBlock}>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>
-                    Йога для новичков
-                  </span>
+            {isLoadingCourse ? (
+              <div className={styles.directionsFrame}>
+                <div className={styles.directionBlock}>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
                 </div>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>
-                    Классическая йога
-                  </span>
+                <div className={styles.directionBlock}>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
                 </div>
-              </div>
-              <div className={styles.directionBlock}>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>Кундалини-йога</span>
-                </div>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>Йогатерапия</span>
+                <div className={styles.directionBlock}>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
                 </div>
               </div>
-              <div className={styles.directionBlock}>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>Хатха-йога</span>
-                </div>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>Аштанга-йога</span>
-                </div>
+            ) : courseData && courseData.directions && courseData.directions.length > 0 ? (
+              <div className={styles.directionsFrame}>
+                {Array.from({ length: Math.ceil(courseData.directions.length / 2) }).map(
+                  (_, blockIndex) => (
+                    <div key={blockIndex} className={styles.directionBlock}>
+                      {courseData.directions
+                        .slice(blockIndex * 2, blockIndex * 2 + 2)
+                        .map((direction, itemIndex) => (
+                          <div key={itemIndex} className={styles.directionItem}>
+                            <Image
+                              src="/img/Sparcle.svg"
+                              alt="icon"
+                              width={24}
+                              height={24}
+                              className={styles.directionsIcon}
+                            />
+                            <span className={styles.directionsText}>
+                              {direction}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  )
+                )}
               </div>
-            </div>
+            ) : null}
           </div>
         )}
         {courseId && (
@@ -528,7 +573,7 @@ export default function CoursePage() {
           onLoginClick={handleLoginClick}
         />
       )}
-      {courseAddModal.isOpen && (
+      {isMounted && courseAddModal.isOpen && (
         <CourseAddModal
           type={courseAddModal.type}
           onClose={handleCloseCourseAddModal}

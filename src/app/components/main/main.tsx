@@ -3,28 +3,27 @@
 import styles from "./main.module.css";
 import Card from "../card/card";
 
-const courses = [
-  { title: "Yoga", image: "/img/yoga.png", courseName: "Йога" },
-  {
-    title: "Stretching",
-    image: "/img/stretching.png",
-    courseName: "Стретчинг",
-  },
-  { title: "Fitness", image: "/img/fitness.png", courseName: "Фитнесс" },
-  {
-    title: "Step Aerobics",
-    image: "/img/step_aerobics.png",
-    courseName: "Степ-аэробика",
-  },
-  { title: "Bodyflex", image: "/img/bodyflex.png", courseName: "Бодифлекс" },
-];
+interface DisplayCourse {
+  _id: string;
+  nameRU: string;
+  nameEN: string;
+  image: string;
+  duration: number;
+  dailyDuration: { from: number; to: number };
+  difficulty: string;
+  courseId: string;
+}
 
 interface MainProps {
+  courses: DisplayCourse[];
+  isLoadingCourses: boolean;
   isAuthenticated?: boolean;
   onAddCourse?: (courseId: string) => void;
 }
 
 export default function Main({
+  courses,
+  isLoadingCourses,
   isAuthenticated = false,
   onAddCourse,
 }: MainProps) {
@@ -60,16 +59,30 @@ export default function Main({
 
       <section className={styles.cardsSection}>
         <div className={styles.cardsContainer}>
-          {courses.map((course) => (
-            <Card
-              key={course.title}
-              title={course.title}
-              image={course.image}
-              courseName={course.courseName}
-              isAuthenticated={isAuthenticated}
-              onAddCourse={onAddCourse}
-            />
-          ))}
+          {isLoadingCourses
+            ? Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className={styles.cardSkeleton}>
+                  <div className={styles.skeletonImage} />
+                  <div className={styles.skeletonContent}>
+                    <div className={styles.skeletonTitle} />
+                    <div className={styles.skeletonBadges}>
+                      <div className={styles.skeletonBadge} />
+                      <div className={styles.skeletonBadge} />
+                    </div>
+                    <div className={styles.skeletonBadge} />
+                  </div>
+                </div>
+              ))
+            : courses.map((course) => (
+                <Card
+                  key={course._id}
+                  title={course.nameEN}
+                  image={course.image}
+                  courseName={course.nameRU}
+                  isAuthenticated={isAuthenticated}
+                  onAddCourse={onAddCourse}
+                />
+              ))}
         </div>
         <button
           className={styles.scrollTopButton}

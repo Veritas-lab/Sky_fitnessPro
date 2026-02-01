@@ -69,12 +69,7 @@ export default function Card({
                   cursor: "pointer",
                 }}
               >
-                <Image
-                  src="/img/plus.svg"
-                  alt="Add"
-                  width={30}
-                  height={30}
-                />
+                <Image src="/img/plus.svg" alt="Add" width={30} height={30} />
               </button>
               {showTooltip && (
                 <div className={styles.tooltip}>Добавить курс</div>

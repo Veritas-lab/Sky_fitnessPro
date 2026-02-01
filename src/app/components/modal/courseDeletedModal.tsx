@@ -33,11 +33,13 @@ export default function CourseDeletedModal({
             timeoutRef.current = null;
           }
           requestAnimationFrame(() => {
-            if (timeoutId === timeoutRef.current || timeoutRef.current === null) {
+            if (
+              timeoutId === timeoutRef.current ||
+              timeoutRef.current === null
+            ) {
               try {
                 onCloseRef.current();
-              } catch {
-              }
+              } catch {}
             }
           });
         }
@@ -65,8 +67,7 @@ export default function CourseDeletedModal({
       requestAnimationFrame(() => {
         try {
           onCloseRef.current();
-        } catch {
-        }
+        } catch {}
       });
     }
   };

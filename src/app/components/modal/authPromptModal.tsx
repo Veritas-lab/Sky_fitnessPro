@@ -26,24 +26,18 @@ export default function AuthPromptModal({
     mountedRef.current = true;
 
     if (autoCloseDelay > 0) {
-      timeoutRef.current = setTimeout(() => {
-        if (mountedRef.current) {
-          const timeoutId = timeoutRef.current;
+      const timeoutId = setTimeout(() => {
+        if (mountedRef.current && timeoutRef.current === timeoutId) {
           mountedRef.current = false;
-          if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-            timeoutRef.current = null;
-          }
+          timeoutRef.current = null;
           requestAnimationFrame(() => {
-            if (timeoutId === timeoutRef.current || timeoutRef.current === null) {
-              try {
-                onCloseRef.current();
-              } catch {
-              }
-            }
+            try {
+              onCloseRef.current();
+            } catch {}
           });
         }
       }, autoCloseDelay);
+      timeoutRef.current = timeoutId;
     }
 
     return () => {
@@ -67,8 +61,7 @@ export default function AuthPromptModal({
       requestAnimationFrame(() => {
         try {
           onCloseRef.current();
-        } catch {
-        }
+        } catch {}
       });
     }
   };
@@ -86,8 +79,7 @@ export default function AuthPromptModal({
         try {
           onCloseRef.current();
           onLoginClick();
-        } catch {
-        }
+        } catch {}
       });
     }
   };

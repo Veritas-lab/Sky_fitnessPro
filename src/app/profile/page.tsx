@@ -7,7 +7,10 @@ import Image from "next/image";
 import WorkoutSelectionModal from "../components/modal/workoutSelectionModal";
 import DeleteConfirmModal from "../components/modal/deleteConfirmModal";
 import CourseDeletedModal from "../components/modal/courseDeletedModal";
-import { removeToken, isAuthenticated as checkAuth } from "../services/authToken";
+import {
+  removeToken,
+  isAuthenticated as checkAuth,
+} from "../services/authToken";
 import styles from "./profile.module.css";
 
 interface CourseCardProps {
@@ -53,9 +56,7 @@ function CourseCard({
               className={styles.deleteIcon}
             />
           </button>
-          {showTooltip && (
-            <div className={styles.tooltip}>Удалить курс</div>
-          )}
+          {showTooltip && <div className={styles.tooltip}>Удалить курс</div>}
         </div>
       </div>
       <div className={styles.courseInfo}>
@@ -70,9 +71,7 @@ function CourseCard({
                 height={16}
                 className={styles.calendarIcon}
               />
-              <span className={styles.daysText}>
-                {course.duration} дней
-              </span>
+              <span className={styles.daysText}>{course.duration} дней</span>
             </div>
             <div className={styles.clockBadge}>
               <Image
@@ -83,8 +82,7 @@ function CourseCard({
                 className={styles.clockIcon}
               />
               <span className={styles.clockText}>
-                {course.dailyDuration.from}-
-                {course.dailyDuration.to} мин/день
+                {course.dailyDuration.from}-{course.dailyDuration.to} мин/день
               </span>
             </div>
           </div>
@@ -96,15 +94,11 @@ function CourseCard({
               height={16}
               className={styles.complexityIcon}
             />
-            <span className={styles.complexityText}>
-              {course.difficulty}
-            </span>
+            <span className={styles.complexityText}>{course.difficulty}</span>
           </div>
         </div>
         <div className={styles.progressSection}>
-          <div className={styles.progressText}>
-            Прогресс {course.progress}%
-          </div>
+          <div className={styles.progressText}>Прогресс {course.progress}%</div>
           <div className={styles.progressBar}>
             <div
               className={styles.progressFill}
@@ -197,9 +191,13 @@ export default function ProfilePage() {
     if (savedAuth) {
       try {
         const authData: AuthData = JSON.parse(savedAuth);
-        if (authData.isAuthenticated && authData.userName && authData.userEmail) {
+        if (
+          authData.isAuthenticated &&
+          authData.userName &&
+          authData.userEmail
+        ) {
           let courses = authData.courses || [];
-          
+
           if (courses.length === 0) {
             const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
             const savedHistory = localStorage.getItem(HISTORY_KEY);
@@ -212,14 +210,17 @@ export default function ProfilePage() {
                     ...authData,
                     courses: courses,
                   };
-                  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+                  localStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify(updatedAuthData)
+                  );
                 }
               } catch {
                 // Игнорируем ошибки
               }
             }
           }
-          
+
           const userData: User = {
             email: authData.userEmail,
             name: authData.userName,
@@ -294,7 +295,11 @@ export default function ProfilePage() {
   };
 
   const handleConfirmDelete = () => {
-    if (!mountedRef.current || !courseToDelete || typeof window === "undefined") {
+    if (
+      !mountedRef.current ||
+      !courseToDelete ||
+      typeof window === "undefined"
+    ) {
       setIsDeleteConfirmOpen(false);
       setCourseToDelete(null);
       return;
@@ -322,9 +327,12 @@ export default function ProfilePage() {
       };
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
-      
+
       const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
-      localStorage.setItem(HISTORY_KEY, JSON.stringify({ courses: updatedCourses }));
+      localStorage.setItem(
+        HISTORY_KEY,
+        JSON.stringify({ courses: updatedCourses })
+      );
 
       setIsDeleteConfirmOpen(false);
       setCourseToDelete(null);
@@ -360,8 +368,7 @@ export default function ProfilePage() {
       if (mountedRef.current) {
         try {
           setIsCourseDeletedOpen(false);
-        } catch {
-        }
+        } catch {}
       }
     });
   };

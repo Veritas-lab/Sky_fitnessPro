@@ -32,9 +32,6 @@ export async function registerUser(
 ): Promise<RegisterResponse> {
   const response = await fetch(`${BASE_URL}/api/fitness/auth/register`, {
     method: "POST",
-    headers: {
-      Accept: "application/json",
-    },
     body: JSON.stringify(data),
   });
 
@@ -49,9 +46,6 @@ export async function registerUser(
 export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
   const response = await fetch(`${BASE_URL}/api/fitness/auth/login`, {
     method: "POST",
-    headers: {
-      Accept: "application/json",
-    },
     body: JSON.stringify(data),
   });
 
@@ -67,7 +61,6 @@ export async function getUserData(token: string): Promise<UserData> {
   const response = await fetch(`${BASE_URL}/api/fitness/users/me`, {
     method: "GET",
     headers: {
-      Accept: "application/json",
       Authorization: `Bearer ${token}`,
     },
   });

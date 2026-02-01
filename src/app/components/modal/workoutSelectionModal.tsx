@@ -56,8 +56,7 @@ export default function WorkoutSelectionModal({
         try {
           router.push(`/workouts/${selectedWorkouts[0]}`);
           onClose();
-        } catch {
-        }
+        } catch {}
       });
     }
   };
@@ -70,8 +69,7 @@ export default function WorkoutSelectionModal({
       requestAnimationFrame(() => {
         try {
           onClose();
-        } catch {
-        }
+        } catch {}
       });
     }
   };

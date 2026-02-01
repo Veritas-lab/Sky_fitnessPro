@@ -44,7 +44,12 @@ export default function ProgressModal({
 
   const handleProgressChange = (index: number, value: string) => {
     if (!mountedRef.current) return;
-    if (index < 0 || index >= exercises.length || index >= progressValues.length) return;
+    if (
+      index < 0 ||
+      index >= exercises.length ||
+      index >= progressValues.length
+    )
+      return;
 
     // Разрешаем пустую строку или только цифры
     if (value === "" || /^\d+$/.test(value)) {
@@ -56,8 +61,13 @@ export default function ProgressModal({
 
   const handleBlur = (index: number) => {
     if (!mountedRef.current) return;
-    if (index < 0 || index >= exercises.length || index >= progressValues.length) return;
-    
+    if (
+      index < 0 ||
+      index >= exercises.length ||
+      index >= progressValues.length
+    )
+      return;
+
     const value = progressValues[index];
     const numValue = parseInt(value) || 0;
     const maxValue = exercises[index]?.quantity || 0;
@@ -71,7 +81,7 @@ export default function ProgressModal({
   const handleSave = () => {
     if (!mountedRef.current || typeof window === "undefined") return;
     if (!exercises || exercises.length === 0) return;
-    
+
     try {
       const numericProgress = progressValues.map((value, index) => {
         if (index >= exercises.length) return 0;
@@ -79,26 +89,24 @@ export default function ProgressModal({
         const maxValue = exercises[index]?.quantity || 0;
         return Math.max(0, Math.min(numValue, maxValue));
       });
-      
+
       if (numericProgress.length !== exercises.length) {
         return;
       }
-      
+
       const wasMounted = mountedRef.current;
       mountedRef.current = false;
-      
+
       onSave(numericProgress);
-      
+
       if (wasMounted) {
         requestAnimationFrame(() => {
           try {
             onClose();
-          } catch {
-          }
+          } catch {}
         });
       }
-    } catch {
-    }
+    } catch {}
   };
 
   const handleClose = () => {
@@ -109,8 +117,7 @@ export default function ProgressModal({
       requestAnimationFrame(() => {
         try {
           onClose();
-        } catch {
-        }
+        } catch {}
       });
     }
   };
