@@ -82,11 +82,30 @@ export default function WorkoutPage() {
       const savedAuth = localStorage.getItem(STORAGE_KEY);
       if (savedAuth) {
         try {
-          const authData: AuthData = JSON.parse(savedAuth);
+          const authData: AuthData & { courses?: Course[] } = JSON.parse(savedAuth);
           if (authData.isAuthenticated && authData.userName && authData.userEmail) {
             if (mountedRef.current) {
               setUserName(authData.userName);
               setUserEmail(authData.userEmail);
+              
+              if (!authData.courses || authData.courses.length === 0) {
+                const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
+                const savedHistory = localStorage.getItem(HISTORY_KEY);
+                if (savedHistory) {
+                  try {
+                    const history = JSON.parse(savedHistory);
+                    if (history.courses && history.courses.length > 0) {
+                      const updatedAuthData = {
+                        ...authData,
+                        courses: history.courses,
+                      };
+                      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+                    }
+                  } catch {
+                    // Игнорируем ошибки
+                  }
+                }
+              }
             }
           }
         } catch {
@@ -257,6 +276,9 @@ export default function WorkoutPage() {
 
         authData.courses[courseIndex] = updatedCourse;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
+        
+        const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
+        localStorage.setItem(HISTORY_KEY, JSON.stringify({ courses: authData.courses }));
       }
 
       setIsSuccessModalOpen(true);

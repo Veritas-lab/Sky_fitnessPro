@@ -92,6 +92,25 @@ export default function CoursePage() {
               setIsAuthenticated(true);
               setUserName(authData.userName);
               setUserEmail(authData.userEmail);
+              
+              if (!authData.courses || authData.courses.length === 0) {
+                const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
+                const savedHistory = localStorage.getItem(HISTORY_KEY);
+                if (savedHistory) {
+                  try {
+                    const history = JSON.parse(savedHistory);
+                    if (history.courses && history.courses.length > 0) {
+                      const updatedAuthData: AuthData = {
+                        ...authData,
+                        courses: history.courses,
+                      };
+                      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+                    }
+                  } catch {
+                    // Игнорируем ошибки
+                  }
+                }
+              }
             }
           }
         } catch {
@@ -159,11 +178,25 @@ export default function CoursePage() {
     setIsAuthenticated(true);
     setIsFormOpen(false);
     if (typeof window !== "undefined") {
+      const HISTORY_KEY = `sky_fitness_history_${email}`;
+      const savedHistory = localStorage.getItem(HISTORY_KEY);
+      let savedCourses: Course[] = [];
+
+      if (savedHistory) {
+        try {
+          const history = JSON.parse(savedHistory);
+          savedCourses = history.courses || [];
+        } catch {
+          savedCourses = [];
+        }
+      }
+
       const authData: AuthData = {
         isAuthenticated: true,
         userName: name,
         userEmail: email,
         password: password,
+        courses: savedCourses,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
 
@@ -249,6 +282,10 @@ export default function CoursePage() {
       };
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+      
+      const HISTORY_KEY = `sky_fitness_history_${userEmail}`;
+      localStorage.setItem(HISTORY_KEY, JSON.stringify({ courses: updatedAuthData.courses }));
+      
       setCourseAddModal({ isOpen: true, type: "success" });
     } catch {
       setCourseAddModal({ isOpen: true, type: "error" });

@@ -190,10 +190,32 @@ export default function ProfilePage() {
       try {
         const authData: AuthData = JSON.parse(savedAuth);
         if (authData.isAuthenticated && authData.userName && authData.userEmail) {
+          let courses = authData.courses || [];
+          
+          if (courses.length === 0) {
+            const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
+            const savedHistory = localStorage.getItem(HISTORY_KEY);
+            if (savedHistory) {
+              try {
+                const history = JSON.parse(savedHistory);
+                if (history.courses && history.courses.length > 0) {
+                  courses = history.courses;
+                  const updatedAuthData: AuthData = {
+                    ...authData,
+                    courses: courses,
+                  };
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+                }
+              } catch {
+                // Игнорируем ошибки
+              }
+            }
+          }
+          
           const userData: User = {
             email: authData.userEmail,
             name: authData.userName,
-            courses: authData.courses || [],
+            courses: courses,
           };
           if (mountedRef.current) {
             setUser(userData);
@@ -291,6 +313,9 @@ export default function ProfilePage() {
       };
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+      
+      const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
+      localStorage.setItem(HISTORY_KEY, JSON.stringify({ courses: updatedCourses }));
 
       setIsDeleteConfirmOpen(false);
       setCourseToDelete(null);
