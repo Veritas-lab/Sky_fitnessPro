@@ -5,7 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import ProgressModal from "../../components/modal/progressModal";
 import SuccessModal from "../../components/modal/successModal";
-import { removeToken } from "../../services/authToken";
+import {
+  removeToken,
+  isAuthenticated as checkAuth,
+} from "../../services/authToken";
 import styles from "./workout.module.css";
 
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
