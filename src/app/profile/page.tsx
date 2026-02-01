@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import WorkoutSelectionModal from "../components/modal/workoutSelectionModal";
+import DeleteConfirmModal from "../components/modal/deleteConfirmModal";
+import CourseDeletedModal from "../components/modal/courseDeletedModal";
 import styles from "./profile.module.css";
 
 interface CourseCardProps {
@@ -166,6 +168,9 @@ export default function ProfilePage() {
   const [isMounted, setIsMounted] = useState(false);
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isCourseDeletedOpen, setIsCourseDeletedOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
   const mountedRef = useRef(false);
 
   useLayoutEffect(() => {
@@ -222,16 +227,33 @@ export default function ProfilePage() {
   };
 
   const handleDeleteCourse = (courseId: string) => {
-    if (!mountedRef.current || typeof window === "undefined") return;
+    if (!mountedRef.current) return;
+    setCourseToDelete(courseId);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!mountedRef.current || !courseToDelete || typeof window === "undefined") {
+      setIsDeleteConfirmOpen(false);
+      setCourseToDelete(null);
+      return;
+    }
 
     const savedAuth = localStorage.getItem(STORAGE_KEY);
-    if (!savedAuth) return;
+    if (!savedAuth) {
+      setIsDeleteConfirmOpen(false);
+      setCourseToDelete(null);
+      return;
+    }
 
     try {
+      const courseIdToDelete = courseToDelete;
       const authData: AuthData = JSON.parse(savedAuth);
       const courses = authData.courses || [];
 
-      const updatedCourses = courses.filter((course) => course.id !== courseId);
+      const updatedCourses = courses.filter(
+        (course) => course.id !== courseIdToDelete
+      );
 
       const updatedAuthData: AuthData = {
         ...authData,
@@ -240,16 +262,35 @@ export default function ProfilePage() {
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
 
-      if (user) {
+      setIsDeleteConfirmOpen(false);
+      setCourseToDelete(null);
+
+      if (user && mountedRef.current) {
         const updatedUser: User = {
           ...user,
           courses: updatedCourses,
         };
         setUser(updatedUser);
       }
+
+      setTimeout(() => {
+        if (mountedRef.current) {
+          setIsCourseDeletedOpen(true);
+        }
+      }, 300);
     } catch {
-      return;
+      setIsDeleteConfirmOpen(false);
+      setCourseToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteConfirmOpen(false);
+    setCourseToDelete(null);
+  };
+
+  const handleCloseCourseDeleted = () => {
+    setIsCourseDeletedOpen(false);
   };
 
   const handleAddCourseClick = () => {
@@ -400,6 +441,15 @@ export default function ProfilePage() {
           workouts={getWorkoutsForCourse(selectedCourse.id)}
           onClose={handleCloseWorkoutModal}
         />
+      )}
+      {isDeleteConfirmOpen && !isCourseDeletedOpen && (
+        <DeleteConfirmModal
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
+      )}
+      {isCourseDeletedOpen && !isDeleteConfirmOpen && (
+        <CourseDeletedModal onClose={handleCloseCourseDeleted} />
       )}
     </>
   );
