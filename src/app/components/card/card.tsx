@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./card.module.css";
@@ -27,6 +28,7 @@ export default function Card({
   isAuthenticated = false,
   onAddCourse,
 }: CardProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
   const courseId = courseIdMap[title] || title.toLowerCase();
   const courseUrl = `/course/${courseId}`;
 
@@ -50,25 +52,34 @@ export default function Card({
             className={styles.cardImage}
           />
           {isAuthenticated && (
-            <button
-              className={styles.plusIcon}
-              onClick={handlePlusClick}
-              aria-label="Добавить курс"
-              type="button"
-              style={{
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-              }}
+            <div
+              className={styles.plusIconContainer}
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
             >
-              <Image
-                src="/img/plus.svg"
-                alt="Add"
-                width={30}
-                height={30}
-              />
-            </button>
+              <button
+                className={styles.plusIcon}
+                onClick={handlePlusClick}
+                aria-label="Добавить курс"
+                type="button"
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                }}
+              >
+                <Image
+                  src="/img/plus.svg"
+                  alt="Add"
+                  width={30}
+                  height={30}
+                />
+              </button>
+              {showTooltip && (
+                <div className={styles.tooltip}>Добавить курс</div>
+              )}
+            </div>
           )}
         </div>
         <div className={styles.cardFrame}>

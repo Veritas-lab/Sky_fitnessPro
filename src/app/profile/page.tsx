@@ -7,6 +7,119 @@ import Image from "next/image";
 import WorkoutSelectionModal from "../components/modal/workoutSelectionModal";
 import styles from "./profile.module.css";
 
+interface CourseCardProps {
+  course: Course;
+  onDelete: (courseId: string) => void;
+  onStartWorkout: (course: Course) => void;
+  getButtonText: (progress: number) => string;
+}
+
+function CourseCard({
+  course,
+  onDelete,
+  onStartWorkout,
+  getButtonText,
+}: CourseCardProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  return (
+    <div className={styles.courseCard}>
+      <div className={styles.courseImageWrapper}>
+        <Image
+          src={course.image}
+          alt={course.name}
+          fill
+          className={styles.courseImage}
+        />
+        <div
+          className={styles.deleteButtonContainer}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+        >
+          <button
+            className={styles.deleteButton}
+            onClick={() => onDelete(course.id)}
+            aria-label="Удалить курс"
+            title="Удалить курс"
+          >
+            <Image
+              src="/img/minus.svg"
+              alt="Удалить курс"
+              width={30}
+              height={30}
+              className={styles.deleteIcon}
+            />
+          </button>
+          {showTooltip && (
+            <div className={styles.tooltip}>Удалить курс</div>
+          )}
+        </div>
+      </div>
+      <div className={styles.courseInfo}>
+        <h3 className={styles.courseName}>{course.name}</h3>
+        <div className={styles.courseDetails}>
+          <div className={styles.firstRow}>
+            <div className={styles.daysBadge}>
+              <Image
+                src="/img/calendar.svg"
+                alt="Calendar"
+                width={16}
+                height={16}
+                className={styles.calendarIcon}
+              />
+              <span className={styles.daysText}>
+                {course.duration} дней
+              </span>
+            </div>
+            <div className={styles.clockBadge}>
+              <Image
+                src="/img/clock.svg"
+                alt="Clock"
+                width={16}
+                height={16}
+                className={styles.clockIcon}
+              />
+              <span className={styles.clockText}>
+                {course.dailyDuration.from}-
+                {course.dailyDuration.to} мин/день
+              </span>
+            </div>
+          </div>
+          <div className={styles.complexityBadge}>
+            <Image
+              src="/img/complexity.svg"
+              alt="Complexity"
+              width={16}
+              height={16}
+              className={styles.complexityIcon}
+            />
+            <span className={styles.complexityText}>
+              {course.difficulty}
+            </span>
+          </div>
+        </div>
+        <div className={styles.progressSection}>
+          <div className={styles.progressText}>
+            Прогресс {course.progress}%
+          </div>
+          <div className={styles.progressBar}>
+            <div
+              className={styles.progressFill}
+              style={{ width: `${course.progress}%` }}
+            />
+          </div>
+        </div>
+        <button
+          className={styles.courseButton}
+          onClick={() => onStartWorkout(course)}
+        >
+          {getButtonText(course.progress)}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const AuthHeader = dynamic(() => import("../components/header/authHeader"), {
   ssr: false,
 });
@@ -139,6 +252,11 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAddCourseClick = () => {
+    if (!mountedRef.current) return;
+    router.push("/");
+  };
+
   const handleScrollToTop = () => {
     if (!mountedRef.current || typeof window === "undefined") return;
     try {
@@ -245,97 +363,27 @@ export default function ProfilePage() {
             {user.courses.length > 0 ? (
               <div className={styles.coursesList}>
                 {user.courses.map((course) => (
-                  <div key={course.id} className={styles.courseCard}>
-                    <div className={styles.courseImageWrapper}>
-                      <Image
-                        src={course.image}
-                        alt={course.name}
-                        fill
-                        className={styles.courseImage}
-                      />
-                      <button
-                        className={styles.deleteButton}
-                        onClick={() => handleDeleteCourse(course.id)}
-                        aria-label="Удалить курс"
-                        title="Удалить курс"
-                      >
-                        <Image
-                          src="/img/minus.svg"
-                          alt="Удалить курс"
-                          width={30}
-                          height={30}
-                          className={styles.deleteIcon}
-                        />
-                      </button>
-                    </div>
-                    <div className={styles.courseInfo}>
-                      <h3 className={styles.courseName}>{course.name}</h3>
-                      <div className={styles.courseDetails}>
-                        <div className={styles.firstRow}>
-                          <div className={styles.daysBadge}>
-                            <Image
-                              src="/img/calendar.svg"
-                              alt="Calendar"
-                              width={16}
-                              height={16}
-                              className={styles.calendarIcon}
-                            />
-                            <span className={styles.daysText}>
-                              {course.duration} дней
-                            </span>
-                          </div>
-                          <div className={styles.clockBadge}>
-                            <Image
-                              src="/img/clock.svg"
-                              alt="Clock"
-                              width={16}
-                              height={16}
-                              className={styles.clockIcon}
-                            />
-                            <span className={styles.clockText}>
-                              {course.dailyDuration.from}-
-                              {course.dailyDuration.to} мин/день
-                            </span>
-                          </div>
-                        </div>
-                        <div className={styles.complexityBadge}>
-                          <Image
-                            src="/img/complexity.svg"
-                            alt="Complexity"
-                            width={16}
-                            height={16}
-                            className={styles.complexityIcon}
-                          />
-                          <span className={styles.complexityText}>
-                            {course.difficulty}
-                          </span>
-                        </div>
-                      </div>
-                      <div className={styles.progressSection}>
-                        <div className={styles.progressText}>
-                          Прогресс {course.progress}%
-                        </div>
-                        <div className={styles.progressBar}>
-                          <div
-                            className={styles.progressFill}
-                            style={{ width: `${course.progress}%` }}
-                          />
-                        </div>
-                      </div>
-                      <button
-                        className={styles.courseButton}
-                        onClick={() => handleStartWorkout(course)}
-                      >
-                        {getButtonText(course.progress)}
-                      </button>
-                    </div>
-                  </div>
+                  <CourseCard
+                    key={course.id}
+                    course={course}
+                    onDelete={handleDeleteCourse}
+                    onStartWorkout={handleStartWorkout}
+                    getButtonText={getButtonText}
+                  />
                 ))}
               </div>
             ) : (
-              <p className={styles.noCourses}>
-                У вас пока нет выбранных курсов
-              </p>
+              <div className={styles.noCoursesContainer}>
+                <p className={styles.noCourses}>
+                  У вас пока нет выбранных курсов
+                </p>
+                <button
+                  className={styles.addCourseButton}
+                  onClick={handleAddCourseClick}
+                >
+                  Добавить курс
+                </button>
+              </div>
             )}
             <button
               className={styles.scrollTopButton}
