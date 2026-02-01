@@ -1,13 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Header from "../../components/header/header";
 import RegistrForm from "../../components/form/registrform";
 import AuthForm from "../../components/form/authform";
 import styles from "../course.module.css";
 import pageStyles from "../../page.module.css";
+
+const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
+  ssr: false,
+});
+
+const STORAGE_KEY = "sky_fitness_auth";
+
+interface AuthData {
+  isAuthenticated: boolean;
+  userName: string;
+  userEmail: string;
+}
 
 const courseImages: Record<string, string> = {
   yoga: "/img/yoga.png",
@@ -27,13 +40,44 @@ const courseCardImages: Record<string, string> = {
 
 export default function CoursePage() {
   const params = useParams();
+  const router = useRouter();
   const [courseId, setCourseId] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formType, setFormType] = useState<"register" | "auth">("register");
   const [isMounted, setIsMounted] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userName, setUserName] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
+  const mountedRef = useRef(false);
+
+  useLayoutEffect(() => {
+    mountedRef.current = true;
+    setIsMounted(true);
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
-    setIsMounted(true);
+    if (!mountedRef.current) return;
+
+    if (typeof window !== "undefined") {
+      const savedAuth = localStorage.getItem(STORAGE_KEY);
+      if (savedAuth) {
+        try {
+          const authData: AuthData = JSON.parse(savedAuth);
+          if (authData.isAuthenticated && authData.userName && authData.userEmail) {
+            if (mountedRef.current) {
+              setIsAuthenticated(true);
+              setUserName(authData.userName);
+              setUserEmail(authData.userEmail);
+            }
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -67,9 +111,45 @@ export default function CoursePage() {
     setFormType("register");
   };
 
+  const handleAuthSuccess = (name: string, email: string) => {
+    setUserName(name);
+    setUserEmail(email);
+    setIsAuthenticated(true);
+    setIsFormOpen(false);
+    if (typeof window !== "undefined") {
+      const authData: AuthData = {
+        isAuthenticated: true,
+        userName: name,
+        userEmail: email,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
+    }
+  };
+
+  const handleLogout = () => {
+    if (!mountedRef.current) return;
+    setIsAuthenticated(false);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_KEY);
+      router.push("/");
+    }
+  };
+
+  const handleAddCourse = () => {
+    if (!mountedRef.current) return;
+  };
+
   return (
     <>
-      <Header onLoginClick={handleLoginClick} />
+      {isAuthenticated && userName && userEmail ? (
+        <AuthHeader
+          userName={userName}
+          userEmail={userEmail}
+          onLogout={handleLogout}
+        />
+      ) : (
+        <Header onLoginClick={handleLoginClick} />
+      )}
       <main className={styles.courseMain}>
         <div className={styles.courseImageContainer}>
           {courseId ? (
@@ -230,9 +310,21 @@ export default function CoursePage() {
                   <li>упражнения заряжают бодростью</li>
                   <li>помогают противостоять стрессам</li>
                 </ul>
-                <button className={styles.courseContentButton}>
-                  Войдите, чтобы добавить курс
-                </button>
+                {isAuthenticated ? (
+                  <button
+                    className={styles.courseContentButton}
+                    onClick={handleAddCourse}
+                  >
+                    Добавить курс
+                  </button>
+                ) : (
+                  <button
+                    className={styles.courseContentButton}
+                    onClick={handleLoginClick}
+                  >
+                    Войдите, чтобы добавить курс
+                  </button>
+                )}
               </div>
             </div>
           </>
@@ -258,9 +350,15 @@ export default function CoursePage() {
               ×
             </button>
             {formType === "register" ? (
-              <RegistrForm onSwitchToAuth={handleSwitchToAuth} />
+              <RegistrForm
+                onSwitchToAuth={handleSwitchToAuth}
+                onAuthSuccess={handleAuthSuccess}
+              />
             ) : (
-              <AuthForm onSwitchToRegister={handleSwitchToRegister} />
+              <AuthForm
+                onSwitchToRegister={handleSwitchToRegister}
+                onAuthSuccess={handleAuthSuccess}
+              />
             )}
           </div>
         </div>

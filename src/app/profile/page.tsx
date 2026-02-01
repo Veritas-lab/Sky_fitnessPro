@@ -37,42 +37,46 @@ const courseImages: Record<string, string> = {
   bodyflex: "/img/bodyflex.png",
 };
 
-const mockUser: User = {
-  email: "sergey.petrov96@mail.ru",
-  name: "Сергей",
-  courses: [
-    {
-      id: "yoga",
-      name: "Йога",
-      image: courseImages.yoga,
-      duration: 25,
-      dailyDuration: { from: 20, to: 50 },
-      difficulty: "Сложность",
-      progress: 40,
-      workoutId: "workout1",
-    },
-    {
-      id: "stretching",
-      name: "Стретчинг",
-      image: courseImages.stretching,
-      duration: 25,
-      dailyDuration: { from: 20, to: 50 },
-      difficulty: "Сложность",
-      progress: 0,
-      workoutId: "workout2",
-    },
-    {
-      id: "fitness",
-      name: "Фитнес",
-      image: courseImages.fitness,
-      duration: 25,
-      dailyDuration: { from: 20, to: 50 },
-      difficulty: "Сложность",
-      progress: 100,
-      workoutId: "workout3",
-    },
-  ],
-};
+const STORAGE_KEY = "sky_fitness_auth";
+
+interface AuthData {
+  isAuthenticated: boolean;
+  userName: string;
+  userEmail: string;
+}
+
+const defaultCourses: Course[] = [
+  {
+    id: "yoga",
+    name: "Йога",
+    image: courseImages.yoga,
+    duration: 25,
+    dailyDuration: { from: 20, to: 50 },
+    difficulty: "Сложность",
+    progress: 40,
+    workoutId: "workout1",
+  },
+  {
+    id: "stretching",
+    name: "Стретчинг",
+    image: courseImages.stretching,
+    duration: 25,
+    dailyDuration: { from: 20, to: 50 },
+    difficulty: "Сложность",
+    progress: 0,
+    workoutId: "workout2",
+  },
+  {
+    id: "fitness",
+    name: "Фитнес",
+    image: courseImages.fitness,
+    duration: 25,
+    dailyDuration: { from: 20, to: 50 },
+    difficulty: "Сложность",
+    progress: 100,
+    workoutId: "workout3",
+  },
+];
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -94,39 +98,46 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!mountedRef.current) return;
 
-    // TODO: Заменить на реальный API запрос
-    // Mock data для верстки
-    const timer = setTimeout(() => {
-      if (mountedRef.current) {
-        setUser(mockUser);
-        setIsLoading(false);
+    if (typeof window !== "undefined") {
+      const savedAuth = localStorage.getItem(STORAGE_KEY);
+      if (savedAuth) {
+        try {
+          const authData: AuthData = JSON.parse(savedAuth);
+          if (authData.isAuthenticated && authData.userName && authData.userEmail) {
+            const userData: User = {
+              email: authData.userEmail,
+              name: authData.userName,
+              courses: defaultCourses,
+            };
+            if (mountedRef.current) {
+              setUser(userData);
+              setIsLoading(false);
+            }
+          } else {
+            if (mountedRef.current) {
+              setIsLoading(false);
+            }
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
+          if (mountedRef.current) {
+            setIsLoading(false);
+          }
+        }
+      } else {
+        if (mountedRef.current) {
+          setIsLoading(false);
+        }
       }
-    }, 0);
-
-    // const fetchUser = async () => {
-    //   try {
-    //     const response = await authApi.getCurrentUser();
-    //     if (mountedRef.current && response.data) {
-    //       setUser(response.data);
-    //       setIsLoading(false);
-    //     }
-    //   } catch (error) {
-    //     if (mountedRef.current) {
-    //       setIsLoading(false);
-    //     }
-    //   }
-    // };
-    // fetchUser();
-
-    return () => {
-      clearTimeout(timer);
-    };
+    }
   }, []);
 
   const handleLogout = () => {
     if (!mountedRef.current) return;
-    // TODO: Реализовать выход
-    console.log("Logout");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_KEY);
+      router.push("/");
+    }
   };
 
   const handleDeleteCourse = (courseId: string) => {
@@ -201,7 +212,11 @@ export default function ProfilePage() {
   return (
     <>
       {user && isMounted && (
-        <AuthHeader userName={user.name} userEmail={user.email} />
+        <AuthHeader
+          userName={user.name}
+          userEmail={user.email}
+          onLogout={handleLogout}
+        />
       )}
       <main className={styles.main}>
         {isLoading ? (

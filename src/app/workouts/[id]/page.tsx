@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useLayoutEffect, Suspense } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import ProgressModal from "../../components/modal/progressModal";
 import SuccessModal from "../../components/modal/successModal";
@@ -11,6 +11,14 @@ const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
   ssr: false,
   loading: () => null,
 });
+
+const STORAGE_KEY = "sky_fitness_auth";
+
+interface AuthData {
+  isAuthenticated: boolean;
+  userName: string;
+  userEmail: string;
+}
 
 interface Exercise {
   _id: string;
@@ -23,18 +31,20 @@ interface Workout {
   name: string;
   video: string;
   exercises: Exercise[];
-  courseName?: string; // Название курса
-  workoutNumber?: number; // Номер тренировки
+  courseName?: string;
+  workoutNumber?: number;
 }
 
 export default function WorkoutPage() {
   const params = useParams();
+  const router = useRouter();
   const [workoutId, setWorkoutId] = useState<string>("");
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [progress, setProgress] = useState<number[]>([]);
   const [userName, setUserName] = useState<string>("Пользователь");
+  const [userEmail, setUserEmail] = useState<string>("");
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const mountedRef = useRef(false);
@@ -56,17 +66,22 @@ export default function WorkoutPage() {
   useEffect(() => {
     if (!mountedRef.current) return;
 
-    // TODO: Получить имя пользователя из API или localStorage
-    // Mock data для верстки
-    const timer = setTimeout(() => {
-      if (mountedRef.current) {
-        setUserName("Сергей");
+    if (typeof window !== "undefined") {
+      const savedAuth = localStorage.getItem(STORAGE_KEY);
+      if (savedAuth) {
+        try {
+          const authData: AuthData = JSON.parse(savedAuth);
+          if (authData.isAuthenticated && authData.userName && authData.userEmail) {
+            if (mountedRef.current) {
+              setUserName(authData.userName);
+              setUserEmail(authData.userEmail);
+            }
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
+        }
       }
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    }
   }, []);
 
   useEffect(() => {
@@ -152,6 +167,14 @@ export default function WorkoutPage() {
     setIsSuccessModalOpen(false);
   };
 
+  const handleLogout = () => {
+    if (!mountedRef.current) return;
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_KEY);
+      router.push("/");
+    }
+  };
+
   const getExerciseProgress = (index: number): number => {
     if (
       !mountedRef.current ||
@@ -169,9 +192,13 @@ export default function WorkoutPage() {
 
   return (
     <>
-      {isMounted && userName && (
+      {isMounted && userName && userEmail && (
         <Suspense fallback={null}>
-          <AuthHeader userName={userName} userEmail="sergey.petrov96@mail.ru" />
+          <AuthHeader
+            userName={userName}
+            userEmail={userEmail}
+            onLogout={handleLogout}
+          />
         </Suspense>
       )}
       <main className={styles.main}>
