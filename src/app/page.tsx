@@ -7,6 +7,7 @@ import Main from "./components/main/main";
 import RegistrForm from "./components/form/registrform";
 import AuthForm from "./components/form/authform";
 import CourseAddModal from "./components/modal/courseAddModal";
+import { isAuthenticated as checkAuth, removeToken } from "./services/authToken";
 import styles from "./page.module.css";
 
 interface Course {
@@ -24,12 +25,10 @@ interface AuthData {
   isAuthenticated: boolean;
   userName: string;
   userEmail: string;
-  password?: string;
   courses?: Course[];
 }
 
 const STORAGE_KEY = "sky_fitness_auth";
-const USERS_STORAGE_KEY = "sky_fitness_users";
 
 const courseDataMap: Record<string, Omit<Course, "id">> = {
   yoga: {
@@ -89,7 +88,7 @@ export default function Home() {
   }>({ isOpen: false, type: "success" });
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && checkAuth()) {
       const savedAuth = localStorage.getItem(STORAGE_KEY);
       if (savedAuth) {
         try {
@@ -113,7 +112,6 @@ export default function Home() {
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
                   }
                 } catch {
-                  // Игнорируем ошибки
                 }
               }
             }
@@ -142,7 +140,7 @@ export default function Home() {
     setFormType("register");
   };
 
-  const handleAuthSuccess = (name: string, email: string, password?: string) => {
+  const handleAuthSuccess = (name: string, email: string) => {
     setUserName(name);
     setUserEmail(email);
     setIsAuthenticated(true);
@@ -165,38 +163,16 @@ export default function Home() {
         isAuthenticated: true,
         userName: name,
         userEmail: email,
-        password: password,
         courses: savedCourses,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
-
-      if (password) {
-        const savedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-        let users: Array<{ email: string; password: string; name: string }> = [];
-
-        if (savedUsers) {
-          try {
-            users = JSON.parse(savedUsers);
-          } catch {
-            users = [];
-          }
-        }
-
-        const existingUserIndex = users.findIndex((u) => u.email === email);
-        if (existingUserIndex >= 0) {
-          users[existingUserIndex] = { email, password, name };
-        } else {
-          users.push({ email, password, name });
-        }
-
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-      }
     }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     if (typeof window !== "undefined") {
+      removeToken();
       localStorage.removeItem(STORAGE_KEY);
     }
   };

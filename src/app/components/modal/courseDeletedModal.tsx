@@ -26,12 +26,18 @@ export default function CourseDeletedModal({
     if (autoCloseDelay > 0) {
       timeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
+          const timeoutId = timeoutRef.current;
           mountedRef.current = false;
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
           requestAnimationFrame(() => {
-            try {
-              onCloseRef.current();
-            } catch {
-              // Игнорируем ошибки при закрытии
+            if (timeoutId === timeoutRef.current || timeoutRef.current === null) {
+              try {
+                onCloseRef.current();
+              } catch {
+              }
             }
           });
         }
@@ -49,18 +55,20 @@ export default function CourseDeletedModal({
 
   const handleClose = () => {
     if (!mountedRef.current) return;
+    const wasMounted = mountedRef.current;
     mountedRef.current = false;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    requestAnimationFrame(() => {
-      try {
-        onClose();
-      } catch {
-        // Игнорируем ошибки при закрытии
-      }
-    });
+    if (wasMounted) {
+      requestAnimationFrame(() => {
+        try {
+          onCloseRef.current();
+        } catch {
+        }
+      });
+    }
   };
 
   return (

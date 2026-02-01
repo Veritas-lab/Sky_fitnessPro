@@ -7,6 +7,7 @@ import Image from "next/image";
 import WorkoutSelectionModal from "../components/modal/workoutSelectionModal";
 import DeleteConfirmModal from "../components/modal/deleteConfirmModal";
 import CourseDeletedModal from "../components/modal/courseDeletedModal";
+import { removeToken, isAuthenticated as checkAuth } from "../services/authToken";
 import styles from "./profile.module.css";
 
 interface CourseCardProps {
@@ -185,6 +186,13 @@ export default function ProfilePage() {
   const loadUserData = () => {
     if (!mountedRef.current || typeof window === "undefined") return;
 
+    if (!checkAuth()) {
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     const savedAuth = localStorage.getItem(STORAGE_KEY);
     if (savedAuth) {
       try {
@@ -273,6 +281,7 @@ export default function ProfilePage() {
   const handleLogout = () => {
     if (!mountedRef.current) return;
     if (typeof window !== "undefined") {
+      removeToken();
       localStorage.removeItem(STORAGE_KEY);
       router.push("/");
     }
