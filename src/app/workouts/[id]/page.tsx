@@ -14,6 +14,18 @@ const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
 
 const STORAGE_KEY = "sky_fitness_auth";
 
+interface Course {
+  id: string;
+  name: string;
+  image: string;
+  duration: number;
+  dailyDuration: { from: number; to: number };
+  difficulty: string;
+  progress: number;
+  workoutId?: string;
+  workouts?: Record<string, number[]>;
+}
+
 interface AuthData {
   isAuthenticated: boolean;
   userName: string;
@@ -126,7 +138,35 @@ export default function WorkoutPage() {
         };
         if (mountedRef.current && !isCancelled) {
           setWorkout(mockWorkout);
-          setProgress(new Array(mockWorkout.exercises.length).fill(0));
+          
+          const savedAuth = localStorage.getItem(STORAGE_KEY);
+          let savedProgress = new Array(mockWorkout.exercises.length).fill(0);
+          
+          if (savedAuth) {
+            try {
+              const authData: AuthData & { courses?: Course[] } = JSON.parse(savedAuth);
+              if (authData.courses && mockWorkout.courseName) {
+                const courseNameMap: Record<string, string> = {
+                  Йога: "yoga",
+                  Стретчинг: "stretching",
+                  Фитнес: "fitness",
+                  "Степ-аэробика": "step-aerobics",
+                  Бодифлекс: "bodyflex",
+                };
+                
+                const courseId = courseNameMap[mockWorkout.courseName] || mockWorkout.courseName.toLowerCase();
+                const course = authData.courses.find((c) => c.id === courseId);
+                
+                if (course && course.workouts && course.workouts[workoutId]) {
+                  savedProgress = course.workouts[workoutId];
+                }
+              }
+            } catch {
+              // Игнорируем ошибки
+            }
+          }
+          
+          setProgress(savedProgress);
           setIsLoading(false);
         }
       }
@@ -152,17 +192,76 @@ export default function WorkoutPage() {
     }
   };
 
+  const calculateCourseProgress = (course: Course): number => {
+    if (!course.workouts || Object.keys(course.workouts).length === 0) {
+      return 0;
+    }
+
+    const workoutIds = Object.keys(course.workouts);
+    if (workoutIds.length === 0) {
+      return 0;
+    }
+
+    const totalWorkoutsInCourse = 5;
+    let completedWorkouts = 0;
+
+    workoutIds.forEach((workoutId) => {
+      const workoutProgress = course.workouts?.[workoutId];
+      if (workoutProgress && workoutProgress.length > 0) {
+        const hasProgress = workoutProgress.some((val) => val > 0);
+        if (hasProgress) {
+          completedWorkouts++;
+        }
+      }
+    });
+
+    return Math.min(100, Math.round((completedWorkouts / totalWorkoutsInCourse) * 100));
+  };
+
   const handleSaveProgress = (newProgress: number[]) => {
     if (!mountedRef.current || !workout || typeof window === "undefined")
       return;
     try {
       setProgress(newProgress);
-      // TODO: Реализовать сохранение прогресса через API
-      console.log("Saving progress:", newProgress);
-      // Показываем модальное окно успеха
+
+      const savedAuth = localStorage.getItem(STORAGE_KEY);
+      if (!savedAuth) {
+        setIsSuccessModalOpen(true);
+        return;
+      }
+
+      const authData: AuthData & { courses?: Course[] } = JSON.parse(savedAuth);
+      if (!authData.courses || !workout.courseName) {
+        setIsSuccessModalOpen(true);
+        return;
+      }
+
+      const courseNameMap: Record<string, string> = {
+        Йога: "yoga",
+        Стретчинг: "stretching",
+        Фитнес: "fitness",
+        "Степ-аэробика": "step-aerobics",
+        Бодифлекс: "bodyflex",
+      };
+
+      const courseId = courseNameMap[workout.courseName] || workout.courseName.toLowerCase();
+      const courseIndex = authData.courses.findIndex((c) => c.id === courseId);
+
+      if (courseIndex >= 0) {
+        const updatedCourse = { ...authData.courses[courseIndex] };
+        if (!updatedCourse.workouts) {
+          updatedCourse.workouts = {};
+        }
+        updatedCourse.workouts[workoutId] = newProgress;
+        updatedCourse.progress = calculateCourseProgress(updatedCourse);
+
+        authData.courses[courseIndex] = updatedCourse;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
+      }
+
       setIsSuccessModalOpen(true);
     } catch {
-      // Игнорируем ошибки
+      setIsSuccessModalOpen(true);
     }
   };
 

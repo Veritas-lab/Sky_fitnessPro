@@ -136,6 +136,7 @@ interface Course {
   difficulty: string;
   progress: number;
   workoutId?: string; // ID первой тренировки курса
+  workouts?: Record<string, number[]>;
 }
 
 interface User {
@@ -181,41 +182,70 @@ export default function ProfilePage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!mountedRef.current) return;
+  const loadUserData = () => {
+    if (!mountedRef.current || typeof window === "undefined") return;
 
-    if (typeof window !== "undefined") {
-      const savedAuth = localStorage.getItem(STORAGE_KEY);
-      if (savedAuth) {
-        try {
-          const authData: AuthData = JSON.parse(savedAuth);
-          if (authData.isAuthenticated && authData.userName && authData.userEmail) {
-            const userData: User = {
-              email: authData.userEmail,
-              name: authData.userName,
-              courses: authData.courses || [],
-            };
-            if (mountedRef.current) {
-              setUser(userData);
-              setIsLoading(false);
-            }
-          } else {
-            if (mountedRef.current) {
-              setIsLoading(false);
-            }
+    const savedAuth = localStorage.getItem(STORAGE_KEY);
+    if (savedAuth) {
+      try {
+        const authData: AuthData = JSON.parse(savedAuth);
+        if (authData.isAuthenticated && authData.userName && authData.userEmail) {
+          const userData: User = {
+            email: authData.userEmail,
+            name: authData.userName,
+            courses: authData.courses || [],
+          };
+          if (mountedRef.current) {
+            setUser(userData);
+            setIsLoading(false);
           }
-        } catch {
-          localStorage.removeItem(STORAGE_KEY);
+        } else {
           if (mountedRef.current) {
             setIsLoading(false);
           }
         }
-      } else {
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
         if (mountedRef.current) {
           setIsLoading(false);
         }
       }
+    } else {
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
+  };
+
+  useEffect(() => {
+    if (!mountedRef.current) return;
+    loadUserData();
+
+    const handleStorageChange = () => {
+      if (mountedRef.current) {
+        loadUserData();
+      }
+    };
+
+    const handleFocus = () => {
+      if (mountedRef.current) {
+        loadUserData();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("focus", handleFocus);
+    const interval = setInterval(() => {
+      if (document.hasFocus() && mountedRef.current) {
+        loadUserData();
+      }
+    }, 2000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("focus", handleFocus);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleLogout = () => {
