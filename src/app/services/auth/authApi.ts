@@ -22,6 +22,11 @@ export interface ApiError {
   message: string;
 }
 
+export interface UserData {
+  email: string;
+  selectedCourses: string[];
+}
+
 export async function registerUser(
   data: RegisterRequest
 ): Promise<RegisterResponse> {
@@ -48,6 +53,23 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
       Accept: "application/json",
     },
     body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error: ApiError = await response.json();
+    throw new Error(error.message);
+  }
+
+  return response.json();
+}
+
+export async function getUserData(token: string): Promise<UserData> {
+  const response = await fetch(`${BASE_URL}/api/fitness/users/me`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
   });
 
   if (!response.ok) {

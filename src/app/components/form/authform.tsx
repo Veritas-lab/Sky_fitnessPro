@@ -45,11 +45,15 @@ export default function AuthForm({
     } catch (err) {
       if (err instanceof Error) {
         const errorMessage = err.message;
-        if (errorMessage.includes("email") || errorMessage.includes("найден")) {
+        if (
+          errorMessage.includes("Пользователь с таким email не найден") ||
+          errorMessage.includes("email не найден") ||
+          errorMessage.includes("не найден")
+        ) {
           setError("Логин введен неверно, попробуйте еще раз.");
         } else if (
-          errorMessage.includes("пароль") ||
-          errorMessage.includes("Неверный")
+          errorMessage.includes("Неверный пароль") ||
+          errorMessage.includes("неверный пароль")
         ) {
           setError("Пароль введен неверно, попробуйте еще раз.");
         } else {
