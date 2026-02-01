@@ -9,6 +9,10 @@ import RegistrForm from "../../components/form/registrform";
 import AuthForm from "../../components/form/authform";
 import AuthPromptModal from "../../components/modal/authPromptModal";
 import CourseAddModal from "../../components/modal/courseAddModal";
+import {
+  isAuthenticated as checkAuth,
+  removeToken,
+} from "../../services/authToken";
 import styles from "../course.module.css";
 import pageStyles from "../../page.module.css";
 
@@ -17,7 +21,6 @@ const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
 });
 
 const STORAGE_KEY = "sky_fitness_auth";
-const USERS_STORAGE_KEY = "sky_fitness_users";
 
 interface Course {
   id: string;
@@ -34,7 +37,6 @@ interface AuthData {
   isAuthenticated: boolean;
   userName: string;
   userEmail: string;
-  password?: string;
   courses?: Course[];
 }
 
@@ -82,7 +84,7 @@ export default function CoursePage() {
   useEffect(() => {
     if (!mountedRef.current) return;
 
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && checkAuth()) {
       const savedAuth = localStorage.getItem(STORAGE_KEY);
       if (savedAuth) {
         try {
@@ -107,7 +109,6 @@ export default function CoursePage() {
                       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
                     }
                   } catch {
-                    // Игнорируем ошибки
                   }
                 }
               }
@@ -156,12 +157,27 @@ export default function CoursePage() {
   };
 
   const handleCloseForm = () => {
-    setIsFormOpen(false);
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setIsFormOpen(false);
+        } catch {
+        }
+      }
+    });
   };
 
   const handleCloseAuthPrompt = () => {
     if (!mountedRef.current) return;
-    setShowAuthPrompt(false);
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setShowAuthPrompt(false);
+        } catch {
+        }
+      }
+    });
   };
 
   const handleSwitchToAuth = () => {
@@ -172,7 +188,7 @@ export default function CoursePage() {
     setFormType("register");
   };
 
-  const handleAuthSuccess = (name: string, email: string, password?: string) => {
+  const handleAuthSuccess = (name: string, email: string) => {
     setUserName(name);
     setUserEmail(email);
     setIsAuthenticated(true);
@@ -195,32 +211,9 @@ export default function CoursePage() {
         isAuthenticated: true,
         userName: name,
         userEmail: email,
-        password: password,
         courses: savedCourses,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
-
-      if (password) {
-        const savedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-        let users: Array<{ email: string; password: string; name: string }> = [];
-
-        if (savedUsers) {
-          try {
-            users = JSON.parse(savedUsers);
-          } catch {
-            users = [];
-          }
-        }
-
-        const existingUserIndex = users.findIndex((u) => u.email === email);
-        if (existingUserIndex >= 0) {
-          users[existingUserIndex] = { email, password, name };
-        } else {
-          users.push({ email, password, name });
-        }
-
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-      }
     }
   };
 
@@ -228,6 +221,7 @@ export default function CoursePage() {
     if (!mountedRef.current) return;
     setIsAuthenticated(false);
     if (typeof window !== "undefined") {
+      removeToken();
       localStorage.removeItem(STORAGE_KEY);
       router.push("/");
     }
@@ -294,11 +288,14 @@ export default function CoursePage() {
 
   const handleCloseCourseAddModal = () => {
     if (!mountedRef.current) return;
-    try {
-      setCourseAddModal({ isOpen: false, type: "success" });
-    } catch {
-      // Игнорируем ошибки при закрытии
-    }
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setCourseAddModal({ isOpen: false, type: "success" });
+        } catch {
+        }
+      }
+    });
   };
 
   return (

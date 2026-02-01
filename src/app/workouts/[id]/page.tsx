@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import ProgressModal from "../../components/modal/progressModal";
 import SuccessModal from "../../components/modal/successModal";
+import { removeToken } from "../../services/authToken";
 import styles from "./workout.module.css";
 
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
@@ -78,7 +79,7 @@ export default function WorkoutPage() {
   useEffect(() => {
     if (!mountedRef.current) return;
 
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && checkAuth()) {
       const savedAuth = localStorage.getItem(STORAGE_KEY);
       if (savedAuth) {
         try {
@@ -346,6 +347,7 @@ export default function WorkoutPage() {
   const handleLogout = () => {
     if (!mountedRef.current) return;
     if (typeof window !== "undefined") {
+      removeToken();
       localStorage.removeItem(STORAGE_KEY);
       router.push("/");
     }

@@ -71,6 +71,39 @@
   gap: 8px;
 }
 
+.passwordInputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordInput {
+  padding-right: 45px;
+}
+
+.eyeButton {
+  position: absolute;
+  right: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  transition: opacity 0.2s;
+}
+
+.eyeButton:hover {
+  opacity: 0.7;
+}
+
+.eyeButton:focus {
+  outline: none;
+}
+
 .errorMessage {
   color: #DB0030;
   font-family: "Roboto", sans-serif;

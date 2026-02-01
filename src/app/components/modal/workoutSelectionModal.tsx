@@ -49,26 +49,30 @@ export default function WorkoutSelectionModal({
       typeof window === "undefined"
     )
       return;
-    try {
-      router.push(`/workouts/${selectedWorkouts[0]}`);
-      mountedRef.current = false;
-      try {
-        onClose();
-      } catch {
-        // Игнорируем ошибки при закрытии
-      }
-    } catch {
-      // Игнорируем ошибки
+    const wasMounted = mountedRef.current;
+    mountedRef.current = false;
+    if (wasMounted) {
+      requestAnimationFrame(() => {
+        try {
+          router.push(`/workouts/${selectedWorkouts[0]}`);
+          onClose();
+        } catch {
+        }
+      });
     }
   };
 
   const handleClose = () => {
     if (!mountedRef.current) return;
+    const wasMounted = mountedRef.current;
     mountedRef.current = false;
-    try {
-      onClose();
-    } catch {
-      // Игнорируем ошибки при закрытии
+    if (wasMounted) {
+      requestAnimationFrame(() => {
+        try {
+          onClose();
+        } catch {
+        }
+      });
     }
   };
 

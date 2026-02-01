@@ -73,7 +73,6 @@ export default function ProgressModal({
     if (!exercises || exercises.length === 0) return;
     
     try {
-      // Преобразуем строковые значения в числа и валидируем их
       const numericProgress = progressValues.map((value, index) => {
         if (index >= exercises.length) return 0;
         const numValue = parseInt(value) || 0;
@@ -85,25 +84,34 @@ export default function ProgressModal({
         return;
       }
       
-      onSave(numericProgress);
+      const wasMounted = mountedRef.current;
       mountedRef.current = false;
-      try {
-        onClose();
-      } catch {
-        // Игнорируем ошибки при закрытии
+      
+      onSave(numericProgress);
+      
+      if (wasMounted) {
+        requestAnimationFrame(() => {
+          try {
+            onClose();
+          } catch {
+          }
+        });
       }
     } catch {
-      // Игнорируем ошибки
     }
   };
 
   const handleClose = () => {
     if (!mountedRef.current) return;
+    const wasMounted = mountedRef.current;
     mountedRef.current = false;
-    try {
-      onClose();
-    } catch {
-      // Игнорируем ошибки при закрытии
+    if (wasMounted) {
+      requestAnimationFrame(() => {
+        try {
+          onClose();
+        } catch {
+        }
+      });
     }
   };
 

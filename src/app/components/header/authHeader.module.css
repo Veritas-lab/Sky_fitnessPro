@@ -31,13 +31,13 @@
   height: 50px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .profileLink {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   text-decoration: none;
   transition: opacity 0.2s;
   flex: 1;
@@ -102,7 +102,11 @@
   .profileBlock {
     width: auto;
     height: 40px;
-    gap: 12px;
+    gap: 16px;
+  }
+
+  .profileLink {
+    gap: 0;
   }
 
   .profileIcon {
@@ -111,7 +115,7 @@
   }
 
   .userName {
-    font-size: 14px;
+    display: none;
   }
 
   .arrowIcon {
