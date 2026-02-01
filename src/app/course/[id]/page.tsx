@@ -8,6 +8,7 @@ import Header from "../../components/header/header";
 import RegistrForm from "../../components/form/registrform";
 import AuthForm from "../../components/form/authform";
 import AuthPromptModal from "../../components/modal/authPromptModal";
+import CourseAddModal from "../../components/modal/courseAddModal";
 import styles from "../course.module.css";
 import pageStyles from "../../page.module.css";
 
@@ -62,6 +63,10 @@ export default function CoursePage() {
   const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [courseAddModal, setCourseAddModal] = useState<{
+    isOpen: boolean;
+    type: "success" | "alreadyAdded" | "error";
+  }>({ isOpen: false, type: "success" });
   const mountedRef = useRef(false);
 
   useLayoutEffect(() => {
@@ -170,17 +175,26 @@ export default function CoursePage() {
   };
 
   const handleAddCourse = () => {
-    if (!mountedRef.current || !courseId || typeof window === "undefined") return;
+    if (!mountedRef.current || !courseId || typeof window === "undefined") {
+      setCourseAddModal({ isOpen: true, type: "error" });
+      return;
+    }
 
     const savedAuth = localStorage.getItem(STORAGE_KEY);
-    if (!savedAuth) return;
+    if (!savedAuth) {
+      setCourseAddModal({ isOpen: true, type: "error" });
+      return;
+    }
 
     try {
       const authData: AuthData = JSON.parse(savedAuth);
       const courses = authData.courses || [];
 
       const courseExists = courses.some((course) => course.id === courseId);
-      if (courseExists) return;
+      if (courseExists) {
+        setCourseAddModal({ isOpen: true, type: "alreadyAdded" });
+        return;
+      }
 
       const courseNameMap: Record<string, string> = {
         yoga: "Йога",
@@ -209,9 +223,14 @@ export default function CoursePage() {
       };
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+      setCourseAddModal({ isOpen: true, type: "success" });
     } catch {
-      return;
+      setCourseAddModal({ isOpen: true, type: "error" });
     }
+  };
+
+  const handleCloseCourseAddModal = () => {
+    setCourseAddModal({ isOpen: false, type: "success" });
   };
 
   return (
@@ -442,6 +461,12 @@ export default function CoursePage() {
         <AuthPromptModal
           onClose={handleCloseAuthPrompt}
           onLoginClick={handleLoginClick}
+        />
+      )}
+      {courseAddModal.isOpen && (
+        <CourseAddModal
+          type={courseAddModal.type}
+          onClose={handleCloseCourseAddModal}
         />
       )}
     </>

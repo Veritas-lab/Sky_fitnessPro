@@ -6,6 +6,7 @@ import AuthHeader from "./components/header/authHeader";
 import Main from "./components/main/main";
 import RegistrForm from "./components/form/registrform";
 import AuthForm from "./components/form/authform";
+import CourseAddModal from "./components/modal/courseAddModal";
 import styles from "./page.module.css";
 
 interface Course {
@@ -80,6 +81,10 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState<string>("Сергей");
   const [userEmail, setUserEmail] = useState<string>("sergey.petrov96@mail.ru");
+  const [courseAddModal, setCourseAddModal] = useState<{
+    isOpen: boolean;
+    type: "success" | "alreadyAdded" | "error";
+  }>({ isOpen: false, type: "success" });
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -139,20 +144,32 @@ export default function Home() {
   };
 
   const handleAddCourse = (courseId: string) => {
-    if (typeof window === "undefined" || !isAuthenticated) return;
+    if (typeof window === "undefined" || !isAuthenticated) {
+      setCourseAddModal({ isOpen: true, type: "error" });
+      return;
+    }
 
     const savedAuth = localStorage.getItem(STORAGE_KEY);
-    if (!savedAuth) return;
+    if (!savedAuth) {
+      setCourseAddModal({ isOpen: true, type: "error" });
+      return;
+    }
 
     try {
       const authData: AuthData = JSON.parse(savedAuth);
       const courses = authData.courses || [];
 
       const courseExists = courses.some((course) => course.id === courseId);
-      if (courseExists) return;
+      if (courseExists) {
+        setCourseAddModal({ isOpen: true, type: "alreadyAdded" });
+        return;
+      }
 
       const courseData = courseDataMap[courseId];
-      if (!courseData) return;
+      if (!courseData) {
+        setCourseAddModal({ isOpen: true, type: "error" });
+        return;
+      }
 
       const newCourse: Course = {
         id: courseId,
@@ -165,9 +182,14 @@ export default function Home() {
       };
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+      setCourseAddModal({ isOpen: true, type: "success" });
     } catch {
-      return;
+      setCourseAddModal({ isOpen: true, type: "error" });
     }
+  };
+
+  const handleCloseCourseAddModal = () => {
+    setCourseAddModal({ isOpen: false, type: "success" });
   };
 
   return (
@@ -209,6 +231,12 @@ export default function Home() {
             )}
           </div>
         </div>
+      )}
+      {courseAddModal.isOpen && (
+        <CourseAddModal
+          type={courseAddModal.type}
+          onClose={handleCloseCourseAddModal}
+        />
       )}
     </>
   );
