@@ -356,7 +356,14 @@ export default function ProfilePage() {
 
   const handleCloseCourseDeleted = () => {
     if (!mountedRef.current) return;
-    setIsCourseDeletedOpen(false);
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setIsCourseDeletedOpen(false);
+        } catch {
+        }
+      }
+    });
   };
 
   const handleAddCourseClick = () => {

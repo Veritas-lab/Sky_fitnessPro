@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "./components/header/header";
 import AuthHeader from "./components/header/authHeader";
 import Main from "./components/main/main";
@@ -86,6 +86,14 @@ export default function Home() {
     isOpen: boolean;
     type: "success" | "alreadyAdded" | "error";
   }>({ isOpen: false, type: "success" });
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined" && checkAuth()) {
@@ -129,7 +137,15 @@ export default function Home() {
   };
 
   const handleCloseForm = () => {
-    setIsFormOpen(false);
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setIsFormOpen(false);
+        } catch {
+        }
+      }
+    });
   };
 
   const handleSwitchToAuth = () => {
@@ -227,11 +243,15 @@ export default function Home() {
   };
 
   const handleCloseCourseAddModal = () => {
-    try {
-      setCourseAddModal({ isOpen: false, type: "success" });
-    } catch {
-      // Игнорируем ошибки при закрытии
-    }
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setCourseAddModal({ isOpen: false, type: "success" });
+        } catch {
+        }
+      }
+    });
   };
 
   return (

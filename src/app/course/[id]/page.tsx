@@ -157,12 +157,27 @@ export default function CoursePage() {
   };
 
   const handleCloseForm = () => {
-    setIsFormOpen(false);
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setIsFormOpen(false);
+        } catch {
+        }
+      }
+    });
   };
 
   const handleCloseAuthPrompt = () => {
     if (!mountedRef.current) return;
-    setShowAuthPrompt(false);
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setShowAuthPrompt(false);
+        } catch {
+        }
+      }
+    });
   };
 
   const handleSwitchToAuth = () => {
@@ -273,11 +288,14 @@ export default function CoursePage() {
 
   const handleCloseCourseAddModal = () => {
     if (!mountedRef.current) return;
-    try {
-      setCourseAddModal({ isOpen: false, type: "success" });
-    } catch {
-      // Игнорируем ошибки при закрытии
-    }
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setCourseAddModal({ isOpen: false, type: "success" });
+        } catch {
+        }
+      }
+    });
   };
 
   return (

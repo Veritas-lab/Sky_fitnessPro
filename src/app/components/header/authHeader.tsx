@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import ProfileModal from "../modal/profileModal";
@@ -18,15 +18,33 @@ export default function AuthHeader({
   onLogout,
 }: AuthHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const handleArrowClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsModalOpen(true);
+    if (mountedRef.current) {
+      setIsModalOpen(true);
+    }
   };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false);
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setIsModalOpen(false);
+        } catch {
+        }
+      }
+    });
   };
 
   return (

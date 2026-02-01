@@ -29,35 +29,47 @@ export default function ProfileModal({
 
   const handleProfileClick = () => {
     if (!mountedRef.current) return;
+    const wasMounted = mountedRef.current;
     mountedRef.current = false;
-    try {
-      onClose();
-      router.push("/profile");
-    } catch {
-      // Игнорируем ошибки
+    if (wasMounted) {
+      requestAnimationFrame(() => {
+        try {
+          onClose();
+          router.push("/profile");
+        } catch {
+        }
+      });
     }
   };
 
   const handleLogout = () => {
     if (!mountedRef.current) return;
+    const wasMounted = mountedRef.current;
     mountedRef.current = false;
-    try {
-      if (onLogout) {
-        onLogout();
-      }
-      onClose();
-    } catch {
-      // Игнорируем ошибки
+    if (wasMounted) {
+      requestAnimationFrame(() => {
+        try {
+          if (onLogout) {
+            onLogout();
+          }
+          onClose();
+        } catch {
+        }
+      });
     }
   };
 
   const handleClose = () => {
     if (!mountedRef.current) return;
+    const wasMounted = mountedRef.current;
     mountedRef.current = false;
-    try {
-      onClose();
-    } catch {
-      // Игнорируем ошибки при закрытии
+    if (wasMounted) {
+      requestAnimationFrame(() => {
+        try {
+          onClose();
+        } catch {
+        }
+      });
     }
   };
 

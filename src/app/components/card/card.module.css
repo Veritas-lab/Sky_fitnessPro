@@ -294,4 +294,10 @@
     font-variant-numeric: lining-nums proportional-nums;
     color: #000000;
   }
+
+  .plusIconContainer {
+    top: 20px;
+    right: 20px;
+    left: auto;
+  }
 }
