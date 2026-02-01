@@ -7,6 +7,7 @@ import Image from "next/image";
 import Header from "../../components/header/header";
 import RegistrForm from "../../components/form/registrform";
 import AuthForm from "../../components/form/authform";
+import AuthPromptModal from "../../components/modal/authPromptModal";
 import styles from "../course.module.css";
 import pageStyles from "../../page.module.css";
 
@@ -60,6 +61,7 @@ export default function CoursePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const mountedRef = useRef(false);
 
   useLayoutEffect(() => {
@@ -93,6 +95,22 @@ export default function CoursePage() {
   }, []);
 
   useEffect(() => {
+    if (!mountedRef.current || !courseId) return;
+
+    if (!isAuthenticated && courseId) {
+      const timer = setTimeout(() => {
+        if (mountedRef.current) {
+          setShowAuthPrompt(true);
+        }
+      }, 500);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [isAuthenticated, courseId]);
+
+  useEffect(() => {
     if (params?.id && typeof params.id === "string") {
       setCourseId(params.id);
     }
@@ -113,6 +131,10 @@ export default function CoursePage() {
 
   const handleCloseForm = () => {
     setIsFormOpen(false);
+  };
+
+  const handleCloseAuthPrompt = () => {
+    setShowAuthPrompt(false);
   };
 
   const handleSwitchToAuth = () => {
@@ -415,6 +437,12 @@ export default function CoursePage() {
             )}
           </div>
         </div>
+      )}
+      {isMounted && showAuthPrompt && !isAuthenticated && (
+        <AuthPromptModal
+          onClose={handleCloseAuthPrompt}
+          onLoginClick={handleLoginClick}
+        />
       )}
     </>
   );
