@@ -43,40 +43,8 @@ interface AuthData {
   isAuthenticated: boolean;
   userName: string;
   userEmail: string;
+  courses?: Course[];
 }
-
-const defaultCourses: Course[] = [
-  {
-    id: "yoga",
-    name: "Йога",
-    image: courseImages.yoga,
-    duration: 25,
-    dailyDuration: { from: 20, to: 50 },
-    difficulty: "Сложность",
-    progress: 40,
-    workoutId: "workout1",
-  },
-  {
-    id: "stretching",
-    name: "Стретчинг",
-    image: courseImages.stretching,
-    duration: 25,
-    dailyDuration: { from: 20, to: 50 },
-    difficulty: "Сложность",
-    progress: 0,
-    workoutId: "workout2",
-  },
-  {
-    id: "fitness",
-    name: "Фитнес",
-    image: courseImages.fitness,
-    duration: 25,
-    dailyDuration: { from: 20, to: 50 },
-    difficulty: "Сложность",
-    progress: 100,
-    workoutId: "workout3",
-  },
-];
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -107,7 +75,7 @@ export default function ProfilePage() {
             const userData: User = {
               email: authData.userEmail,
               name: authData.userName,
-              courses: defaultCourses,
+              courses: authData.courses || [],
             };
             if (mountedRef.current) {
               setUser(userData);
@@ -141,9 +109,34 @@ export default function ProfilePage() {
   };
 
   const handleDeleteCourse = (courseId: string) => {
-    if (!mountedRef.current) return;
-    // TODO: Реализовать удаление курса
-    console.log("Delete course:", courseId);
+    if (!mountedRef.current || typeof window === "undefined") return;
+
+    const savedAuth = localStorage.getItem(STORAGE_KEY);
+    if (!savedAuth) return;
+
+    try {
+      const authData: AuthData = JSON.parse(savedAuth);
+      const courses = authData.courses || [];
+
+      const updatedCourses = courses.filter((course) => course.id !== courseId);
+
+      const updatedAuthData: AuthData = {
+        ...authData,
+        courses: updatedCourses,
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+
+      if (user) {
+        const updatedUser: User = {
+          ...user,
+          courses: updatedCourses,
+        };
+        setUser(updatedUser);
+      }
+    } catch {
+      return;
+    }
   };
 
   const handleScrollToTop = () => {

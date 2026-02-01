@@ -19,10 +19,17 @@ const courses = [
   { title: "Bodyflex", image: "/img/bodyflex.png", courseName: "Бодифлекс" },
 ];
 
-export default function Main() {
+interface MainProps {
+  isAuthenticated?: boolean;
+  onAddCourse?: (courseId: string) => void;
+}
+
+export default function Main({
+  isAuthenticated = false,
+  onAddCourse,
+}: MainProps) {
   return (
     <div className={styles.main}>
-      {/* Секция с заголовком */}
       <section className={styles.titleSection}>
         <h1 className={styles.mainTitle}>
           Начните заниматься спортом и улучшите качество жизни
@@ -51,7 +58,6 @@ export default function Main() {
         </div>
       </section>
 
-      {/* Секция с карточками курсов */}
       <section className={styles.cardsSection}>
         <div className={styles.cardsContainer}>
           {courses.map((course) => (
@@ -60,6 +66,8 @@ export default function Main() {
               title={course.title}
               image={course.image}
               courseName={course.courseName}
+              isAuthenticated={isAuthenticated}
+              onAddCourse={onAddCourse}
             />
           ))}
         </div>

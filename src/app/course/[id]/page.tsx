@@ -16,10 +16,22 @@ const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
 
 const STORAGE_KEY = "sky_fitness_auth";
 
+interface Course {
+  id: string;
+  name: string;
+  image: string;
+  duration: number;
+  dailyDuration: { from: number; to: number };
+  difficulty: string;
+  progress: number;
+  workoutId?: string;
+}
+
 interface AuthData {
   isAuthenticated: boolean;
   userName: string;
   userEmail: string;
+  courses?: Course[];
 }
 
 const courseImages: Record<string, string> = {
@@ -136,7 +148,48 @@ export default function CoursePage() {
   };
 
   const handleAddCourse = () => {
-    if (!mountedRef.current) return;
+    if (!mountedRef.current || !courseId || typeof window === "undefined") return;
+
+    const savedAuth = localStorage.getItem(STORAGE_KEY);
+    if (!savedAuth) return;
+
+    try {
+      const authData: AuthData = JSON.parse(savedAuth);
+      const courses = authData.courses || [];
+
+      const courseExists = courses.some((course) => course.id === courseId);
+      if (courseExists) return;
+
+      const courseNameMap: Record<string, string> = {
+        yoga: "Йога",
+        stretching: "Стретчинг",
+        fitness: "Фитнес",
+        "step-aerobics": "Степ-аэробика",
+        bodyflex: "Бодифлекс",
+      };
+
+      const courseImage = courseImages[courseId] || "/img/fitness.png";
+      const courseName = courseNameMap[courseId] || "Курс";
+
+      const newCourse: Course = {
+        id: courseId,
+        name: courseName,
+        image: courseImage,
+        duration: 25,
+        dailyDuration: { from: 20, to: 50 },
+        difficulty: "Сложность",
+        progress: 0,
+      };
+
+      const updatedAuthData: AuthData = {
+        ...authData,
+        courses: [...courses, newCourse],
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+    } catch {
+      return;
+    }
   };
 
   return (

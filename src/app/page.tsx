@@ -8,13 +8,71 @@ import RegistrForm from "./components/form/registrform";
 import AuthForm from "./components/form/authform";
 import styles from "./page.module.css";
 
+interface Course {
+  id: string;
+  name: string;
+  image: string;
+  duration: number;
+  dailyDuration: { from: number; to: number };
+  difficulty: string;
+  progress: number;
+  workoutId?: string;
+}
+
 interface AuthData {
   isAuthenticated: boolean;
   userName: string;
   userEmail: string;
+  courses?: Course[];
 }
 
 const STORAGE_KEY = "sky_fitness_auth";
+
+const courseDataMap: Record<string, Omit<Course, "id">> = {
+  yoga: {
+    name: "Йога",
+    image: "/img/yoga.png",
+    duration: 25,
+    dailyDuration: { from: 20, to: 50 },
+    difficulty: "Сложность",
+    progress: 0,
+    workoutId: "workout1",
+  },
+  stretching: {
+    name: "Стретчинг",
+    image: "/img/stretching.png",
+    duration: 25,
+    dailyDuration: { from: 20, to: 50 },
+    difficulty: "Сложность",
+    progress: 0,
+    workoutId: "workout2",
+  },
+  fitness: {
+    name: "Фитнес",
+    image: "/img/fitness.png",
+    duration: 25,
+    dailyDuration: { from: 20, to: 50 },
+    difficulty: "Сложность",
+    progress: 0,
+    workoutId: "workout3",
+  },
+  "step-aerobics": {
+    name: "Степ-аэробика",
+    image: "/img/step_aerobics.png",
+    duration: 25,
+    dailyDuration: { from: 20, to: 50 },
+    difficulty: "Сложность",
+    progress: 0,
+  },
+  bodyflex: {
+    name: "Бодифлекс",
+    image: "/img/bodyflex.png",
+    duration: 25,
+    dailyDuration: { from: 20, to: 50 },
+    difficulty: "Сложность",
+    progress: 0,
+  },
+};
 
 export default function Home() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -80,6 +138,38 @@ export default function Home() {
     }
   };
 
+  const handleAddCourse = (courseId: string) => {
+    if (typeof window === "undefined" || !isAuthenticated) return;
+
+    const savedAuth = localStorage.getItem(STORAGE_KEY);
+    if (!savedAuth) return;
+
+    try {
+      const authData: AuthData = JSON.parse(savedAuth);
+      const courses = authData.courses || [];
+
+      const courseExists = courses.some((course) => course.id === courseId);
+      if (courseExists) return;
+
+      const courseData = courseDataMap[courseId];
+      if (!courseData) return;
+
+      const newCourse: Course = {
+        id: courseId,
+        ...courseData,
+      };
+
+      const updatedAuthData: AuthData = {
+        ...authData,
+        courses: [...courses, newCourse],
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+    } catch {
+      return;
+    }
+  };
+
   return (
     <>
       {isAuthenticated ? (
@@ -92,7 +182,10 @@ export default function Home() {
         <Header onLoginClick={handleLoginClick} />
       )}
       <main>
-        <Main />
+        <Main
+          isAuthenticated={isAuthenticated}
+          onAddCourse={handleAddCourse}
+        />
       </main>
       {isFormOpen && (
         <div className={styles.modalOverlay} onClick={handleCloseForm}>
