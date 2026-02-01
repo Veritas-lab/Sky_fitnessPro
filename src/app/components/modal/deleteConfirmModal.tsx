@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import styles from "./deleteConfirmModal.module.css";
 
 interface DeleteConfirmModalProps {
@@ -11,8 +12,30 @@ export default function DeleteConfirmModal({
   onConfirm,
   onCancel,
 }: DeleteConfirmModalProps) {
+  const mountedRef = useRef(true);
+
+  const handleConfirm = () => {
+    if (!mountedRef.current) return;
+    mountedRef.current = false;
+    try {
+      onConfirm();
+    } catch {
+      // Игнорируем ошибки
+    }
+  };
+
+  const handleCancel = () => {
+    if (!mountedRef.current) return;
+    mountedRef.current = false;
+    try {
+      onCancel();
+    } catch {
+      // Игнорируем ошибки
+    }
+  };
+
   return (
-    <div className={styles.modalOverlay} onClick={onCancel}>
+    <div className={styles.modalOverlay} onClick={handleCancel}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.textContainer}>
           <p className={styles.questionText}>
@@ -23,10 +46,10 @@ export default function DeleteConfirmModal({
           </p>
         </div>
         <div className={styles.buttonsContainer}>
-          <button className={styles.confirmButton} onClick={onConfirm}>
+          <button className={styles.confirmButton} onClick={handleConfirm}>
             Да
           </button>
-          <button className={styles.cancelButton} onClick={onCancel}>
+          <button className={styles.cancelButton} onClick={handleCancel}>
             Нет
           </button>
         </div>

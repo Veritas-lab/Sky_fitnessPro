@@ -75,9 +75,24 @@ export default function ProgressModal({
         return Math.max(0, Math.min(numValue, maxValue));
       });
       onSave(numericProgress);
-      onClose();
+      mountedRef.current = false;
+      try {
+        onClose();
+      } catch {
+        // Игнорируем ошибки при закрытии
+      }
     } catch {
       // Игнорируем ошибки
+    }
+  };
+
+  const handleClose = () => {
+    if (!mountedRef.current) return;
+    mountedRef.current = false;
+    try {
+      onClose();
+    } catch {
+      // Игнорируем ошибки при закрытии
     }
   };
 
@@ -98,9 +113,9 @@ export default function ProgressModal({
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
+    <div className={styles.modalOverlay} onClick={handleClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeButton} onClick={onClose}>
+        <button className={styles.closeButton} onClick={handleClose}>
           ×
         </button>
         <h2 className={styles.title}>Мой прогресс</h2>

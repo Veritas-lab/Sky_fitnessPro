@@ -145,7 +145,11 @@ export default function WorkoutPage() {
 
   const handleCloseProgressModal = () => {
     if (!mountedRef.current) return;
-    setIsProgressModalOpen(false);
+    try {
+      setIsProgressModalOpen(false);
+    } catch {
+      // Игнорируем ошибки
+    }
   };
 
   const handleSaveProgress = (newProgress: number[]) => {
@@ -164,7 +168,11 @@ export default function WorkoutPage() {
 
   const handleCloseSuccessModal = () => {
     if (!mountedRef.current) return;
-    setIsSuccessModalOpen(false);
+    try {
+      setIsSuccessModalOpen(false);
+    } catch {
+      // Игнорируем ошибки
+    }
   };
 
   const handleLogout = () => {

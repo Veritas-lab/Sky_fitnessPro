@@ -1,10 +1,10 @@
 .registrForm {
   width: 360px;
-  height: 487px;
+  min-height: 487px;
   transform: rotate(0deg);
   opacity: 1;
   border-radius: 30px;
-  gap: 48px;
+  gap: 0;
   padding: 40px;
   background: #ffffff;
   box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
@@ -19,16 +19,17 @@
   transform: rotate(0deg);
   opacity: 1;
   display: block;
+  margin-bottom: 48px;
 }
 
 .formFrame {
   width: 280px;
-  height: 324px;
   transform: rotate(0deg);
   opacity: 1;
   gap: 10px;
   display: flex;
   flex-direction: column;
+  margin-bottom: 0;
 }
 
 .inputField {
@@ -56,6 +57,31 @@
   border-color: #bcec30;
 }
 
+.inputFieldError {
+  border-color: #DB0030;
+}
+
+.inputFieldError:focus {
+  border-color: #DB0030;
+}
+
+.inputWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.errorMessage {
+  color: #DB0030;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+}
+
 .buttonFrame {
   width: 280px;
   height: 114px;
@@ -64,6 +90,7 @@
   gap: 10px;
   display: flex;
   flex-direction: column;
+  margin-top: 34px;
 }
 
 .registerButton {
@@ -106,7 +133,7 @@
   padding: 16px 26px;
   gap: 10px;
   border: 1px solid #000000;
-  background: transparent;
+  background: #ffffff;
   cursor: pointer;
   font-family: "Roboto", sans-serif;
   font-size: 16px;
@@ -134,13 +161,17 @@
 @media (max-width: 768px) {
   .registrForm {
     width: 343px;
-    height: 487px;
+    min-height: 487px;
     transform: rotate(0deg);
     opacity: 1;
     border-radius: 30px;
-    gap: 48px;
+    gap: 0;
     padding: 40px;
     background: #ffffff;
     box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  }
+
+  .buttonFrame {
+    margin-top: 34px;
   }
 }

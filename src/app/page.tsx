@@ -24,10 +24,12 @@ interface AuthData {
   isAuthenticated: boolean;
   userName: string;
   userEmail: string;
+  password?: string;
   courses?: Course[];
 }
 
 const STORAGE_KEY = "sky_fitness_auth";
+const USERS_STORAGE_KEY = "sky_fitness_users";
 
 const courseDataMap: Record<string, Omit<Course, "id">> = {
   yoga: {
@@ -121,7 +123,7 @@ export default function Home() {
     setFormType("register");
   };
 
-  const handleAuthSuccess = (name: string, email: string) => {
+  const handleAuthSuccess = (name: string, email: string, password?: string) => {
     setUserName(name);
     setUserEmail(email);
     setIsAuthenticated(true);
@@ -131,8 +133,31 @@ export default function Home() {
         isAuthenticated: true,
         userName: name,
         userEmail: email,
+        password: password,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
+
+      if (password) {
+        const savedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+        let users: Array<{ email: string; password: string; name: string }> = [];
+
+        if (savedUsers) {
+          try {
+            users = JSON.parse(savedUsers);
+          } catch {
+            users = [];
+          }
+        }
+
+        const existingUserIndex = users.findIndex((u) => u.email === email);
+        if (existingUserIndex >= 0) {
+          users[existingUserIndex] = { email, password, name };
+        } else {
+          users.push({ email, password, name });
+        }
+
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+      }
     }
   };
 
@@ -189,7 +214,11 @@ export default function Home() {
   };
 
   const handleCloseCourseAddModal = () => {
-    setCourseAddModal({ isOpen: false, type: "success" });
+    try {
+      setCourseAddModal({ isOpen: false, type: "success" });
+    } catch {
+      // Игнорируем ошибки при закрытии
+    }
   };
 
   return (

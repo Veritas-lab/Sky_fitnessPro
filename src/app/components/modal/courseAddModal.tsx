@@ -28,7 +28,14 @@ export default function CourseAddModal({
     if (autoCloseDelay > 0 && type !== "error") {
       timeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
-          onCloseRef.current();
+          mountedRef.current = false;
+          requestAnimationFrame(() => {
+            try {
+              onCloseRef.current();
+            } catch {
+              // Игнорируем ошибки при закрытии
+            }
+          });
         }
       }, autoCloseDelay);
     }
@@ -44,12 +51,18 @@ export default function CourseAddModal({
 
   const handleClose = () => {
     if (!mountedRef.current) return;
+    mountedRef.current = false;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    mountedRef.current = false;
-    onClose();
+    requestAnimationFrame(() => {
+      try {
+        onClose();
+      } catch {
+        // Игнорируем ошибки при закрытии
+      }
+    });
   };
 
   const getText = () => {

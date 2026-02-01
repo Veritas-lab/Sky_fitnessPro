@@ -285,11 +285,13 @@ export default function ProfilePage() {
   };
 
   const handleCancelDelete = () => {
+    if (!mountedRef.current) return;
     setIsDeleteConfirmOpen(false);
     setCourseToDelete(null);
   };
 
   const handleCloseCourseDeleted = () => {
+    if (!mountedRef.current) return;
     setIsCourseDeletedOpen(false);
   };
 
@@ -320,8 +322,13 @@ export default function ProfilePage() {
   };
 
   const handleCloseWorkoutModal = () => {
-    setIsWorkoutModalOpen(false);
-    setSelectedCourse(null);
+    if (!mountedRef.current) return;
+    try {
+      setIsWorkoutModalOpen(false);
+      setSelectedCourse(null);
+    } catch {
+      // Игнорируем ошибки
+    }
   };
 
   // Mock данные тренировок для курса

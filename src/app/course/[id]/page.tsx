@@ -17,6 +17,7 @@ const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
 });
 
 const STORAGE_KEY = "sky_fitness_auth";
+const USERS_STORAGE_KEY = "sky_fitness_users";
 
 interface Course {
   id: string;
@@ -33,6 +34,7 @@ interface AuthData {
   isAuthenticated: boolean;
   userName: string;
   userEmail: string;
+  password?: string;
   courses?: Course[];
 }
 
@@ -139,6 +141,7 @@ export default function CoursePage() {
   };
 
   const handleCloseAuthPrompt = () => {
+    if (!mountedRef.current) return;
     setShowAuthPrompt(false);
   };
 
@@ -150,7 +153,7 @@ export default function CoursePage() {
     setFormType("register");
   };
 
-  const handleAuthSuccess = (name: string, email: string) => {
+  const handleAuthSuccess = (name: string, email: string, password?: string) => {
     setUserName(name);
     setUserEmail(email);
     setIsAuthenticated(true);
@@ -160,8 +163,31 @@ export default function CoursePage() {
         isAuthenticated: true,
         userName: name,
         userEmail: email,
+        password: password,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
+
+      if (password) {
+        const savedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+        let users: Array<{ email: string; password: string; name: string }> = [];
+
+        if (savedUsers) {
+          try {
+            users = JSON.parse(savedUsers);
+          } catch {
+            users = [];
+          }
+        }
+
+        const existingUserIndex = users.findIndex((u) => u.email === email);
+        if (existingUserIndex >= 0) {
+          users[existingUserIndex] = { email, password, name };
+        } else {
+          users.push({ email, password, name });
+        }
+
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+      }
     }
   };
 
@@ -230,7 +256,12 @@ export default function CoursePage() {
   };
 
   const handleCloseCourseAddModal = () => {
-    setCourseAddModal({ isOpen: false, type: "success" });
+    if (!mountedRef.current) return;
+    try {
+      setCourseAddModal({ isOpen: false, type: "success" });
+    } catch {
+      // Игнорируем ошибки при закрытии
+    }
   };
 
   return (

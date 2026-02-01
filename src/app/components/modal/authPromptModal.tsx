@@ -28,7 +28,14 @@ export default function AuthPromptModal({
     if (autoCloseDelay > 0) {
       timeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
-          onCloseRef.current();
+          mountedRef.current = false;
+          requestAnimationFrame(() => {
+            try {
+              onCloseRef.current();
+            } catch {
+              // Игнорируем ошибки при закрытии
+            }
+          });
         }
       }, autoCloseDelay);
     }
@@ -37,25 +44,42 @@ export default function AuthPromptModal({
       mountedRef.current = false;
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
     };
   }, [autoCloseDelay]);
 
   const handleClose = () => {
     if (!mountedRef.current) return;
+    mountedRef.current = false;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
-    onClose();
+    requestAnimationFrame(() => {
+      try {
+        onClose();
+      } catch {
+        // Игнорируем ошибки при закрытии
+      }
+    });
   };
 
   const handleLoginClick = () => {
     if (!mountedRef.current) return;
+    mountedRef.current = false;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
-    onClose();
-    onLoginClick();
+    requestAnimationFrame(() => {
+      try {
+        onClose();
+        onLoginClick();
+      } catch {
+        // Игнорируем ошибки при закрытии
+      }
+    });
   };
 
   return (
