@@ -119,40 +119,60 @@ export default function ProfilePage() {
       return;
     }
     
-    if (!mountedRef.current) return;
-    setIsLoading(true);
+    // Используем requestAnimationFrame для безопасного обновления состояния
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
+      setIsLoading(true);
+    });
 
     try {
       const userCourseIds = userDataRef.current?.selectedCourses || [];
       
       if (userCourseIds.length === 0) {
-        if (mountedRef.current) {
-          setCourses([]);
-          setIsLoading(false);
-        }
+        requestAnimationFrame(() => {
+          if (mountedRef.current) {
+            setCourses([]);
+            setIsLoading(false);
+          }
+        });
         return;
       }
 
       const coursesData = await Promise.all(
         userCourseIds.map(async (courseId) => {
+          // Проверяем mountedRef перед каждой асинхронной операцией
+          if (!mountedRef.current) return null;
+          
           try {
             const course = await getCourseById(courseId) as CourseDetail;
+            if (!mountedRef.current) return null;
+            
             const workouts = await getCourseWorkouts(courseId);
+            if (!mountedRef.current) return null;
             
             let progress: { courseCompleted: boolean; progressPercent: number } | undefined = undefined;
             try {
               const progressData = await getCourseProgress(courseId);
-              if (progressData && progressData.workoutsProgress && progressData.workoutsProgress.length > 0) {
+              if (!mountedRef.current) return null;
+              
+              // Используем общее количество тренировок в курсе
+              const totalWorkouts = workouts.length;
+              
+              if (progressData && progressData.workoutsProgress && totalWorkouts > 0) {
+                // Подсчитываем завершенные тренировки
                 const completedWorkouts = progressData.workoutsProgress.filter(
-                  (wp) => wp.workoutCompleted
+                  (wp) => wp.workoutCompleted === true
                 ).length;
-                const totalWorkouts = progressData.workoutsProgress.length;
+                
+                // Рассчитываем процент прогресса
                 const progressPercent = Math.round((completedWorkouts / totalWorkouts) * 100);
+                
                 progress = {
-                  progressPercent,
+                  progressPercent: Math.min(progressPercent, 100), // Ограничиваем максимум 100%
                   courseCompleted: progressData.courseCompleted || false,
                 };
               } else {
+                // Если нет данных о прогрессе, но есть тренировки - прогресс 0%
                 progress = {
                   progressPercent: 0,
                   courseCompleted: false,
@@ -167,11 +187,24 @@ export default function ProfilePage() {
                   errorMessage.includes("not found") ||
                   errorMessage.includes("not added")
                 ) {
+                  // Курс добавлен, но прогресс еще не начат - прогресс 0%
+                  progress = {
+                    progressPercent: 0,
+                    courseCompleted: false,
+                  };
+                } else {
+                  // Для других ошибок тоже устанавливаем 0%
                   progress = {
                     progressPercent: 0,
                     courseCompleted: false,
                   };
                 }
+              } else {
+                // Если ошибка не является Error, устанавливаем 0%
+                progress = {
+                  progressPercent: 0,
+                  courseCompleted: false,
+                };
               }
             }
             
@@ -187,20 +220,27 @@ export default function ProfilePage() {
         })
       );
 
+      // Проверяем mountedRef перед обновлением состояния
+      if (!mountedRef.current) return;
+
       const validCourses = coursesData.filter(
         (course): course is CourseWithWorkouts => course !== null
       );
 
-      if (mountedRef.current) {
-        setCourses(validCourses);
-        setIsLoading(false);
-      }
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          setCourses(validCourses);
+          setIsLoading(false);
+        }
+      });
     } catch (error) {
       console.error('[PROFILE PAGE] Ошибка загрузки курсов:', error);
-      if (mountedRef.current) {
-        setCourses([]);
-        setIsLoading(false);
-      }
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          setCourses([]);
+          setIsLoading(false);
+        }
+      });
     }
   };
 
@@ -240,14 +280,22 @@ export default function ProfilePage() {
 
   const handleStartWorkout = (course: CourseWithWorkouts) => {
     if (!mountedRef.current) return;
-    setSelectedCourse(course);
-    setIsWorkoutModalOpen(true);
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setSelectedCourse(course);
+        setIsWorkoutModalOpen(true);
+      }
+    });
   };
 
   const handleCloseWorkoutModal = () => {
     if (!mountedRef.current) return;
-    setIsWorkoutModalOpen(false);
-    setSelectedCourse(null);
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setIsWorkoutModalOpen(false);
+        setSelectedCourse(null);
+      }
+    });
     // Обновляем курсы после закрытия модального окна тренировки
     // чтобы обновить прогресс, если тренировка была завершена
     setTimeout(() => {
@@ -261,11 +309,15 @@ export default function ProfilePage() {
     if (!mountedRef.current) return;
     try {
       await deleteUserCourse(courseId);
+      if (!mountedRef.current) return;
+      
       // Обновляем список курсов
       const updatedCourses = courses.filter((c) => c._id !== courseId);
-      if (mountedRef.current) {
-        setCourses(updatedCourses);
-      }
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          setCourses(updatedCourses);
+        }
+      });
     } catch (error) {
       console.error('Ошибка при удалении курса:', error);
     }
@@ -455,19 +507,17 @@ export default function ProfilePage() {
                         )}
                       </div>
                       
-                      {course.progress && (
-                        <div className={styles.progressSection}>
-                          <div className={styles.progressText}>
-                            Прогресс {course.progress.progressPercent}%
-                          </div>
-                          <div className={styles.progressBar}>
-                            <div
-                              className={styles.progressFill}
-                              style={{ width: `${course.progress.progressPercent}%` }}
-                            />
-                          </div>
+                      <div className={styles.progressSection}>
+                        <div className={styles.progressText}>
+                          Прогресс {course.progress?.progressPercent || 0}%
                         </div>
-                      )}
+                        <div className={styles.progressBar}>
+                          <div
+                            className={styles.progressFill}
+                            style={{ width: `${course.progress?.progressPercent || 0}%` }}
+                          />
+                        </div>
+                      </div>
                       
                       <button
                         className={styles.courseButton}

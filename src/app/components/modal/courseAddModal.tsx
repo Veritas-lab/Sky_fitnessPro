@@ -30,16 +30,24 @@ export default function CourseAddModal({
     if (autoCloseDelay > 0 && type !== "error") {
       const timeoutId = setTimeout(() => {
         if (mountedRef.current && timeoutRef.current === timeoutId) {
-          mountedRef.current = false;
-          timeoutRef.current = null;
-          try {
-            if (
-              onCloseRef.current &&
-              typeof onCloseRef.current === "function"
-            ) {
-              onCloseRef.current();
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              try {
+                if (
+                  onCloseRef.current &&
+                  typeof onCloseRef.current === "function"
+                ) {
+                  onCloseRef.current();
+                }
+              } catch (error) {
+                console.error('Ошибка при закрытии модального окна:', error);
+              }
             }
-          } catch {}
+          });
         }
       }, autoCloseDelay);
       timeoutRef.current = timeoutId;
@@ -59,14 +67,17 @@ export default function CourseAddModal({
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    if (mountedRef.current) {
-      mountedRef.current = false;
+    
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
       try {
         if (onCloseRef.current && typeof onCloseRef.current === "function") {
           onCloseRef.current();
         }
-      } catch {}
-    }
+      } catch (error) {
+        console.error('Ошибка при закрытии модального окна:', error);
+      }
+    });
   };
 
   const getText = () => {

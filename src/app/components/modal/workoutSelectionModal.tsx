@@ -36,11 +36,14 @@ export default function WorkoutSelectionModal({
 
   const handleToggleWorkout = (workoutId: string) => {
     if (!mountedRef.current) return;
-    setSelectedWorkouts((prev) =>
-      prev.includes(workoutId)
-        ? prev.filter((id) => id !== workoutId)
-        : [...prev, workoutId]
-    );
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
+      setSelectedWorkouts((prev) =>
+        prev.includes(workoutId)
+          ? prev.filter((id) => id !== workoutId)
+          : [...prev, workoutId]
+      );
+    });
   };
 
   const handleStart = () => {
@@ -51,32 +54,31 @@ export default function WorkoutSelectionModal({
     )
       return;
     
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
-    
-    if (wasMounted) {
-      requestAnimationFrame(() => {
-        try {
-          // ✅ Добавляем courseId в query параметры
-          router.push(`/workouts/${selectedWorkouts[0]}?courseId=${courseId}`);
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
+      try {
+        // ✅ Добавляем courseId в query параметры
+        router.push(`/workouts/${selectedWorkouts[0]}?courseId=${courseId}`);
+        if (mountedRef.current) {
           onClose();
-        } catch {}
-      });
-    }
+        }
+      } catch (error) {
+        console.error('Ошибка при переходе к тренировке:', error);
+      }
+    });
   };
 
   const handleClose = () => {
     if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
     
-    if (wasMounted) {
-      requestAnimationFrame(() => {
-        try {
-          onClose();
-        } catch {}
-      });
-    }
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
+      try {
+        onClose();
+      } catch (error) {
+        console.error('Ошибка при закрытии модального окна:', error);
+      }
+    });
   };
 
   return (
