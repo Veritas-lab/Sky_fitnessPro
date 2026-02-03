@@ -45,16 +45,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadUserData = useCallback(async (): Promise<void> => {
     console.log('[AUTH CONTEXT] Запуск loadUserData');
-    if (loadingRef.current) {
+    
+    // ✅ Исправлено: не блокируем повторные вызовы при входе/регистрации
+    if (loadingRef.current && !checkAuth()) {
       console.log('[AUTH CONTEXT] loadUserData уже выполняется, пропускаем');
       return;
     }
+    
     loadingRef.current = true;
     
     if (!mountedRef.current || typeof window === "undefined") {
       if (mountedRef.current) {
         setIsLoading(false);
       }
+      loadingRef.current = false;
       return;
     }
     
@@ -67,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUserEmail("");
         setIsLoading(false);
       }
+      loadingRef.current = false;
       return;
     }
 
@@ -80,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUserEmail("");
         setIsLoading(false);
       }
+      loadingRef.current = false;
       return;
     }
 
@@ -89,7 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await getMe();
       console.log('[AUTH CONTEXT] Данные пользователя получены:', data);
       
-      if (!mountedRef.current) return;
+      if (!mountedRef.current) {
+        loadingRef.current = false;
+        return;
+      }
 
       if (!data || !data.email) {
         console.warn('[AUTH CONTEXT] Невалидные данные пользователя (нет email)');
@@ -100,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUserEmail("");
           setIsLoading(false);
         }
+        loadingRef.current = false;
         return;
       }
 
@@ -177,7 +187,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('[AUTH CONTEXT] Вызов loginAPI...');
       await loginAPI(email, password);
       console.log('[AUTH CONTEXT] loginAPI успешно выполнен, вызов loadUserData');
+      
+      // ✅ Сбрасываем флаг перед вызовом loadUserData
+      loadingRef.current = false;
       await loadUserData();
+      
       console.log('[AUTH CONTEXT] login завершен успешно');
     } catch (error) {
       console.error('[AUTH CONTEXT] Ошибка в login:', error);
@@ -197,7 +211,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('[AUTH CONTEXT] Вызов registerAPI...');
       await registerAPI(email, password);
       console.log('[AUTH CONTEXT] registerAPI успешно выполнен, вызов loadUserData');
+      
+      // ✅ Сбрасываем флаг перед вызовом loadUserData
+      loadingRef.current = false;
       await loadUserData();
+      
       console.log('[AUTH CONTEXT] register завершен успешно');
     } catch (error) {
       console.error('[AUTH CONTEXT] Ошибка в register:', error);
