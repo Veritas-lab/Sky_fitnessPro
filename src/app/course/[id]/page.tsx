@@ -8,6 +8,7 @@ import Header from "../../components/header/header";
 import RegistrForm from "../../components/form/registrform";
 import AuthForm from "../../components/form/authform";
 import AuthPromptModal from "../../components/modal/authPromptModal";
+import CourseAddModal from "../../components/modal/courseAddModal";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getCourses as getAllCourses,
@@ -55,6 +56,8 @@ export default function CoursePage() {
   const [formType, setFormType] = useState<"register" | "auth">("register");
   const [isMounted, setIsMounted] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [courseAddModalOpen, setCourseAddModalOpen] = useState(false);
+  const [courseAddModalType, setCourseAddModalType] = useState<"success" | "alreadyAdded" | "error">("success");
   const [courseData, setCourseData] = useState<CourseDetail | null>(null);
   const [isLoadingCourse, setIsLoadingCourse] = useState(true);
   const [courseError, setCourseError] = useState<string | null>(null);
@@ -230,18 +233,45 @@ export default function CoursePage() {
       const courseExists = userData.selectedCourses.includes(foundCourse._id);
 
       if (courseExists) {
+        // Курс уже добавлен - показываем соответствующее модальное окно
+        if (mountedRef.current) {
+          setCourseAddModalType("alreadyAdded");
+          setCourseAddModalOpen(true);
+        }
         return;
       }
 
-      await addUserCourse(foundCourse._id);
+      try {
+        await addUserCourse(foundCourse._id);
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-      await refreshUserData();
+        await refreshUserData();
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } catch {
-      // Ignore errors silently
+        // Курс успешно добавлен - показываем модальное окно успеха
+        if (mountedRef.current) {
+          setCourseAddModalType("success");
+          setCourseAddModalOpen(true);
+        }
+      } catch (addError) {
+        // Ошибка при добавлении курса - показываем модальное окно ошибки
+        if (mountedRef.current) {
+          setCourseAddModalType("error");
+          setCourseAddModalOpen(true);
+        }
+      }
+    } catch (error) {
+      // Ошибка при загрузке курсов или другой ошибке
+      if (mountedRef.current) {
+        setCourseAddModalType("error");
+        setCourseAddModalOpen(true);
+      }
+    }
+  };
+
+  const handleCloseCourseAddModal = () => {
+    if (mountedRef.current) {
+      setCourseAddModalOpen(false);
     }
   };
 
@@ -517,6 +547,13 @@ export default function CoursePage() {
         <AuthPromptModal
           onClose={handleCloseAuthPrompt}
           onLoginClick={handleLoginClick}
+        />
+      )}
+      {courseAddModalOpen && (
+        <CourseAddModal
+          type={courseAddModalType}
+          onClose={handleCloseCourseAddModal}
+          autoCloseDelay={courseAddModalType === "error" ? 0 : 3000}
         />
       )}
     </>

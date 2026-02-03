@@ -14,6 +14,7 @@ import {
 import { CourseDetail } from "@/types/shared";
 import { useAuth } from "@/contexts/AuthContext";
 import WorkoutSelectionModal from "@/app/components/modal/workoutSelectionModal";
+import CourseDeletedModal from "@/app/components/modal/courseDeletedModal";
 
 const AuthHeader = dynamic(() => import("@/app/components/header/authHeader"), {
   ssr: false,
@@ -69,6 +70,7 @@ export default function ProfilePage() {
   const [isMounted, setIsMounted] = useState(false);
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<CourseWithWorkouts | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const mountedRef = useRef(false);
   const userDataRef = useRef(userData);
   const isAuthenticatedRef = useRef(isAuthenticated);
@@ -159,16 +161,64 @@ export default function ProfilePage() {
               const totalWorkouts = workouts.length;
               
               if (progressData && progressData.workoutsProgress && totalWorkouts > 0) {
-                // Подсчитываем завершенные тренировки
-                const completedWorkouts = progressData.workoutsProgress.filter(
-                  (wp) => wp.workoutCompleted === true
-                ).length;
+                let totalProgressPercent = 0;
+                let workoutsWithProgress = 0;
                 
-                // Рассчитываем процент прогресса
-                const progressPercent = Math.round((completedWorkouts / totalWorkouts) * 100);
+                // Рассчитываем прогресс для каждой тренировки на основе progressData
+                for (const workoutProgress of progressData.workoutsProgress) {
+                  // Находим соответствующую тренировку
+                  const workout = workouts.find(w => w._id === workoutProgress.workoutId);
+                  
+                  if (workout && workout.exercises && workout.exercises.length > 0) {
+                    let workoutPercent = 0;
+                    
+                    // Если тренировка полностью завершена, считаем её как 100%
+                    if (workoutProgress.workoutCompleted === true) {
+                      workoutPercent = 100;
+                    } else if (workoutProgress.progressData && workoutProgress.progressData.length > 0) {
+                      // Рассчитываем процент выполнения на основе progressData
+                      let totalCompleted = 0;
+                      let totalRequired = 0;
+                      
+                      // Сопоставляем progressData с exercises
+                      const exercisesCount = workout.exercises.length;
+                      const progressDataCount = workoutProgress.progressData.length;
+                      const minLength = Math.min(exercisesCount, progressDataCount);
+                      
+                      for (let i = 0; i < minLength; i++) {
+                        const exercise = workout.exercises[i];
+                        const completed = workoutProgress.progressData[i] || 0;
+                        const required = exercise.quantity || 0;
+                        
+                        if (required > 0) {
+                          // Ограничиваем выполненное значение максимумом требуемого
+                          totalCompleted += Math.min(Math.max(0, completed), required);
+                          totalRequired += required;
+                        }
+                      }
+                      
+                      // Рассчитываем процент выполнения этой тренировки
+                      workoutPercent = totalRequired > 0 
+                        ? Math.round((totalCompleted / totalRequired) * 100)
+                        : 0;
+                    }
+                    
+                    // Добавляем процент этой тренировки к общему прогрессу
+                    totalProgressPercent += workoutPercent;
+                    workoutsWithProgress++;
+                  }
+                }
+                
+                // Рассчитываем общий процент прогресса курса
+                // Учитываем тренировки с прогрессом и тренировки без прогресса (0%)
+                const averageProgress = workoutsWithProgress > 0 
+                  ? totalProgressPercent / totalWorkouts
+                  : 0;
+                
+                const progressPercent = Math.round(Math.min(averageProgress, 100));
                 
                 progress = {
-                  progressPercent: Math.min(progressPercent, 100), // Ограничиваем максимум 100%
+                  progressPercent,
                   courseCompleted: progressData.courseCompleted || false,
                 };
               } else {
@@ -316,10 +366,41 @@ export default function ProfilePage() {
       requestAnimationFrame(() => {
         if (mountedRef.current) {
           setCourses(updatedCourses);
+          // Показываем модальное окно об успешном удалении
+          setIsDeleteModalOpen(true);
         }
       });
     } catch (error) {
-      console.error('Ошибка при удалении курса:', error);
+      // Обрабатываем ошибки удаления
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        // Если курс не был добавлен или уже удален - просто обновляем список
+        if (
+          errorMessage.includes("не был добавлен") ||
+          errorMessage.includes("не найден") ||
+          errorMessage.includes("not found") ||
+          errorMessage.includes("not added")
+        ) {
+          // Курс уже удален или не был добавлен - просто обновляем список
+          const updatedCourses = courses.filter((c) => c._id !== courseId);
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              setCourses(updatedCourses);
+            }
+          });
+        } else {
+          // Для других ошибок просто логируем
+          console.error('Ошибка при удалении курса:', error);
+        }
+      } else {
+        console.error('Ошибка при удалении курса:', error);
+      }
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (mountedRef.current) {
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -540,6 +621,12 @@ export default function ProfilePage() {
           courseId={selectedCourse._id}
           workouts={getWorkoutsForCourse(selectedCourse._id)}
           onClose={handleCloseWorkoutModal}
+        />
+      )}
+      {isDeleteModalOpen && (
+        <CourseDeletedModal
+          onClose={handleCloseDeleteModal}
+          autoCloseDelay={3000}
         />
       )}
     </>
