@@ -31,13 +31,21 @@ export default function AuthHeader({
     e.preventDefault();
     e.stopPropagation();
     if (mountedRef.current) {
-      setIsModalOpen(true);
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          setIsModalOpen(true);
+        }
+      });
     }
   };
 
   const handleCloseModal = () => {
     if (mountedRef.current) {
-      setIsModalOpen(false);
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          setIsModalOpen(false);
+        }
+      });
     }
   };
 
@@ -79,7 +87,7 @@ export default function AuthHeader({
           </button>
         </div>
       </header>
-      {isModalOpen && (
+      {mountedRef.current && isModalOpen && (
         <ProfileModal
           userName={userName}
           userEmail={userEmail || ""}

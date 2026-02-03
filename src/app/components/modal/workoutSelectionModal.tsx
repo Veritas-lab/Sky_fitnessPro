@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./workoutSelectionModal.module.css";
@@ -13,12 +12,14 @@ interface Workout {
 
 interface WorkoutSelectionModalProps {
   courseName: string;
+  courseId: string; // ✅ Добавлен пропс
   workouts: Workout[];
   onClose: () => void;
 }
 
 export default function WorkoutSelectionModal({
-  courseName: _courseName, // eslint-disable-line @typescript-eslint/no-unused-vars
+  courseName: _courseName,
+  courseId, // ✅ Получаем courseId
   workouts,
   onClose,
 }: WorkoutSelectionModalProps) {
@@ -49,12 +50,15 @@ export default function WorkoutSelectionModal({
       typeof window === "undefined"
     )
       return;
+    
     const wasMounted = mountedRef.current;
     mountedRef.current = false;
+    
     if (wasMounted) {
       requestAnimationFrame(() => {
         try {
-          router.push(`/workouts/${selectedWorkouts[0]}`);
+          // ✅ Добавляем courseId в query параметры
+          router.push(`/workouts/${selectedWorkouts[0]}?courseId=${courseId}`);
           onClose();
         } catch {}
       });
@@ -65,6 +69,7 @@ export default function WorkoutSelectionModal({
     if (!mountedRef.current) return;
     const wasMounted = mountedRef.current;
     mountedRef.current = false;
+    
     if (wasMounted) {
       requestAnimationFrame(() => {
         try {
@@ -97,14 +102,14 @@ export default function WorkoutSelectionModal({
                 >
                   {isSelected && (
                     <svg
+                      className={styles.checkmark}
                       width="12"
                       height="12"
                       viewBox="0 0 12 12"
                       fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        d="M10 3L4.5 8.5L2 6"
+                        d="M1 6L4 9L11 1"
                         stroke="white"
                         strokeWidth="2"
                         strokeLinecap="round"
