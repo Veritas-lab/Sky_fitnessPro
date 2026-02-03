@@ -16,10 +16,12 @@ export default function CourseAddModal({
 }: CourseAddModalProps) {
   const mountedRef = useRef(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const onCloseRef = useRef(onClose);
+  const onCloseRef = useRef<() => void>(() => {});
 
   useEffect(() => {
-    onCloseRef.current = onClose;
+    if (onClose && typeof onClose === "function") {
+      onCloseRef.current = onClose;
+    }
   }, [onClose]);
 
   useEffect(() => {
@@ -30,11 +32,14 @@ export default function CourseAddModal({
         if (mountedRef.current && timeoutRef.current === timeoutId) {
           mountedRef.current = false;
           timeoutRef.current = null;
-          requestAnimationFrame(() => {
-            try {
+          try {
+            if (
+              onCloseRef.current &&
+              typeof onCloseRef.current === "function"
+            ) {
               onCloseRef.current();
-            } catch {}
-          });
+            }
+          } catch {}
         }
       }, autoCloseDelay);
       timeoutRef.current = timeoutId;
@@ -50,19 +55,17 @@ export default function CourseAddModal({
   }, [autoCloseDelay, type]);
 
   const handleClose = () => {
-    if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    if (wasMounted) {
-      requestAnimationFrame(() => {
-        try {
+    if (mountedRef.current) {
+      mountedRef.current = false;
+      try {
+        if (onCloseRef.current && typeof onCloseRef.current === "function") {
           onCloseRef.current();
-        } catch {}
-      });
+        }
+      } catch {}
     }
   };
 
@@ -111,6 +114,13 @@ export default function CourseAddModal({
       onClick={type === "error" ? handleClose : undefined}
     >
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <button
+          className={styles.closeButtonX}
+          onClick={handleClose}
+          aria-label="Закрыть"
+        >
+          ×
+        </button>
         <div className={styles.textContainer}>
           <p className={styles.textLine1}>{text.line1}</p>
           <p className={styles.textLine2}>{text.line2}</p>

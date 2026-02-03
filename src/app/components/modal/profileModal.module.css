@@ -89,7 +89,9 @@
   font-size: 18px;
   font-weight: 400;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
 }
 
 .profileButton:hover {
@@ -111,7 +113,10 @@
   font-size: 18px;
   font-weight: 400;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.2s, background 0.2s;
+  transition:
+    opacity 0.2s,
+    transform 0.2s,
+    background 0.2s;
 }
 
 .logoutButton:hover {

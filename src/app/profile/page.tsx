@@ -1,16 +1,29 @@
 "use client";
 
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useLayoutEffect,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import WorkoutSelectionModal from "../components/modal/workoutSelectionModal";
 import DeleteConfirmModal from "../components/modal/deleteConfirmModal";
 import CourseDeletedModal from "../components/modal/courseDeletedModal";
+import { useAuth } from "@/contexts/AuthContext";
 import {
-  removeToken,
-  isAuthenticated as checkAuth,
-} from "../services/authToken";
+  getCourseById,
+  getCourseProgress,
+  deleteUserCourse,
+} from "../services/courses/coursesApi";
+import { CourseDetail } from "@/types/shared";
+import {
+  getPendingCourses,
+  removePendingCourse,
+} from "../services/pendingCourse";
 import styles from "./profile.module.css";
 
 interface CourseCardProps {
@@ -35,6 +48,7 @@ function CourseCard({
           src={course.image}
           alt={course.name}
           fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className={styles.courseImage}
         />
         <div
@@ -148,144 +162,194 @@ const courseImages: Record<string, string> = {
   bodyflex: "/img/bodyflex.png",
 };
 
-const STORAGE_KEY = "sky_fitness_auth";
-
-interface AuthData {
-  isAuthenticated: boolean;
-  userName: string;
-  userEmail: string;
-  courses?: Course[];
-}
+const courseNameMap: Record<string, string> = {
+  yoga: "yoga",
+  stretching: "stretching",
+  fitness: "fitness",
+  "step-aerobics": "step-aerobics",
+  bodyflex: "bodyflex",
+};
 
 export default function ProfilePage() {
   const router = useRouter();
+  const {
+    isAuthenticated,
+    userData,
+    userName,
+    isLoading: authLoading,
+    logout,
+    refreshUserData,
+  } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isCourseDeletedOpen, setIsCourseDeletedOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
   const mountedRef = useRef(false);
+  const prevSelectedCoursesRef = useRef<string>("");
 
   useLayoutEffect(() => {
     mountedRef.current = true;
-    setIsMounted(true);
     return () => {
       mountedRef.current = false;
     };
   }, []);
 
-  const loadUserData = () => {
-    if (!mountedRef.current || typeof window === "undefined") return;
+  const loadUserData = useCallback(async (): Promise<void> => {
+    if (!mountedRef.current || typeof window === "undefined") {
+      setIsLoading(false);
+      return;
+    }
 
-    if (!checkAuth()) {
+    if (!isAuthenticated) {
       if (mountedRef.current) {
         setIsLoading(false);
       }
       return;
     }
 
-    const savedAuth = localStorage.getItem(STORAGE_KEY);
-    if (savedAuth) {
-      try {
-        const authData: AuthData = JSON.parse(savedAuth);
-        if (
-          authData.isAuthenticated &&
-          authData.userName &&
-          authData.userEmail
-        ) {
-          let courses = authData.courses || [];
+    if (!userData) {
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
+      return;
+    }
 
-          if (courses.length === 0) {
-            const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
-            const savedHistory = localStorage.getItem(HISTORY_KEY);
-            if (savedHistory) {
-              try {
-                const history = JSON.parse(savedHistory);
-                if (history.courses && history.courses.length > 0) {
-                  courses = history.courses;
-                  const updatedAuthData: AuthData = {
-                    ...authData,
-                    courses: courses,
-                  };
-                  localStorage.setItem(
-                    STORAGE_KEY,
-                    JSON.stringify(updatedAuthData)
-                  );
-                }
-              } catch {
-                // Игнорируем ошибки
-              }
-            }
-          }
-
-          const userData: User = {
-            email: authData.userEmail,
-            name: authData.userName,
-            courses: courses,
-          };
-          if (mountedRef.current) {
-            setUser(userData);
-            setIsLoading(false);
-          }
-        } else {
-          if (mountedRef.current) {
-            setIsLoading(false);
-          }
-        }
-      } catch {
-        localStorage.removeItem(STORAGE_KEY);
+    try {
+      const email = userData.email || "";
+      if (!email) {
         if (mountedRef.current) {
           setIsLoading(false);
         }
+        return;
       }
-    } else {
+
+      const userCourses: Course[] = [];
+      const selectedCourses = userData.selectedCourses || [];
+      const pendingCourses = getPendingCourses();
+      const allCourseIds = [
+        ...selectedCourses,
+        ...pendingCourses.filter((id) => !selectedCourses.includes(id)),
+      ];
+
+      if (Array.isArray(allCourseIds) && allCourseIds.length > 0) {
+        try {
+          const coursePromises = allCourseIds.map(async (courseId: string): Promise<Course | null> => {
+            if (!mountedRef.current) return null;
+            try {
+              const courseDetail = (await getCourseById(
+                courseId
+              )) as CourseDetail;
+              if (!mountedRef.current) return null;
+
+              let courseProgress;
+              try {
+                courseProgress = await getCourseProgress(courseId);
+                if (!mountedRef.current) return null;
+              } catch {
+                courseProgress = {
+                  courseId: courseId,
+                  courseCompleted: false,
+                  workoutsProgress: [],
+                };
+              }
+
+              const workoutsProgress = courseProgress.workoutsProgress || [];
+              const totalWorkouts = workoutsProgress.length;
+              const completedWorkouts = workoutsProgress.filter(
+                (wp) => wp.workoutCompleted
+              ).length;
+              const progress =
+                totalWorkouts > 0
+                  ? Math.round((completedWorkouts / totalWorkouts) * 100)
+                  : 0;
+
+              const courseNameEN = courseDetail.nameEN.toLowerCase();
+              const imageKey = courseNameMap[courseNameEN] || courseNameEN;
+              const image = courseImages[imageKey] || "/img/fitness.png";
+
+              return {
+                id: courseDetail._id,
+                name: courseDetail.nameRU,
+                image: image,
+                duration: courseDetail.durationInDays,
+                dailyDuration: {
+                  from: courseDetail.dailyDurationInMinutes.from,
+                  to: courseDetail.dailyDurationInMinutes.to,
+                },
+                difficulty: courseDetail.difficulty,
+                progress: progress,
+              };
+            } catch {
+              return null;
+            }
+          });
+
+          const courses = await Promise.all(coursePromises);
+          const validCourses = courses.filter(
+            (course: Course | null): course is Course => course !== null
+          );
+          userCourses.push(...validCourses);
+        } catch {}
+      }
+
+      if (mountedRef.current) {
+        setUser({
+          email: email,
+          name: userName,
+          courses: userCourses,
+        });
+        setIsLoading(false);
+      }
+    } catch {
       if (mountedRef.current) {
         setIsLoading(false);
       }
     }
-  };
+  }, [isAuthenticated, userData, userName]);
 
   useEffect(() => {
-    if (!mountedRef.current) return;
-    loadUserData();
+    if (authLoading) return;
 
-    const handleStorageChange = () => {
-      if (mountedRef.current) {
+    if (isAuthenticated && userData) {
+      const selectedCourses = userData.selectedCourses || [];
+      const currentSelectedCourses = selectedCourses.join(",");
+      const prevStr = prevSelectedCoursesRef.current;
+
+      if (currentSelectedCourses !== prevStr) {
+        prevSelectedCoursesRef.current = currentSelectedCourses;
+        setIsLoading(true);
         loadUserData();
-      }
-    };
-
-    const handleFocus = () => {
-      if (mountedRef.current) {
+      } else if (prevStr === "" && currentSelectedCourses) {
+        prevSelectedCoursesRef.current = currentSelectedCourses;
+        setIsLoading(true);
         loadUserData();
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("focus", handleFocus);
-    const interval = setInterval(() => {
-      if (document.hasFocus() && mountedRef.current) {
+      } else if (prevStr === "" && !currentSelectedCourses && !user) {
+        setIsLoading(true);
         loadUserData();
+      } else if (prevStr === "" && !currentSelectedCourses) {
+        setIsLoading(false);
       }
-    }, 2000);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("focus", handleFocus);
-      clearInterval(interval);
-    };
-  }, []);
+    } else {
+      setIsLoading(false);
+      prevSelectedCoursesRef.current = "";
+    }
+  }, [
+    authLoading,
+    isAuthenticated,
+    userData,
+    userData?.selectedCourses?.length,
+    userData?.selectedCourses?.join(","),
+    loadUserData,
+    user,
+  ]);
 
   const handleLogout = () => {
     if (!mountedRef.current) return;
-    if (typeof window !== "undefined") {
-      removeToken();
-      localStorage.removeItem(STORAGE_KEY);
-      router.push("/");
-    }
+    logout();
+    router.push("/");
   };
 
   const handleDeleteCourse = (courseId: string) => {
@@ -294,7 +358,7 @@ export default function ProfilePage() {
     setIsDeleteConfirmOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async (): Promise<void> => {
     if (
       !mountedRef.current ||
       !courseToDelete ||
@@ -305,8 +369,7 @@ export default function ProfilePage() {
       return;
     }
 
-    const savedAuth = localStorage.getItem(STORAGE_KEY);
-    if (!savedAuth) {
+    if (!isAuthenticated) {
       setIsDeleteConfirmOpen(false);
       setCourseToDelete(null);
       return;
@@ -314,36 +377,21 @@ export default function ProfilePage() {
 
     try {
       const courseIdToDelete = courseToDelete;
-      const authData: AuthData = JSON.parse(savedAuth);
-      const courses = authData.courses || [];
+      await deleteUserCourse(courseIdToDelete);
+      removePendingCourse(courseIdToDelete);
 
-      const updatedCourses = courses.filter(
-        (course) => course.id !== courseIdToDelete
-      );
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
-      const updatedAuthData: AuthData = {
-        ...authData,
-        courses: updatedCourses,
-      };
+      await refreshUserData();
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
-      const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
-      localStorage.setItem(
-        HISTORY_KEY,
-        JSON.stringify({ courses: updatedCourses })
-      );
+      if (mountedRef.current) {
+        loadUserData();
+      }
 
       setIsDeleteConfirmOpen(false);
       setCourseToDelete(null);
-
-      if (user && mountedRef.current) {
-        const updatedUser: User = {
-          ...user,
-          courses: updatedCourses,
-        };
-        setUser(updatedUser);
-      }
 
       setTimeout(() => {
         if (mountedRef.current) {
@@ -410,7 +458,7 @@ export default function ProfilePage() {
   };
 
   // Mock данные тренировок для курса
-  const getWorkoutsForCourse = (courseId: string) => {
+  const getWorkoutsForCourse = (_courseId: string) => {
     const workouts = [
       {
         id: "workout1",
@@ -448,7 +496,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      {user && isMounted && (
+      {user && (
         <AuthHeader
           userName={user.name}
           userEmail={user.email}

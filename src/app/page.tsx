@@ -6,18 +6,13 @@ import AuthHeader from "./components/header/authHeader";
 import Main from "./components/main/main";
 import RegistrForm from "./components/form/registrform";
 import AuthForm from "./components/form/authform";
-import CourseAddModal from "./components/modal/courseAddModal";
+import AuthPromptModal from "./components/modal/authPromptModal";
+import { useAuth } from "@/contexts/AuthContext";
 import {
-  isAuthenticated as checkAuth,
-  removeToken,
-  getToken,
-} from "./services/authToken";
-import { getUserData } from "./services/auth/authApi";
-import {
-  getAllCourses,
-  Course as ApiCourse,
-  addCourseToUser,
+  getCourses as getAllCourses,
+  addUserCourse,
 } from "./services/courses/coursesApi";
+import { Course as ApiCourse } from "@/types/shared";
 import styles from "./page.module.css";
 
 interface DisplayCourse {
@@ -44,32 +39,40 @@ const courseNameMap: Record<string, string> = {
   Stretching: "stretching",
   Fitness: "fitness",
   "Step Aerobics": "step-aerobics",
-  "StepAerobics": "step-aerobics",
+  StepAerobics: "step-aerobics",
   Bodyflex: "bodyflex",
 };
 
 const courseNameRUMap: Record<string, string> = {
-  "Йога": "yoga",
-  "Стретчинг": "stretching",
-  "Фитнес": "fitness",
+  Йога: "yoga",
+  Стретчинг: "stretching",
+  Фитнес: "fitness",
   "Степ-аэробика": "step-aerobics",
-  "Бодифлекс": "bodyflex",
+  Бодифлекс: "bodyflex",
 };
 
-const courseOrder = ["yoga", "stretching", "fitness", "step-aerobics", "bodyflex"];
+const courseOrder = [
+  "yoga",
+  "stretching",
+  "fitness",
+  "step-aerobics",
+  "bodyflex",
+];
 
 export default function Home() {
+  const {
+    isAuthenticated,
+    userName,
+    userEmail,
+    userData,
+    refreshUserData,
+    logout,
+  } = useAuth();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formType, setFormType] = useState<"register" | "auth">("register");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userName, setUserName] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
+  const [authPromptModalOpen, setAuthPromptModalOpen] = useState(false);
   const [courses, setCourses] = useState<DisplayCourse[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(true);
-  const [courseAddModal, setCourseAddModal] = useState<{
-    isOpen: boolean;
-    type: "success" | "alreadyAdded" | "error";
-  }>({ isOpen: false, type: "success" });
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -82,7 +85,7 @@ export default function Home() {
   useEffect(() => {
     if (!mountedRef.current || typeof window === "undefined") return;
 
-    const loadData = async () => {
+    const loadData = async (): Promise<void> => {
       try {
         const allCourses = await getAllCourses();
 
@@ -101,15 +104,15 @@ export default function Home() {
 
             const imageKey = courseId;
             let image = courseImages[imageKey];
-            
+
             if (!image) {
               const normalizedKey = course.nameEN
                 .toLowerCase()
                 .replace(/\s+/g, "-");
               image = courseImages[normalizedKey];
             }
-            
-            if (!image) {
+
+            if (!image || image === "") {
               image = "/img/fitness.png";
             }
 
@@ -144,36 +147,21 @@ export default function Home() {
           setIsLoadingCourses(false);
         }
       }
-
-      if (checkAuth()) {
-        const token = getToken();
-        if (token) {
-          try {
-            const userData = await getUserData(token);
-            if (mountedRef.current) {
-              setIsAuthenticated(true);
-              setUserEmail(userData.email);
-              const name = userData.email.split("@")[0] || "Пользователь";
-              const capitalizedName =
-                name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-              setUserName(capitalizedName);
-            }
-          } catch {
-            if (mountedRef.current) {
-              setIsAuthenticated(false);
-              removeToken();
-            }
-          }
-        }
-      }
     };
 
     loadData();
   }, []);
 
   const handleLoginClick = () => {
+    setAuthPromptModalOpen(false);
     setFormType("register");
     setIsFormOpen(true);
+  };
+
+  const handleCloseAuthPrompt = () => {
+    if (mountedRef.current) {
+      setAuthPromptModalOpen(false);
+    }
   };
 
   const handleCloseForm = () => {
@@ -195,33 +183,29 @@ export default function Home() {
     setFormType("register");
   };
 
-  const handleAuthSuccess = async (name: string, email: string) => {
-    setUserName(name);
-    setUserEmail(email);
-    setIsAuthenticated(true);
+  const handleAuthSuccess = async (): Promise<void> => {
+    if (!mountedRef.current) return;
+
     setIsFormOpen(false);
+    await refreshUserData();
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    if (typeof window !== "undefined") {
-      removeToken();
-    }
+    if (!mountedRef.current) return;
+    logout();
   };
 
-  const handleAddCourse = async (courseId: string) => {
-    if (
-      typeof window === "undefined" ||
-      !isAuthenticated ||
-      !mountedRef.current
-    ) {
-      setCourseAddModal({ isOpen: true, type: "error" });
+  const handleAddCourse = async (courseId: string): Promise<void> => {
+    if (typeof window === "undefined" || !mountedRef.current) {
       return;
     }
 
-    const token = getToken();
-    if (!token) {
-      setCourseAddModal({ isOpen: true, type: "error" });
+    if (!isAuthenticated) {
+      setAuthPromptModalOpen(true);
+      return;
+    }
+
+    if (!userData) {
       return;
     }
 
@@ -238,34 +222,25 @@ export default function Home() {
       );
 
       if (!foundCourse) {
-        setCourseAddModal({ isOpen: true, type: "error" });
         return;
       }
 
-      const userData = await getUserData(token);
       const courseExists = userData.selectedCourses.includes(foundCourse._id);
 
       if (courseExists) {
-        setCourseAddModal({ isOpen: true, type: "alreadyAdded" });
         return;
       }
 
-      await addCourseToUser(foundCourse._id);
-      setCourseAddModal({ isOpen: true, type: "success" });
-    } catch {
-      setCourseAddModal({ isOpen: true, type: "error" });
-    }
-  };
+      await addUserCourse(foundCourse._id);
 
-  const handleCloseCourseAddModal = () => {
-    if (!mountedRef.current) return;
-    requestAnimationFrame(() => {
-      if (mountedRef.current) {
-        try {
-          setCourseAddModal({ isOpen: false, type: "success" });
-        } catch {}
-      }
-    });
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      await refreshUserData();
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    } catch {
+      // Ignore errors silently
+    }
   };
 
   return (
@@ -310,10 +285,10 @@ export default function Home() {
           </div>
         </div>
       )}
-      {courseAddModal.isOpen && (
-        <CourseAddModal
-          type={courseAddModal.type}
-          onClose={handleCloseCourseAddModal}
+      {authPromptModalOpen && (
+        <AuthPromptModal
+          onClose={handleCloseAuthPrompt}
+          onLoginClick={handleLoginClick}
         />
       )}
     </>

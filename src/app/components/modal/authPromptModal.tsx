@@ -16,11 +16,17 @@ export default function AuthPromptModal({
 }: AuthPromptModalProps) {
   const mountedRef = useRef(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const onCloseRef = useRef(onClose);
+  const onCloseRef = useRef<() => void>(() => {});
+  const onLoginClickRef = useRef<() => void>(() => {});
 
   useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
+    if (onClose && typeof onClose === "function") {
+      onCloseRef.current = onClose;
+    }
+    if (onLoginClick && typeof onLoginClick === "function") {
+      onLoginClickRef.current = onLoginClick;
+    }
+  }, [onClose, onLoginClick]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -30,11 +36,14 @@ export default function AuthPromptModal({
         if (mountedRef.current && timeoutRef.current === timeoutId) {
           mountedRef.current = false;
           timeoutRef.current = null;
-          requestAnimationFrame(() => {
-            try {
+          try {
+            if (
+              onCloseRef.current &&
+              typeof onCloseRef.current === "function"
+            ) {
               onCloseRef.current();
-            } catch {}
-          });
+            }
+          } catch {}
         }
       }, autoCloseDelay);
       timeoutRef.current = timeoutId;
@@ -50,43 +59,55 @@ export default function AuthPromptModal({
   }, [autoCloseDelay]);
 
   const handleClose = () => {
-    if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    if (wasMounted) {
-      requestAnimationFrame(() => {
-        try {
+    if (mountedRef.current) {
+      mountedRef.current = false;
+      try {
+        if (onCloseRef.current && typeof onCloseRef.current === "function") {
           onCloseRef.current();
-        } catch {}
-      });
+        }
+      } catch {}
     }
   };
 
-  const handleLoginClick = () => {
-    if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
+  const handleLoginClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    if (wasMounted) {
-      requestAnimationFrame(() => {
-        try {
+    if (mountedRef.current) {
+      mountedRef.current = false;
+      try {
+        if (onCloseRef.current && typeof onCloseRef.current === "function") {
           onCloseRef.current();
-          onLoginClick();
-        } catch {}
-      });
+        }
+        if (
+          onLoginClickRef.current &&
+          typeof onLoginClickRef.current === "function"
+        ) {
+          onLoginClickRef.current();
+        }
+      } catch {}
     }
   };
 
   return (
     <div className={styles.modalOverlay} onClick={handleClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <button
+          className={styles.closeButtonX}
+          onClick={handleClose}
+          aria-label="Закрыть"
+        >
+          ×
+        </button>
         <div className={styles.textContainer}>
           <p className={styles.textLine1}>Тренировки ждут</p>
           <p className={styles.textLine2}>именно тебя.</p>
@@ -110,6 +131,13 @@ export default function AuthPromptModal({
             />
           </svg>
         </div>
+        <button
+          className={styles.loginButton}
+          onClick={handleLoginClick}
+          type="button"
+        >
+          Войти
+        </button>
       </div>
     </div>
   );

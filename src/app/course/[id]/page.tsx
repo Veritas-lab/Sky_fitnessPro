@@ -8,25 +8,19 @@ import Header from "../../components/header/header";
 import RegistrForm from "../../components/form/registrform";
 import AuthForm from "../../components/form/authform";
 import AuthPromptModal from "../../components/modal/authPromptModal";
-import CourseAddModal from "../../components/modal/courseAddModal";
+import { useAuth } from "@/contexts/AuthContext";
 import {
-  isAuthenticated as checkAuth,
-  removeToken,
-  getToken,
-} from "../../services/authToken";
-import { getUserData } from "../../services/auth/authApi";
-import {
-  getAllCourses,
+  getCourses as getAllCourses,
   getCourseById,
-  addCourseToUser,
-  Course as ApiCourse,
-  CourseDetail,
+  addUserCourse,
 } from "../../services/courses/coursesApi";
+import { Course as ApiCourse, CourseDetail } from "@/types/shared";
 import styles from "../course.module.css";
 import pageStyles from "../../page.module.css";
 
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
   ssr: false,
+  loading: () => null,
 });
 
 const courseImages: Record<string, string> = {
@@ -48,20 +42,22 @@ const courseCardImages: Record<string, string> = {
 export default function CoursePage() {
   const params = useParams();
   const router = useRouter();
+  const {
+    isAuthenticated,
+    userName,
+    userEmail,
+    userData,
+    refreshUserData,
+    logout,
+  } = useAuth();
   const [courseId, setCourseId] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formType, setFormType] = useState<"register" | "auth">("register");
   const [isMounted, setIsMounted] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userName, setUserName] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const [courseAddModal, setCourseAddModal] = useState<{
-    isOpen: boolean;
-    type: "success" | "alreadyAdded" | "error";
-  }>({ isOpen: false, type: "success" });
   const [courseData, setCourseData] = useState<CourseDetail | null>(null);
   const [isLoadingCourse, setIsLoadingCourse] = useState(true);
+  const [courseError, setCourseError] = useState<string | null>(null);
   const mountedRef = useRef(false);
 
   useLayoutEffect(() => {
@@ -70,36 +66,6 @@ export default function CoursePage() {
     return () => {
       mountedRef.current = false;
     };
-  }, []);
-
-  useEffect(() => {
-    if (!mountedRef.current) return;
-
-    const loadUserData = async () => {
-      if (typeof window !== "undefined" && checkAuth()) {
-        const token = getToken();
-        if (token) {
-          try {
-            const userData = await getUserData(token);
-            if (mountedRef.current) {
-              setIsAuthenticated(true);
-              setUserEmail(userData.email);
-              const name = userData.email.split("@")[0] || "Пользователь";
-              const capitalizedName =
-                name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-              setUserName(capitalizedName);
-            }
-        } catch (error) {
-          if (mountedRef.current) {
-            setIsAuthenticated(false);
-            removeToken();
-          }
-        }
-        }
-      }
-    };
-
-    loadUserData();
   }, []);
 
   useEffect(() => {
@@ -127,10 +93,14 @@ export default function CoursePage() {
   useEffect(() => {
     if (!mountedRef.current || !courseId) return;
 
-    const loadCourseData = async () => {
+    const loadCourseData = async (): Promise<void> => {
+      if (!mountedRef.current) return;
       setIsLoadingCourse(true);
+      setCourseError(null);
       try {
         const allCourses = await getAllCourses();
+        if (!mountedRef.current) return;
+
         const courseNameMap: Record<string, string> = {
           yoga: "yoga",
           stretching: "stretching",
@@ -139,21 +109,34 @@ export default function CoursePage() {
           bodyflex: "bodyflex",
         };
 
-        const courseNameEN =
-          courseNameMap[courseId] || courseId.toLowerCase();
+        const courseNameEN = courseNameMap[courseId] || courseId.toLowerCase();
         const foundCourse = allCourses.find(
           (course: ApiCourse) =>
             course.nameEN.toLowerCase() === courseNameEN.toLowerCase() ||
             course.nameRU.toLowerCase() === courseNameEN.toLowerCase()
         );
 
-        if (foundCourse) {
-          const courseDetail = await getCourseById(foundCourse._id);
+        if (!foundCourse) {
           if (mountedRef.current) {
-            setCourseData(courseDetail);
+            setCourseError("Курс не найден");
+            setCourseData(null);
+            setIsLoadingCourse(false);
           }
+          return;
+        }
+
+        const courseDetail = await getCourseById(foundCourse._id);
+        if (mountedRef.current) {
+          setCourseData(courseDetail as CourseDetail);
+          setCourseError(null);
         }
       } catch (error) {
+        if (mountedRef.current) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          setCourseError(errorMessage || "Ошибка загрузки данных курса");
+          setCourseData(null);
+        }
       } finally {
         if (mountedRef.current) {
           setIsLoadingCourse(false);
@@ -178,29 +161,15 @@ export default function CoursePage() {
   };
 
   const handleCloseForm = () => {
-    if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
-    requestAnimationFrame(() => {
-      if (wasMounted) {
-        try {
-          setIsFormOpen(false);
-        } catch {}
-      }
-    });
+    if (mountedRef.current) {
+      setIsFormOpen(false);
+    }
   };
 
   const handleCloseAuthPrompt = () => {
-    if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
-    requestAnimationFrame(() => {
-      if (wasMounted) {
-        try {
-          setShowAuthPrompt(false);
-        } catch {}
-      }
-    });
+    if (mountedRef.current) {
+      setShowAuthPrompt(false);
+    }
   };
 
   const handleSwitchToAuth = () => {
@@ -211,58 +180,29 @@ export default function CoursePage() {
     setFormType("register");
   };
 
-  const handleAuthSuccess = async (name: string, email: string) => {
+  const handleAuthSuccess = async (): Promise<void> => {
     if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    setUserName(name);
-    setUserEmail(email);
-    setIsAuthenticated(true);
     setIsFormOpen(false);
-    if (typeof window !== "undefined" && wasMounted) {
-      const token = getToken();
-      if (token) {
-        try {
-          const userData = await getUserData(token);
-          if (mountedRef.current) {
-            setUserEmail(userData.email);
-            const newName = userData.email.split("@")[0] || "Пользователь";
-            const capitalizedName =
-              newName.charAt(0).toUpperCase() + newName.slice(1).toLowerCase();
-            setUserName(capitalizedName);
-          }
-        } catch (error) {
-          if (mountedRef.current) {
-            setIsAuthenticated(false);
-            removeToken();
-          }
-        }
-      }
-    }
+    await refreshUserData();
   };
 
   const handleLogout = () => {
     if (!mountedRef.current) return;
-    setIsAuthenticated(false);
-    if (typeof window !== "undefined") {
-      removeToken();
-      router.push("/");
-    }
+    logout();
+    router.push("/");
   };
 
-  const handleAddCourse = async () => {
-    if (
-      !mountedRef.current ||
-      !courseId ||
-      typeof window === "undefined" ||
-      !isAuthenticated
-    ) {
-      setCourseAddModal({ isOpen: true, type: "error" });
+  const handleAddCourse = async (): Promise<void> => {
+    if (!mountedRef.current || !courseId || typeof window === "undefined") {
       return;
     }
 
-    const token = getToken();
-    if (!token) {
-      setCourseAddModal({ isOpen: true, type: "error" });
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true);
+      return;
+    }
+
+    if (!userData) {
       return;
     }
 
@@ -276,8 +216,7 @@ export default function CoursePage() {
         bodyflex: "bodyflex",
       };
 
-      const courseNameEN =
-        courseNameMap[courseId] || courseId.toLowerCase();
+      const courseNameEN = courseNameMap[courseId] || courseId.toLowerCase();
       const foundCourse = allCourses.find(
         (course: ApiCourse) =>
           course.nameEN.toLowerCase() === courseNameEN.toLowerCase() ||
@@ -285,40 +224,25 @@ export default function CoursePage() {
       );
 
       if (!foundCourse) {
-        setCourseAddModal({ isOpen: true, type: "error" });
         return;
       }
 
-      const userData = await getUserData(token);
       const courseExists = userData.selectedCourses.includes(foundCourse._id);
 
       if (courseExists) {
-        setCourseAddModal({ isOpen: true, type: "alreadyAdded" });
         return;
       }
 
-      await addCourseToUser(foundCourse._id);
-      if (mountedRef.current) {
-        setCourseAddModal({ isOpen: true, type: "success" });
-      }
-    } catch (error) {
-      if (mountedRef.current) {
-        setCourseAddModal({ isOpen: true, type: "error" });
-      }
-    }
-  };
+      await addUserCourse(foundCourse._id);
 
-  const handleCloseCourseAddModal = () => {
-    if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
-    requestAnimationFrame(() => {
-      if (wasMounted) {
-        try {
-          setCourseAddModal({ isOpen: false, type: "success" });
-        } catch {}
-      }
-    });
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      await refreshUserData();
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    } catch {
+      // Ignore errors silently
+    }
   };
 
   return (
@@ -340,12 +264,14 @@ export default function CoursePage() {
                 src={courseCardImage}
                 alt={courseId}
                 fill
+                sizes="(max-width: 768px) 100vw, 1440px"
                 className={styles.courseImage}
               />
               <Image
                 src={courseImage}
                 alt={courseId}
                 fill
+                sizes="(max-width: 768px) 100vw, 1440px"
                 className={styles.courseImageMobile}
               />
             </>
@@ -383,21 +309,27 @@ export default function CoursePage() {
                   </div>
                 </div>
               </div>
-            ) : courseData && courseData.fitting && courseData.fitting.length > 0 ? (
+            ) : courseError ? (
+              <div className={styles.courseTextBlocksContainer}>
+                <p className={styles.errorText}>{courseError}</p>
+              </div>
+            ) : courseData &&
+              courseData.fitting &&
+              courseData.fitting.length > 0 ? (
               <div className={styles.courseTextBlocksContainer}>
                 {courseData.fitting.slice(0, 3).map((item, index) => {
                   const blockClass =
                     index === 0
                       ? styles.courseTextBlock
                       : index === 1
-                      ? styles.courseTextBlock2
-                      : styles.courseTextBlock3;
+                        ? styles.courseTextBlock2
+                        : styles.courseTextBlock3;
                   const numberClass =
                     index === 0
                       ? styles.courseTextNumber
                       : index === 1
-                      ? styles.courseTextNumber2
-                      : styles.courseTextNumber3;
+                        ? styles.courseTextNumber2
+                        : styles.courseTextNumber3;
                   const descriptionClass =
                     index === 1
                       ? styles.courseTextDescription2
@@ -411,7 +343,11 @@ export default function CoursePage() {
                   );
                 })}
               </div>
-            ) : null}
+            ) : (
+              <div className={styles.courseTextBlocksContainer}>
+                <p className={styles.errorText}>Данные недоступны</p>
+              </div>
+            )}
           </div>
         )}
         {courseId && (
@@ -450,32 +386,42 @@ export default function CoursePage() {
                   </div>
                 </div>
               </div>
-            ) : courseData && courseData.directions && courseData.directions.length > 0 ? (
+            ) : courseError ? (
               <div className={styles.directionsFrame}>
-                {Array.from({ length: Math.ceil(courseData.directions.length / 2) }).map(
-                  (_, blockIndex) => (
-                    <div key={blockIndex} className={styles.directionBlock}>
-                      {courseData.directions
-                        .slice(blockIndex * 2, blockIndex * 2 + 2)
-                        .map((direction, itemIndex) => (
-                          <div key={itemIndex} className={styles.directionItem}>
-                            <Image
-                              src="/img/Sparcle.svg"
-                              alt="icon"
-                              width={24}
-                              height={24}
-                              className={styles.directionsIcon}
-                            />
-                            <span className={styles.directionsText}>
-                              {direction}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  )
-                )}
+                <p className={styles.errorText}>{courseError}</p>
               </div>
-            ) : null}
+            ) : courseData &&
+              courseData.directions &&
+              courseData.directions.length > 0 ? (
+              <div className={styles.directionsFrame}>
+                {Array.from({
+                  length: Math.ceil(courseData.directions.length / 2),
+                }).map((_, blockIndex) => (
+                  <div key={blockIndex} className={styles.directionBlock}>
+                    {courseData.directions
+                      .slice(blockIndex * 2, blockIndex * 2 + 2)
+                      .map((direction, itemIndex) => (
+                        <div key={itemIndex} className={styles.directionItem}>
+                          <Image
+                            src="/img/Sparcle.svg"
+                            alt="icon"
+                            width={24}
+                            height={24}
+                            className={styles.directionsIcon}
+                          />
+                          <span className={styles.directionsText}>
+                            {direction}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.directionsFrame}>
+                <p className={styles.errorText}>Данные недоступны</p>
+              </div>
+            )}
           </div>
         )}
         {courseId && (
@@ -571,12 +517,6 @@ export default function CoursePage() {
         <AuthPromptModal
           onClose={handleCloseAuthPrompt}
           onLoginClick={handleLoginClick}
-        />
-      )}
-      {isMounted && courseAddModal.isOpen && (
-        <CourseAddModal
-          type={courseAddModal.type}
-          onClose={handleCloseCourseAddModal}
         />
       )}
     </>

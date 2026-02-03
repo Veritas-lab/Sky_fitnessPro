@@ -1,335 +1,247 @@
-import { BASE_URL } from "../constants";
-import { getToken } from "../authToken";
+import { BASE_URL } from '../constants';
+import { getToken, removeToken } from '@/app/services/authToken';
+import { Course, Workout, ProgressResponse, ApiError } from '@/types/shared';
+import { addPendingCourse } from '../pendingCourse';
 
-export interface ApiError {
-  message: string;
-}
-
-export interface Course {
-  _id: string;
-  nameRU: string;
-  nameEN: string;
-  description: string;
-  directions: string[];
-  fitting: string[];
-  workouts: string[];
-}
-
-export interface CourseDetail extends Course {
-  difficulty: string;
-  durationInDays: number;
-  dailyDurationInMinutes: {
-    from: number;
-    to: number;
-  };
-}
-
-export interface Workout {
-  _id: string;
-  name: string;
-  video: string;
-  exercises: Exercise[];
-}
-
-export interface Exercise {
-  _id: string;
-  name: string;
-  quantity: number;
-}
-
-export interface AddCourseRequest {
-  courseId: string;
-}
-
-export interface AddCourseResponse {
-  message: string;
-}
-
-export interface DeleteCourseResponse {
-  message: string;
-}
-
-export interface ResetCourseResponse {
-  message: string;
-}
-
-export interface WorkoutProgress {
-  workoutId: string;
-  workoutCompleted: boolean;
-  progressData: number[];
-}
-
-export interface CourseProgress {
-  courseId: string;
-  courseCompleted: boolean;
-  workoutsProgress: WorkoutProgress[];
-}
-
-export interface SaveWorkoutProgressRequest {
-  progressData: number[];
-}
-
-export interface ResetWorkoutProgressResponse {
-  message: string;
-}
-
-export async function getAllCourses(): Promise<Course[]> {
-  const response = await fetch(`${BASE_URL}/api/fitness/courses`, {
-    method: "GET",
-  });
-
-  if (!response.ok) {
-    const error: ApiError = await response.json();
-    throw new Error(error.message);
-  }
-
-  return response.json();
-}
-
-export async function getCourseById(courseId: string): Promise<CourseDetail> {
-  const response = await fetch(`${BASE_URL}/api/fitness/courses/${courseId}`, {
-    method: "GET",
-  });
-
-  if (!response.ok) {
-    const error: ApiError = await response.json();
-    throw new Error(error.message);
-  }
-
-  return response.json();
-}
-
-export async function getCourseWorkouts(courseId: string): Promise<Workout[]> {
+/**
+ * Вспомогательная функция для запросов с авторизацией
+ */
+async function fetchWithAuth<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
   const token = getToken();
+  
   if (!token) {
-    throw new Error("Требуется авторизация");
+    throw new Error('Токен авторизации не найден');
   }
 
-  const response = await fetch(
-    `${BASE_URL}/api/fitness/courses/${courseId}/workouts`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    const error: ApiError = await response.json();
-    throw new Error(error.message);
-  }
-
-  return response.json();
-}
-
-export async function addCourseToUser(courseId: string): Promise<void> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Требуется авторизация");
-  }
-
-  const requestBody: AddCourseRequest = {
-    courseId: courseId,
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string>),
+    'Authorization': `Bearer ${token.trim()}`,
   };
 
-  const response = await fetch(`${BASE_URL}/api/fitness/users/me/courses`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(requestBody),
+  const response = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers,
   });
 
+  const contentType = response.headers.get('content-type') ?? '';
+  const isJson = contentType.includes('application/json');
+  const data = isJson ? await response.json() : await response.text();
+
   if (!response.ok) {
-    const error: ApiError = await response.json();
-    throw new Error(error.message);
-  }
-
-  await response.json();
-}
-
-export async function deleteCourseFromUser(courseId: string): Promise<void> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Требуется авторизация");
-  }
-
-  const response = await fetch(
-    `${BASE_URL}/api/fitness/users/me/courses/${courseId}`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const message =
+      typeof data === 'object' && data?.message
+        ? data.message
+        : `Ошибка запроса: ${response.status}`;
+    
+    const error = new Error(message) as Error & { status?: number };
+    error.status = response.status;
+    
+    if (response.status === 401) {
+      removeToken();
     }
-  );
-
-  if (!response.ok) {
-    const error: ApiError = await response.json();
-    throw new Error(error.message);
+    
+    throw error;
   }
 
-  await response.json();
+  return data as T;
 }
 
-export async function resetCourseProgress(courseId: string): Promise<void> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Требуется авторизация");
-  }
-
-  const response = await fetch(
-    `${BASE_URL}/api/fitness/courses/${courseId}/reset`,
-    {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
+/**
+ * Получить все курсы
+ * GET /api/fitness/courses
+ */
+export const getCourses = async (): Promise<Course[]> => {
+  const response = await fetch(`${BASE_URL}/api/fitness/courses`);
+  const data = await response.json();
+  
   if (!response.ok) {
-    const error: ApiError = await response.json();
-    throw new Error(error.message);
+    throw new Error(data.message || 'Ошибка получения курсов');
   }
+  
+  return data;
+};
 
-  await response.json();
-}
-
-export async function getWorkoutById(workoutId: string): Promise<Workout> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Требуется авторизация");
-  }
-
-  const response = await fetch(
-    `${BASE_URL}/api/fitness/workouts/${workoutId}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
+/**
+ * Получить курс по ID
+ * GET /api/fitness/courses/[courseId]
+ */
+export const getCourseById = async (courseId: string): Promise<Course> => {
+  const response = await fetch(`${BASE_URL}/api/fitness/courses/${courseId}`);
+  const data = await response.json();
+  
   if (!response.ok) {
-    const error: ApiError = await response.json();
-    throw new Error(error.message);
+    throw new Error(data.message || 'Ошибка получения курса');
   }
+  
+  return data;
+};
 
-  return response.json();
-}
-
-export async function getCourseProgress(
+/**
+ * Получить список тренировок курса
+ * GET /api/fitness/courses/[courseId]/workouts
+ * Требует авторизации
+ */
+export const getCourseWorkouts = async (
   courseId: string
-): Promise<CourseProgress> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Требуется авторизация");
-  }
+): Promise<Workout[]> => {
+  return await fetchWithAuth<Workout[]>(
+    `/api/fitness/courses/${courseId}/workouts`
+  );
+};
 
-  const response = await fetch(
-    `${BASE_URL}/api/fitness/users/me/progress?courseId=${courseId}`,
+/**
+ * Получить данные по тренировке
+ * GET /api/fitness/workouts/[workoutId]
+ * Требует авторизации
+ */
+export const getWorkoutById = async (workoutId: string): Promise<Workout> => {
+  return await fetchWithAuth<Workout>(
+    `/api/fitness/workouts/${workoutId}`
+  );
+};
+
+/**
+ * Добавить курс для пользователя
+ * POST /api/fitness/users/me/courses
+ * Требует авторизации
+ */
+export const addUserCourse = async (courseId: string): Promise<{ message: string }> => {
+  try {
+    return await fetchWithAuth<{ message: string }>(
+      `/api/fitness/users/me/courses`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+        body: JSON.stringify({ courseId }),
+      }
+    );
+  } catch (error) {
+    if (error instanceof Error && 'status' in error && error.status === 500) {
+      await addPendingCourse(courseId);
+      const err = new Error(
+        'Ошибка сервера при добавлении курса. Курс добавлен в очередь на обработку.'
+      ) as Error & { status?: number; isPending?: boolean };
+      err.status = 500;
+      err.isPending = true;
+      throw err;
+    }
+    throw error;
+  }
+};
+
+/**
+ * Удалить курс у пользователя
+ * DELETE /api/fitness/users/me/courses/[courseId]
+ * Требует авторизации
+ */
+export const deleteUserCourse = async (courseId: string): Promise<{ message: string }> => {
+  return await fetchWithAuth<{ message: string }>(
+    `/api/fitness/users/me/courses/${courseId}`,
     {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      method: 'DELETE',
     }
   );
+};
 
-  if (!response.ok) {
-    const error: ApiError = await response.json();
-    throw new Error(error.message);
-  }
+/**
+ * Удалить весь прогресс по курсу
+ * PATCH /api/fitness/courses/[courseId]/reset
+ * Требует авторизации
+ */
+export const resetCourseProgress = async (
+  courseId: string
+): Promise<{ message: string }> => {
+  return await fetchWithAuth<{ message: string }>(
+    `/api/fitness/courses/${courseId}/reset`,
+    {
+      method: 'PATCH',
+    }
+  );
+};
 
-  return response.json();
-}
+/**
+ * Получить прогресс пользователя по всему курсу
+ * GET /api/fitness/users/me/progress?courseId={courseId}
+ * Требует авторизации
+ */
+export const getCourseProgress = async (
+  courseId: string
+): Promise<ProgressResponse> => {
+  return await fetchWithAuth<ProgressResponse>(
+    `/api/fitness/users/me/progress?courseId=${courseId}`
+  );
+};
 
-export async function getWorkoutProgress(
+/**
+ * Получить прогресс пользователя по тренировке
+ * GET /api/fitness/users/me/progress?courseId={courseId}&workoutId={workoutID}
+ * Требует авторизации
+ */
+export const getWorkoutProgress = async (
   courseId: string,
   workoutId: string
-): Promise<WorkoutProgress> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Требуется авторизация");
-  }
-
-  const response = await fetch(
-    `${BASE_URL}/api/fitness/users/me/progress?courseId=${courseId}&workoutId=${workoutId}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+): Promise<{ workoutId: string; workoutCompleted: boolean; progressData: number[] }> => {
+  return await fetchWithAuth(
+    `/api/fitness/users/me/progress?courseId=${courseId}&workoutId=${workoutId}`
   );
+};
 
-  if (!response.ok) {
-    const error: ApiError = await response.json();
-    throw new Error(error.message);
-  }
-
-  return response.json();
-}
-
-export async function saveWorkoutProgress(
+/**
+ * Сохранить прогресс тренировки
+ * PATCH /api/fitness/courses/[courseId]/workouts/[workoutId]
+ * Требует авторизации
+ */
+export const saveWorkoutProgress = async (
   courseId: string,
   workoutId: string,
   progressData: number[]
-): Promise<void> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Требуется авторизация");
-  }
-
-  const requestBody: SaveWorkoutProgressRequest = {
-    progressData: progressData,
-  };
-
-  const response = await fetch(
-    `${BASE_URL}/api/fitness/courses/${courseId}/workouts/${workoutId}`,
+): Promise<{ message: string }> => {
+  return await fetchWithAuth<{ message: string }>(
+    `/api/fitness/courses/${courseId}/workouts/${workoutId}`,
     {
-      method: "PATCH",
+      method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Content-Type': 'text/plain',
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({ progressData }),
     }
   );
+};
 
-  if (!response.ok) {
-    const error: ApiError = await response.json();
-    throw new Error(error.message);
-  }
-
-  await response.json();
-}
-
-export async function resetWorkoutProgress(
+/**
+ * Удалить весь прогресс по тренировке
+ * PATCH /api/fitness/courses/[courseId]/workouts/[workoutId]/reset
+ * Требует авторизации
+ */
+export const resetWorkoutProgress = async (
   courseId: string,
   workoutId: string
-): Promise<void> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Требуется авторизация");
-  }
-
-  const response = await fetch(
-    `${BASE_URL}/api/fitness/courses/${courseId}/workouts/${workoutId}/reset`,
-    {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+): Promise<{ message: string }> => {
+  return await fetchWithAuth<{ message: string }>(
+    `/api/fitness/courses/${courseId}/workouts/${workoutId}/reset`,
+    { 
+      method: 'PATCH' 
     }
   );
+};
 
-  if (!response.ok) {
-    const error: ApiError = await response.json();
-    throw new Error(error.message);
-  }
+export const courseAPI = {
+  getCourses,
+  getCourseById,
+  getCourseWorkouts,
+  getWorkoutById,
+  addUserCourse,
+  deleteUserCourse,
+  resetCourseProgress,
+  getCourseProgress,
+  getWorkoutProgress,
+  saveWorkoutProgress,
+  resetWorkoutProgress,
+};
 
-  await response.json();
-}
+export default courseAPI;

@@ -100,26 +100,20 @@ export default function ProgressModal({
       onSave(numericProgress);
 
       if (wasMounted) {
-        requestAnimationFrame(() => {
-          try {
+        try {
+          if (onClose && typeof onClose === "function") {
             onClose();
-          } catch {}
-        });
+          }
+        } catch {}
       }
     } catch {}
   };
 
   const handleClose = () => {
-    if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
     mountedRef.current = false;
-    if (wasMounted) {
-      requestAnimationFrame(() => {
-        try {
-          onClose();
-        } catch {}
-      });
-    }
+    try {
+      onClose();
+    } catch {}
   };
 
   const getExerciseQuestion = (exerciseName: string): string => {

@@ -73,7 +73,7 @@ export default function Main({
                   </div>
                 </div>
               ))
-            : courses.map((course) => (
+            : courses.map((course, index) => (
                 <Card
                   key={course._id}
                   title={course.nameEN}
@@ -81,6 +81,7 @@ export default function Main({
                   courseName={course.nameRU}
                   isAuthenticated={isAuthenticated}
                   onAddCourse={onAddCourse}
+                  priority={index === 0}
                 />
               ))}
         </div>

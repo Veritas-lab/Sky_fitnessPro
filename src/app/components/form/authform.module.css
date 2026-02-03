@@ -58,11 +58,11 @@
 }
 
 .inputFieldError {
-  border-color: #DB0030;
+  border-color: #db0030;
 }
 
 .inputFieldError:focus {
-  border-color: #DB0030;
+  border-color: #db0030;
 }
 
 .inputWrapper {
@@ -105,7 +105,7 @@
 }
 
 .errorMessage {
-  color: #DB0030;
+  color: #db0030;
   font-family: "Roboto", sans-serif;
   font-weight: 400;
   font-style: normal;
@@ -169,7 +169,7 @@
   padding: 16px 26px;
   gap: 10px;
   border: 1px solid #000000;
-  background: #ffffff;  
+  background: #ffffff;
   cursor: pointer;
   font-family: "Roboto", sans-serif;
   font-size: 16px;
