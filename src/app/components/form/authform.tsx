@@ -1,5 +1,5 @@
 "use client";
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "./authform.module.css";
@@ -16,6 +16,7 @@ export default function AuthForm({
 }: AuthFormProps) {
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
+  const mountedRef = useRef(false);
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,54 +24,104 @@ export default function AuthForm({
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  useLayoutEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   // Редирект после успешного входа
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/profile");
-      router.refresh();
-    }
+    if (!mountedRef.current || !isAuthenticated) return;
+    
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          router.push("/profile");
+          setTimeout(() => {
+            if (mountedRef.current) {
+              router.refresh();
+            }
+          }, 100);
+        } catch (error) {
+          console.error('[AUTH FORM] Ошибка при редиректе:', error);
+        }
+      }
+    });
   }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
-    setError("");
+    if (!mountedRef.current) return;
+    
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setError("");
+        } catch (error) {
+          console.error('[AUTH FORM] Ошибка при очистке ошибки:', error);
+        }
+      }
+    });
 
     if (!email || !password) {
       return;
     }
 
-    setIsLoading(true);
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setIsLoading(true);
+      }
+    });
 
     try {
       await login(email, password);
     } catch (err) {
-      if (err instanceof Error) {
-        const errorMessage = err.message;
-        if (
-          errorMessage.includes("Пользователь с таким email не найден") ||
-          errorMessage.includes("email не найден") ||
-          errorMessage.includes("не найден")
-        ) {
-          setError("Логин введен неверно, попробуйте еще раз.");
-        } else if (
-          errorMessage.includes("Неверный пароль") ||
-          errorMessage.includes("неверный пароль")
-        ) {
-          setError("Пароль введен неверно, попробуйте еще раз.");
-        } else {
-          setError(errorMessage);
+      if (!mountedRef.current) return;
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          try {
+            if (err instanceof Error) {
+              const errorMessage = err.message;
+              if (
+                errorMessage.includes("Пользователь с таким email не найден") ||
+                errorMessage.includes("email не найден") ||
+                errorMessage.includes("не найден")
+              ) {
+                setError("Логин введен неверно, попробуйте еще раз.");
+              } else if (
+                errorMessage.includes("Неверный пароль") ||
+                errorMessage.includes("неверный пароль")
+              ) {
+                setError("Пароль введен неверно, попробуйте еще раз.");
+              } else {
+                setError(errorMessage);
+              }
+            } else {
+              setError("Произошла ошибка при входе");
+            }
+            setIsLoading(false);
+          } catch (error) {
+            console.error('[AUTH FORM] Ошибка при установке ошибки:', error);
+          }
         }
-      } else {
-        setError("Произошла ошибка при входе");
-      }
-      setIsLoading(false);
+      });
     }
   };
 
   const handleInputChange = () => {
-    if (error) {
-      setError("");
-    }
+    if (!mountedRef.current || !error) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setError("");
+        } catch (error) {
+          console.error('[AUTH FORM] Ошибка при очистке ошибки:', error);
+        }
+      }
+    });
   };
 
   return (
@@ -115,7 +166,18 @@ export default function AuthForm({
             <button
               type="button"
               className={styles.eyeButton}
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => {
+              if (!mountedRef.current) return;
+              requestAnimationFrame(() => {
+                if (mountedRef.current) {
+                  try {
+                    setShowPassword(!showPassword);
+                  } catch (error) {
+                    console.error('[AUTH FORM] Ошибка при переключении видимости пароля:', error);
+                  }
+                }
+              });
+            }}
               aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
             >
               {showPassword ? (

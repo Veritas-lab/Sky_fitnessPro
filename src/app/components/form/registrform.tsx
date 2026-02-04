@@ -1,5 +1,5 @@
 "use client";
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "./registrform.module.css";
@@ -35,6 +35,7 @@ export default function RegistrForm({
 }: RegistrFormProps) {
   const { register, isAuthenticated } = useAuth();
   const router = useRouter();
+  const mountedRef = useRef(false);
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,87 +47,196 @@ export default function RegistrForm({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  useLayoutEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   // Редирект после успешной регистрации
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/profile");
-      router.refresh();
-    }
+    if (!mountedRef.current || !isAuthenticated) return;
+    
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          router.push("/profile");
+          setTimeout(() => {
+            if (mountedRef.current) {
+              router.refresh();
+            }
+          }, 100);
+        } catch (error) {
+          console.error('[REGISTER FORM] Ошибка при редиректе:', error);
+        }
+      }
+    });
   }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
-    setEmailError("");
-    setPasswordError("");
-    setConfirmPasswordError("");
+    if (!mountedRef.current) return;
+    
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setEmailError("");
+          setPasswordError("");
+          setConfirmPasswordError("");
+        } catch (error) {
+          console.error('[REGISTER FORM] Ошибка при очистке ошибок:', error);
+        }
+      }
+    });
 
     if (!email || !password || !confirmPassword) {
       return;
     }
 
     if (!validateEmail(email)) {
-      setEmailError("Введите корректный Email");
+      if (!mountedRef.current) return;
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          try {
+            setEmailError("Введите корректный Email");
+          } catch (error) {
+            console.error('[REGISTER FORM] Ошибка при установке ошибки email:', error);
+          }
+        }
+      });
       return;
     }
 
     const passwordValidationError = validatePassword(password);
     if (passwordValidationError) {
-      setPasswordError(passwordValidationError);
+      if (!mountedRef.current) return;
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          try {
+            setPasswordError(passwordValidationError);
+          } catch (error) {
+            console.error('[REGISTER FORM] Ошибка при установке ошибки пароля:', error);
+          }
+        }
+      });
       return;
     }
 
     if (password !== confirmPassword) {
-      setConfirmPasswordError("Пароли не совпадают");
+      if (!mountedRef.current) return;
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          try {
+            setConfirmPasswordError("Пароли не совпадают");
+          } catch (error) {
+            console.error('[REGISTER FORM] Ошибка при установке ошибки подтверждения пароля:', error);
+          }
+        }
+      });
       return;
     }
 
-    setIsLoading(true);
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setIsLoading(true);
+      }
+    });
 
     try {
       await register(email, password);
     } catch (err) {
-      if (err instanceof Error) {
-        const errorMessage = err.message;
-        if (
-          errorMessage.includes("Email") ||
-          errorMessage.includes("почта") ||
-          errorMessage.includes("email")
-        ) {
-          setEmailError(errorMessage);
-        } else if (
-          errorMessage.includes("Пароль") ||
-          errorMessage.includes("пароль") ||
-          errorMessage.includes("password")
-        ) {
-          setPasswordError(errorMessage);
-        } else {
-          setPasswordError(errorMessage);
+      if (!mountedRef.current) return;
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          try {
+            if (err instanceof Error) {
+              const errorMessage = err.message;
+              if (
+                errorMessage.includes("Email") ||
+                errorMessage.includes("почта") ||
+                errorMessage.includes("email")
+              ) {
+                setEmailError(errorMessage);
+              } else if (
+                errorMessage.includes("Пароль") ||
+                errorMessage.includes("пароль") ||
+                errorMessage.includes("password")
+              ) {
+                setPasswordError(errorMessage);
+              } else {
+                setPasswordError(errorMessage);
+              }
+            } else {
+              setPasswordError("Произошла ошибка при регистрации");
+            }
+            setIsLoading(false);
+          } catch (error) {
+            console.error('[REGISTER FORM] Ошибка при установке ошибок:', error);
+          }
         }
-      } else {
-        setPasswordError("Произошла ошибка при регистрации");
-      }
-      setIsLoading(false);
+      });
     }
   };
 
   const handleEmailChange = (value: string) => {
-    setEmail(value);
-    if (emailError) {
-      setEmailError("");
+    if (!mountedRef.current) return;
+    try {
+      setEmail(value);
+      if (emailError) {
+        requestAnimationFrame(() => {
+          if (mountedRef.current) {
+            try {
+              setEmailError("");
+            } catch (error) {
+              console.error('[REGISTER FORM] Ошибка при очистке ошибки email:', error);
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('[REGISTER FORM] Ошибка при изменении email:', error);
     }
   };
 
   const handlePasswordChange = (value: string) => {
-    setPassword(value);
-    if (passwordError) {
-      setPasswordError("");
+    if (!mountedRef.current) return;
+    try {
+      setPassword(value);
+      if (passwordError) {
+        requestAnimationFrame(() => {
+          if (mountedRef.current) {
+            try {
+              setPasswordError("");
+            } catch (error) {
+              console.error('[REGISTER FORM] Ошибка при очистке ошибки пароля:', error);
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('[REGISTER FORM] Ошибка при изменении пароля:', error);
     }
   };
 
   const handleConfirmPasswordChange = (value: string) => {
-    setConfirmPassword(value);
-    if (confirmPasswordError) {
-      setConfirmPasswordError("");
+    if (!mountedRef.current) return;
+    try {
+      setConfirmPassword(value);
+      if (confirmPasswordError) {
+        requestAnimationFrame(() => {
+          if (mountedRef.current) {
+            try {
+              setConfirmPasswordError("");
+            } catch (error) {
+              console.error('[REGISTER FORM] Ошибка при очистке ошибки подтверждения пароля:', error);
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('[REGISTER FORM] Ошибка при изменении подтверждения пароля:', error);
     }
   };
 
@@ -166,7 +276,18 @@ export default function RegistrForm({
             <button
               type="button"
               className={styles.eyeButton}
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => {
+                if (!mountedRef.current) return;
+                requestAnimationFrame(() => {
+                  if (mountedRef.current) {
+                    try {
+                      setShowPassword(!showPassword);
+                    } catch (error) {
+                      console.error('[REGISTER FORM] Ошибка при переключении видимости пароля:', error);
+                    }
+                  }
+                });
+              }}
               aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
             >
               {showPassword ? (
@@ -200,7 +321,18 @@ export default function RegistrForm({
             <button
               type="button"
               className={styles.eyeButton}
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              onClick={() => {
+                if (!mountedRef.current) return;
+                requestAnimationFrame(() => {
+                  if (mountedRef.current) {
+                    try {
+                      setShowConfirmPassword(!showConfirmPassword);
+                    } catch (error) {
+                      console.error('[REGISTER FORM] Ошибка при переключении видимости подтверждения пароля:', error);
+                    }
+                  }
+                });
+              }}
               aria-label={
                 showConfirmPassword ? "Скрыть пароль" : "Показать пароль"
               }
