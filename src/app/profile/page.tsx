@@ -71,6 +71,7 @@ export default function ProfilePage() {
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<CourseWithWorkouts | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const mountedRef = useRef(false);
   const userDataRef = useRef(userData);
   const isAuthenticatedRef = useRef(isAuthenticated);
@@ -95,12 +96,16 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!mountedRef.current) return;
     if (!authLoading && !isAuthenticated) {
-      // Используем setTimeout для избежания конфликтов с размонтированием
-      setTimeout(() => {
+      // Используем requestAnimationFrame для избежания конфликтов с размонтированием
+      requestAnimationFrame(() => {
         if (mountedRef.current) {
-          router.push("/");
+          setTimeout(() => {
+            if (mountedRef.current) {
+              router.push("/");
+            }
+          }, 0);
         }
-      }, 0);
+      });
     }
   }, [authLoading, isAuthenticated, router]);
 
@@ -127,25 +132,25 @@ export default function ProfilePage() {
       setIsLoading(true);
     });
 
-    try {
+      try {
       const userCourseIds = userDataRef.current?.selectedCourses || [];
-      
-      if (userCourseIds.length === 0) {
+        
+        if (userCourseIds.length === 0) {
         requestAnimationFrame(() => {
           if (mountedRef.current) {
             setCourses([]);
             setIsLoading(false);
           }
         });
-        return;
-      }
+          return;
+        }
 
-      const coursesData = await Promise.all(
-        userCourseIds.map(async (courseId) => {
+        const coursesData = await Promise.all(
+          userCourseIds.map(async (courseId) => {
           // Проверяем mountedRef перед каждой асинхронной операцией
           if (!mountedRef.current) return null;
           
-          try {
+            try {
             const course = await getCourseById(courseId) as CourseDetail;
             if (!mountedRef.current) return null;
             
@@ -257,25 +262,25 @@ export default function ProfilePage() {
                 };
               }
             }
-            
-            return {
-              ...course,
-              workouts,
+              
+              return {
+                ...course,
+                workouts,
               progress,
             } as CourseWithWorkouts;
-          } catch (error) {
-            console.error(`[PROFILE PAGE] Ошибка загрузки курса ${courseId}:`, error);
-            return null;
-          }
-        })
-      );
+            } catch (error) {
+              console.error(`[PROFILE PAGE] Ошибка загрузки курса ${courseId}:`, error);
+              return null;
+            }
+          })
+        );
 
       // Проверяем mountedRef перед обновлением состояния
       if (!mountedRef.current) return;
 
-      const validCourses = coursesData.filter(
-        (course): course is CourseWithWorkouts => course !== null
-      );
+        const validCourses = coursesData.filter(
+          (course): course is CourseWithWorkouts => course !== null
+        );
 
       requestAnimationFrame(() => {
         if (mountedRef.current) {
@@ -283,16 +288,16 @@ export default function ProfilePage() {
           setIsLoading(false);
         }
       });
-    } catch (error) {
-      console.error('[PROFILE PAGE] Ошибка загрузки курсов:', error);
+      } catch (error) {
+        console.error('[PROFILE PAGE] Ошибка загрузки курсов:', error);
       requestAnimationFrame(() => {
         if (mountedRef.current) {
           setCourses([]);
           setIsLoading(false);
         }
       });
-    }
-  };
+      }
+    };
 
   // Обновление при возврате на страницу (фокус окна)
   useEffect(() => {
@@ -313,16 +318,66 @@ export default function ProfilePage() {
     };
   }, [isAuthenticated, authLoading]);
 
+  // Показ/скрытие кнопки "Наверх"
+  useEffect(() => {
+    if (!mountedRef.current || typeof window === "undefined") return;
+
+    let rafId: number | null = null;
+
+    const handleScroll = () => {
+      if (!mountedRef.current) return;
+      
+      // Отменяем предыдущий запрос, если он еще не выполнен
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      
+      rafId = requestAnimationFrame(() => {
+        if (!mountedRef.current) return;
+        try {
+          const scrollY = window.scrollY || window.pageYOffset;
+          if (mountedRef.current) {
+            setShowScrollTop(scrollY > 300);
+          }
+        } catch (error) {
+          console.error('[PROFILE PAGE] Ошибка в handleScroll:', error);
+        }
+        rafId = null;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  const handleScrollToTop = () => {
+    if (!mountedRef.current || typeof window === "undefined") return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  };
+
   const handleLogout = () => {
     if (!mountedRef.current) return;
     try {
       logout();
-      // Используем setTimeout для избежания конфликтов с размонтированием
-      setTimeout(() => {
+      // Используем requestAnimationFrame и setTimeout для избежания конфликтов с размонтированием
+      requestAnimationFrame(() => {
         if (mountedRef.current) {
-          router.push("/");
+          setTimeout(() => {
+            if (mountedRef.current) {
+              router.push("/");
+            }
+          }, 0);
         }
-      }, 0);
+      });
     } catch (error) {
       console.error('Ошибка при выходе:', error);
     }
@@ -332,8 +387,8 @@ export default function ProfilePage() {
     if (!mountedRef.current) return;
     requestAnimationFrame(() => {
       if (mountedRef.current) {
-        setSelectedCourse(course);
-        setIsWorkoutModalOpen(true);
+    setSelectedCourse(course);
+    setIsWorkoutModalOpen(true);
       }
     });
   };
@@ -342,17 +397,21 @@ export default function ProfilePage() {
     if (!mountedRef.current) return;
     requestAnimationFrame(() => {
       if (mountedRef.current) {
-        setIsWorkoutModalOpen(false);
-        setSelectedCourse(null);
+        try {
+          setIsWorkoutModalOpen(false);
+          setSelectedCourse(null);
+          // Обновляем курсы после закрытия модального окна тренировки
+          // чтобы обновить прогресс, если тренировка была завершена
+          setTimeout(() => {
+            if (mountedRef.current) {
+              loadCoursesData();
+            }
+          }, 500);
+        } catch (error) {
+          console.error('[PROFILE PAGE] Ошибка при закрытии модального окна тренировки:', error);
+        }
       }
     });
-    // Обновляем курсы после закрытия модального окна тренировки
-    // чтобы обновить прогресс, если тренировка была завершена
-    setTimeout(() => {
-      if (mountedRef.current) {
-        loadCoursesData();
-      }
-    }, 500);
   };
 
   const handleDeleteCourse = async (courseId: string) => {
@@ -399,9 +458,16 @@ export default function ProfilePage() {
   };
 
   const handleCloseDeleteModal = () => {
-    if (mountedRef.current) {
-      setIsDeleteModalOpen(false);
-    }
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setIsDeleteModalOpen(false);
+        } catch (error) {
+          console.error('[PROFILE PAGE] Ошибка при закрытии модального окна удаления:', error);
+        }
+      }
+    });
   };
 
   const getCourseCardImage = (course: CourseWithWorkouts) => {
@@ -498,7 +564,14 @@ export default function ProfilePage() {
                 <p>У вас пока нет выбранных курсов</p>
                 <button 
                   className={styles.emptyStateButton}
-                  onClick={() => router.push("/")}
+                  onClick={() => {
+                    if (!mountedRef.current) return;
+                    requestAnimationFrame(() => {
+                      if (mountedRef.current) {
+                        router.push("/");
+                      }
+                    });
+                  }}
                 >
                   Выбрать курс
                 </button>
@@ -538,7 +611,7 @@ export default function ProfilePage() {
                         {course.nameRU || course.nameEN}
                       </h3>
                       
-                      <div className={styles.courseDetails}>
+                      <div className={styles.badgesContainer}>
                         <div className={styles.firstRow}>
                           {'durationInDays' in course && (
                             <div className={styles.daysBadge}>
@@ -600,12 +673,12 @@ export default function ProfilePage() {
                         </div>
                       </div>
                       
-                      <button
+                        <button
                         className={styles.courseButton}
-                        onClick={() => handleStartWorkout(course)}
-                      >
+                          onClick={() => handleStartWorkout(course)}
+                        >
                         {getButtonText(course)}
-                      </button>
+                        </button>
                     </div>
                   </div>
                 ))}
@@ -623,11 +696,20 @@ export default function ProfilePage() {
           onClose={handleCloseWorkoutModal}
         />
       )}
-      {isDeleteModalOpen && (
+      {isMounted && isDeleteModalOpen && (
         <CourseDeletedModal
           onClose={handleCloseDeleteModal}
           autoCloseDelay={3000}
         />
+      )}
+      {isMounted && mountedRef.current && showScrollTop && (
+        <button
+          className={styles.scrollTopButton}
+          onClick={handleScrollToTop}
+          aria-label="Наверх"
+        >
+          Наверх ↑
+        </button>
       )}
     </>
   );

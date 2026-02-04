@@ -177,8 +177,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 34px;
-  margin-left: calc(656px - 140px);
+  margin: 34px auto 0;
   transition:
     opacity 0.2s,
     transform 0.2s;

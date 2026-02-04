@@ -4,6 +4,40 @@ import { Course, Workout, ProgressResponse, ApiError } from '@/types/shared';
 import { addPendingCourse } from '../pendingCourse';
 
 /**
+ * Функция для создания запроса с таймаутом
+ */
+function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeout: number = 30000
+): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      reject(new Error('Превышено время ожидания ответа от сервера. Проверьте подключение к интернету.'));
+    }, timeout);
+
+    fetch(url, {
+      ...options,
+      signal: controller.signal,
+    })
+      .then((response) => {
+        clearTimeout(timeoutId);
+        resolve(response);
+      })
+      .catch((error) => {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          reject(new Error('Превышено время ожидания ответа от сервера. Проверьте подключение к интернету.'));
+        } else {
+          reject(error);
+        }
+      });
+  });
+}
+
+/**
  * Вспомогательная функция для запросов с авторизацией
  */
 async function fetchWithAuth<T>(
@@ -21,32 +55,43 @@ async function fetchWithAuth<T>(
     'Authorization': `Bearer ${token.trim()}`,
   };
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetchWithTimeout(`${BASE_URL}${path}`, {
+      ...options,
+      headers,
+    }, 30000); // 30 секунд таймаут
 
-  const contentType = response.headers.get('content-type') ?? '';
-  const isJson = contentType.includes('application/json');
-  const data = isJson ? await response.json() : await response.text();
+    const contentType = response.headers.get('content-type') ?? '';
+    const isJson = contentType.includes('application/json');
+    const data = isJson ? await response.json() : await response.text();
 
-  if (!response.ok) {
-    const message =
-      typeof data === 'object' && data?.message
-        ? data.message
-        : `Ошибка запроса: ${response.status}`;
-    
-    const error = new Error(message) as Error & { status?: number };
-    error.status = response.status;
-    
-    if (response.status === 401) {
-      removeToken();
+    if (!response.ok) {
+      const message =
+        typeof data === 'object' && data?.message
+          ? data.message
+          : `Ошибка запроса: ${response.status}`;
+      
+      const error = new Error(message) as Error & { status?: number };
+      error.status = response.status;
+      
+      if (response.status === 401) {
+        removeToken();
+      }
+      
+      throw error;
     }
-    
-    throw error;
-  }
 
-  return data as T;
+    return data as T;
+  } catch (error) {
+    if (error instanceof Error) {
+      // Если это ошибка таймаута или сети, пробрасываем её дальше
+      if (error.message.includes('время ожидания') || error.message.includes('Failed to fetch')) {
+        throw new Error('Не удалось подключиться к серверу. Проверьте подключение к интернету и попробуйте снова.');
+      }
+      throw error;
+    }
+    throw new Error('Произошла неизвестная ошибка при выполнении запроса');
+  }
 }
 
 /**
@@ -54,14 +99,24 @@ async function fetchWithAuth<T>(
  * GET /api/fitness/courses
  */
 export const getCourses = async (): Promise<Course[]> => {
-  const response = await fetch(`${BASE_URL}/api/fitness/courses`);
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || 'Ошибка получения курсов');
+  try {
+    const response = await fetchWithTimeout(`${BASE_URL}/api/fitness/courses`, {}, 30000);
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Ошибка получения курсов');
+    }
+    
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('время ожидания') || error.message.includes('Failed to fetch')) {
+        throw new Error('Не удалось загрузить курсы. Проверьте подключение к интернету и попробуйте снова.');
+      }
+      throw error;
+    }
+    throw new Error('Ошибка получения курсов');
   }
-  
-  return data;
 };
 
 /**
@@ -69,14 +124,24 @@ export const getCourses = async (): Promise<Course[]> => {
  * GET /api/fitness/courses/[courseId]
  */
 export const getCourseById = async (courseId: string): Promise<Course> => {
-  const response = await fetch(`${BASE_URL}/api/fitness/courses/${courseId}`);
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || 'Ошибка получения курса');
+  try {
+    const response = await fetchWithTimeout(`${BASE_URL}/api/fitness/courses/${courseId}`, {}, 30000);
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Ошибка получения курса');
+    }
+    
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('время ожидания') || error.message.includes('Failed to fetch')) {
+        throw new Error('Не удалось загрузить данные курса. Проверьте подключение к интернету и попробуйте снова.');
+      }
+      throw error;
+    }
+    throw new Error('Ошибка получения курса');
   }
-  
-  return data;
 };
 
 /**

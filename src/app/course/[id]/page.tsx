@@ -77,19 +77,38 @@ export default function CoursePage() {
     if (!isAuthenticated && courseId) {
       const timer = setTimeout(() => {
         if (mountedRef.current) {
-          setShowAuthPrompt(true);
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              try {
+                setShowAuthPrompt(true);
+              } catch (error) {
+                console.error('Ошибка при установке showAuthPrompt:', error);
+              }
+            }
+          });
         }
       }, 500);
 
       return () => {
-        clearTimeout(timer);
+        if (timer) {
+          clearTimeout(timer);
+        }
       };
     }
   }, [isAuthenticated, courseId]);
 
   useEffect(() => {
+    if (!mountedRef.current) return;
     if (params?.id && typeof params.id === "string") {
-      setCourseId(params.id);
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          try {
+            setCourseId(params.id as string);
+          } catch (error) {
+            console.error('Ошибка при установке courseId:', error);
+          }
+        }
+      });
     }
   }, [params]);
 
@@ -98,8 +117,12 @@ export default function CoursePage() {
 
     const loadCourseData = async (): Promise<void> => {
       if (!mountedRef.current) return;
-      setIsLoadingCourse(true);
-      setCourseError(null);
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          setIsLoadingCourse(true);
+          setCourseError(null);
+        }
+      });
       try {
         const allCourses = await getAllCourses();
         if (!mountedRef.current) return;
@@ -121,28 +144,52 @@ export default function CoursePage() {
 
         if (!foundCourse) {
           if (mountedRef.current) {
-            setCourseError("Курс не найден");
-            setCourseData(null);
-            setIsLoadingCourse(false);
+            requestAnimationFrame(() => {
+              if (mountedRef.current) {
+                setCourseError("Курс не найден");
+                setCourseData(null);
+                setIsLoadingCourse(false);
+              }
+            });
           }
           return;
         }
 
         const courseDetail = await getCourseById(foundCourse._id);
         if (mountedRef.current) {
-          setCourseData(courseDetail as CourseDetail);
-          setCourseError(null);
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              try {
+                setCourseData(courseDetail as CourseDetail);
+                setCourseError(null);
+              } catch (error) {
+                console.error('[COURSE PAGE] Ошибка при установке courseData:', error);
+              }
+            }
+          });
         }
       } catch (error) {
         if (mountedRef.current) {
-          const errorMessage =
-            error instanceof Error ? error.message : String(error);
-          setCourseError(errorMessage || "Ошибка загрузки данных курса");
-          setCourseData(null);
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              const errorMessage =
+                error instanceof Error ? error.message : String(error);
+              setCourseError(errorMessage || "Ошибка загрузки данных курса");
+              setCourseData(null);
+            }
+          });
         }
       } finally {
         if (mountedRef.current) {
-          setIsLoadingCourse(false);
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              try {
+                setIsLoadingCourse(false);
+              } catch (error) {
+                console.error('[COURSE PAGE] Ошибка при установке isLoadingCourse:', error);
+              }
+            }
+          });
         }
       }
     };
@@ -159,40 +206,85 @@ export default function CoursePage() {
     : "/img/fitness_card.png";
 
   const handleLoginClick = () => {
-    setFormType("register");
-    setIsFormOpen(true);
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setFormType("register");
+        setIsFormOpen(true);
+      }
+    });
   };
 
   const handleCloseForm = () => {
-    if (mountedRef.current) {
-      setIsFormOpen(false);
-    }
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setIsFormOpen(false);
+      }
+    });
   };
 
   const handleCloseAuthPrompt = () => {
-    if (mountedRef.current) {
-      setShowAuthPrompt(false);
-    }
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setShowAuthPrompt(false);
+      }
+    });
   };
 
   const handleSwitchToAuth = () => {
-    setFormType("auth");
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setFormType("auth");
+      }
+    });
   };
 
   const handleSwitchToRegister = () => {
-    setFormType("register");
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setFormType("register");
+      }
+    });
   };
 
   const handleAuthSuccess = async (): Promise<void> => {
     if (!mountedRef.current) return;
-    setIsFormOpen(false);
-    await refreshUserData();
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setIsFormOpen(false);
+      }
+    });
+    try {
+      await refreshUserData();
+    } catch (error) {
+      console.error('Ошибка при обновлении данных пользователя:', error);
+    }
   };
 
   const handleLogout = () => {
-    if (!mountedRef.current) return;
-    logout();
-    router.push("/");
+    if (!mountedRef.current || typeof window === "undefined") return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          logout();
+          setTimeout(() => {
+            if (mountedRef.current && typeof window !== "undefined") {
+              try {
+                router.push("/");
+              } catch (error) {
+                console.error('Ошибка при навигации:', error);
+              }
+            }
+          }, 100);
+        } catch (error) {
+          console.error('Ошибка при выходе:', error);
+        }
+      }
+    });
   };
 
   const handleAddCourse = async (): Promise<void> => {
@@ -201,7 +293,13 @@ export default function CoursePage() {
     }
 
     if (!isAuthenticated) {
-      setShowAuthPrompt(true);
+      if (mountedRef.current) {
+        requestAnimationFrame(() => {
+          if (mountedRef.current) {
+            setShowAuthPrompt(true);
+          }
+        });
+      }
       return;
     }
 
@@ -233,10 +331,13 @@ export default function CoursePage() {
       const courseExists = userData.selectedCourses.includes(foundCourse._id);
 
       if (courseExists) {
-        // Курс уже добавлен - показываем соответствующее модальное окно
         if (mountedRef.current) {
-          setCourseAddModalType("alreadyAdded");
-          setCourseAddModalOpen(true);
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              setCourseAddModalType("alreadyAdded");
+              setCourseAddModalOpen(true);
+            }
+          });
         }
         return;
       }
@@ -250,29 +351,48 @@ export default function CoursePage() {
 
         // Курс успешно добавлен - показываем модальное окно успеха
         if (mountedRef.current) {
-          setCourseAddModalType("success");
-          setCourseAddModalOpen(true);
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              setCourseAddModalType("success");
+              setCourseAddModalOpen(true);
+            }
+          });
         }
       } catch (addError) {
         // Ошибка при добавлении курса - показываем модальное окно ошибки
         if (mountedRef.current) {
-          setCourseAddModalType("error");
-          setCourseAddModalOpen(true);
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              setCourseAddModalType("error");
+              setCourseAddModalOpen(true);
+            }
+          });
         }
       }
     } catch (error) {
       // Ошибка при загрузке курсов или другой ошибке
       if (mountedRef.current) {
-        setCourseAddModalType("error");
-        setCourseAddModalOpen(true);
+        requestAnimationFrame(() => {
+          if (mountedRef.current) {
+              setCourseAddModalType("error");
+              setCourseAddModalOpen(true);
+            }
+        });
       }
     }
   };
 
   const handleCloseCourseAddModal = () => {
-    if (mountedRef.current) {
-      setCourseAddModalOpen(false);
-    }
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setCourseAddModalOpen(false);
+        } catch (error) {
+          console.error('[COURSE PAGE] Ошибка при закрытии модального окна добавления курса:', error);
+        }
+      }
+    });
   };
 
   return (
@@ -288,7 +408,9 @@ export default function CoursePage() {
       )}
       <main className={styles.courseMain}>
         <div className={styles.courseImageContainer}>
-          {courseId ? (
+          {isLoadingCourse ? (
+            <div className={styles.skeletonImage} />
+          ) : courseId ? (
             <>
               <Image
                 src={courseCardImage}
@@ -296,6 +418,7 @@ export default function CoursePage() {
                 fill
                 sizes="(max-width: 768px) 100vw, 1440px"
                 className={styles.courseImage}
+                priority
               />
               <Image
                 src={courseImage}
@@ -306,7 +429,7 @@ export default function CoursePage() {
               />
             </>
           ) : (
-            <div>Загрузка...</div>
+            <div className={styles.skeletonImage} />
           )}
         </div>
         {courseId && (
@@ -478,34 +601,48 @@ export default function CoursePage() {
               className={styles.courseVectorImageMobile}
             />
             <div className={styles.courseContentBlock}>
-              <div className={styles.courseContentRight}>
-                <h2 className={styles.courseContentTitle}>
-                  Начните путь
-                  <br />к новому телу
-                </h2>
-                <ul className={styles.courseContentList}>
-                  <li>проработка всех групп мышц</li>
-                  <li>тренировка суставов</li>
-                  <li>улучшение циркуляции крови</li>
-                  <li>упражнения заряжают бодростью</li>
-                  <li>помогают противостоять стрессам</li>
-                </ul>
-                {isAuthenticated ? (
-                  <button
-                    className={styles.courseContentButton}
-                    onClick={handleAddCourse}
-                  >
-                    Добавить курс
-                  </button>
-                ) : (
-                  <button
-                    className={styles.courseContentButton}
-                    onClick={handleLoginClick}
-                  >
-                    Войдите, чтобы добавить курс
-                  </button>
-                )}
-              </div>
+              {isLoadingCourse ? (
+                <div className={styles.courseContentRight}>
+                  <div className={styles.skeletonTitle} />
+                  <div className={styles.skeletonContentList}>
+                    <div className={styles.skeletonContentItem} />
+                    <div className={styles.skeletonContentItem} />
+                    <div className={styles.skeletonContentItem} />
+                    <div className={styles.skeletonContentItem} />
+                    <div className={styles.skeletonContentItem} />
+                  </div>
+                  <div className={styles.skeletonButton} />
+                </div>
+              ) : (
+                <div className={styles.courseContentRight}>
+                  <h2 className={styles.courseContentTitle}>
+                    Начните путь
+                    <br />к новому телу
+                  </h2>
+                  <ul className={styles.courseContentList}>
+                    <li>проработка всех групп мышц</li>
+                    <li>тренировка суставов</li>
+                    <li>улучшение циркуляции крови</li>
+                    <li>упражнения заряжают бодростью</li>
+                    <li>помогают противостоять стрессам</li>
+                  </ul>
+                  {isAuthenticated ? (
+                    <button
+                      className={styles.courseContentButton}
+                      onClick={handleAddCourse}
+                    >
+                      Добавить курс
+                    </button>
+                  ) : (
+                    <button
+                      className={styles.courseContentButton}
+                      onClick={handleLoginClick}
+                    >
+                      Войдите, чтобы добавить курс
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </>
         )}

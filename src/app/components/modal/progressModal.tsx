@@ -94,26 +94,46 @@ export default function ProgressModal({
         return;
       }
 
-      const wasMounted = mountedRef.current;
-      mountedRef.current = false;
-
-      onSave(numericProgress);
-
-      if (wasMounted) {
-        try {
-          if (onClose && typeof onClose === "function") {
-            onClose();
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          try {
+            onSave(numericProgress);
+            setTimeout(() => {
+              if (mountedRef.current) {
+                requestAnimationFrame(() => {
+                  if (mountedRef.current) {
+                    try {
+                      if (onClose && typeof onClose === "function") {
+                        onClose();
+                      }
+                    } catch (error) {
+                      console.error('Ошибка при закрытии модального окна:', error);
+                    }
+                  }
+                });
+              }
+            }, 100);
+          } catch (error) {
+            console.error('Ошибка при сохранении прогресса:', error);
           }
-        } catch {}
-      }
-    } catch {}
+        }
+      });
+    } catch (error) {
+      console.error('Ошибка в handleSave:', error);
+    }
   };
 
   const handleClose = () => {
-    mountedRef.current = false;
-    try {
-      onClose();
-    } catch {}
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          onClose();
+        } catch (error) {
+          console.error('Ошибка при закрытии модального окна:', error);
+        }
+      }
+    });
   };
 
   const getExerciseQuestion = (exerciseName: string): string => {

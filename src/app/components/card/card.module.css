@@ -39,7 +39,7 @@
 
 .cardImage {
   width: 360px;
-  height: 325px;
+  height: auto;
   transform: rotate(0deg);
   opacity: 1;
   object-fit: cover;
@@ -274,7 +274,7 @@
 
   .cardImage {
     width: 343px;
-    height: 325px;
+    height: auto;
   }
 
   .cardFrame {

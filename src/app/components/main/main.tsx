@@ -85,15 +85,15 @@ export default function Main({
                 />
               ))}
         </div>
-        <button
-          className={styles.scrollTopButton}
-          onClick={() => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-        >
-          Наверх!
-        </button>
       </section>
+      <button
+        className={styles.scrollTopButton}
+        onClick={() => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      >
+        Наверх!
+      </button>
     </div>
   );
 }

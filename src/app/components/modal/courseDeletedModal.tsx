@@ -60,14 +60,14 @@ export default function CourseDeletedModal({
       timeoutRef.current = null;
     }
     
-    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
       if (!mountedRef.current) return;
-      try {
-        onCloseRef.current();
+        try {
+          onCloseRef.current();
       } catch (error) {
         console.error('Ошибка при закрытии модального окна:', error);
       }
-    });
+      });
   };
 
   return (

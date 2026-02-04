@@ -26,24 +26,29 @@ export default function SuccessModal({
     mountedRef.current = true;
 
     if (autoCloseDelay > 0) {
-      timeoutRef.current = setTimeout(() => {
-        if (mountedRef.current) {
-          const timeoutId = timeoutRef.current;
-          mountedRef.current = false;
+      const timeoutId = setTimeout(() => {
+        if (mountedRef.current && timeoutRef.current === timeoutId) {
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
             timeoutRef.current = null;
           }
-          try {
-            if (
-              onCloseRef.current &&
-              typeof onCloseRef.current === "function"
-            ) {
-              onCloseRef.current();
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              try {
+                if (
+                  onCloseRef.current &&
+                  typeof onCloseRef.current === "function"
+                ) {
+                  onCloseRef.current();
+                }
+              } catch (error) {
+                console.error('Ошибка при закрытии модального окна:', error);
+              }
             }
-          } catch {}
+          });
         }
       }, autoCloseDelay);
+      timeoutRef.current = timeoutId;
     }
 
     return () => {
@@ -56,16 +61,23 @@ export default function SuccessModal({
   }, [autoCloseDelay]);
 
   const handleClose = () => {
+    if (!mountedRef.current) return;
+    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    mountedRef.current = false;
-    try {
-      if (onCloseRef.current && typeof onCloseRef.current === "function") {
-        onCloseRef.current();
+    
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
+      try {
+        if (onCloseRef.current && typeof onCloseRef.current === "function") {
+          onCloseRef.current();
+        }
+      } catch (error) {
+        console.error('Ошибка при закрытии модального окна:', error);
       }
-    } catch {}
+    });
   };
 
   return (

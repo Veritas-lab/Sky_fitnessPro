@@ -33,7 +33,7 @@ export default function AuthHeader({
     if (mountedRef.current) {
       requestAnimationFrame(() => {
         if (mountedRef.current) {
-          setIsModalOpen(true);
+      setIsModalOpen(true);
         }
       });
     }
@@ -42,8 +42,8 @@ export default function AuthHeader({
   const handleCloseModal = () => {
     if (mountedRef.current) {
       requestAnimationFrame(() => {
-        if (mountedRef.current) {
-          setIsModalOpen(false);
+    if (mountedRef.current) {
+      setIsModalOpen(false);
         }
       });
     }

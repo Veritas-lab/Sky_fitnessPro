@@ -34,16 +34,24 @@ export default function AuthPromptModal({
     if (autoCloseDelay > 0) {
       const timeoutId = setTimeout(() => {
         if (mountedRef.current && timeoutRef.current === timeoutId) {
-          mountedRef.current = false;
-          timeoutRef.current = null;
-          try {
-            if (
-              onCloseRef.current &&
-              typeof onCloseRef.current === "function"
-            ) {
-              onCloseRef.current();
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              try {
+                if (
+                  onCloseRef.current &&
+                  typeof onCloseRef.current === "function"
+                ) {
+                  onCloseRef.current();
+                }
+              } catch (error) {
+                console.error('Ошибка при закрытии модального окна:', error);
+              }
             }
-          } catch {}
+          });
         }
       }, autoCloseDelay);
       timeoutRef.current = timeoutId;
@@ -59,18 +67,23 @@ export default function AuthPromptModal({
   }, [autoCloseDelay]);
 
   const handleClose = () => {
+    if (!mountedRef.current) return;
+    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    if (mountedRef.current) {
-      mountedRef.current = false;
+    
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
       try {
         if (onCloseRef.current && typeof onCloseRef.current === "function") {
           onCloseRef.current();
         }
-      } catch {}
-    }
+      } catch (error) {
+        console.error('Ошибка при закрытии модального окна:', error);
+      }
+    });
   };
 
   const handleLoginClick = (e?: React.MouseEvent) => {
@@ -78,12 +91,15 @@ export default function AuthPromptModal({
       e.preventDefault();
       e.stopPropagation();
     }
+    if (!mountedRef.current) return;
+    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    if (mountedRef.current) {
-      mountedRef.current = false;
+    
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
       try {
         if (onCloseRef.current && typeof onCloseRef.current === "function") {
           onCloseRef.current();
@@ -94,8 +110,10 @@ export default function AuthPromptModal({
         ) {
           onLoginClickRef.current();
         }
-      } catch {}
-    }
+      } catch (error) {
+        console.error('Ошибка при обработке клика входа:', error);
+      }
+    });
   };
 
   return (

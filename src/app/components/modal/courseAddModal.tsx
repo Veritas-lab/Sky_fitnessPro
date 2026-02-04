@@ -32,17 +32,17 @@ export default function CourseAddModal({
         if (mountedRef.current && timeoutRef.current === timeoutId) {
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
-            timeoutRef.current = null;
+          timeoutRef.current = null;
           }
           requestAnimationFrame(() => {
             if (mountedRef.current) {
-              try {
-                if (
-                  onCloseRef.current &&
-                  typeof onCloseRef.current === "function"
-                ) {
-                  onCloseRef.current();
-                }
+          try {
+            if (
+              onCloseRef.current &&
+              typeof onCloseRef.current === "function"
+            ) {
+              onCloseRef.current();
+            }
               } catch (error) {
                 console.error('Ошибка при закрытии модального окна:', error);
               }
@@ -76,7 +76,7 @@ export default function CourseAddModal({
         }
       } catch (error) {
         console.error('Ошибка при закрытии модального окна:', error);
-      }
+    }
     });
   };
 

@@ -24,16 +24,91 @@ interface Workout extends BaseWorkout {
   courseId?: string;
 }
 
+/**
+ * Нормализует URL видео YouTube для использования в iframe
+ * Преобразует обычный YouTube URL в embed формат, если необходимо
+ * Добавляет необходимые параметры для обхода ограничений безопасности
+ */
+function normalizeVideoUrl(url: string): string {
+  if (!url || !url.trim()) {
+    return url;
+  }
+
+  const trimmedUrl = url.trim();
+
+  // Извлекаем ID видео из различных форматов YouTube URL
+  let videoId: string | null = null;
+
+  // Формат: https://www.youtube.com/watch?v=VIDEO_ID
+  const watchMatch = trimmedUrl.match(/[?&]v=([^&]+)/);
+  if (watchMatch) {
+    videoId = watchMatch[1];
+  }
+
+  // Формат: https://youtu.be/VIDEO_ID
+  const shortMatch = trimmedUrl.match(/youtu\.be\/([^?&]+)/);
+  if (shortMatch) {
+    videoId = shortMatch[1];
+  }
+
+  // Формат: https://www.youtube.com/embed/VIDEO_ID
+  const embedMatch = trimmedUrl.match(/embed\/([^?&]+)/);
+  if (embedMatch) {
+    videoId = embedMatch[1];
+  }
+
+  // Если нашли ID, создаем embed URL с необходимыми параметрами
+  if (videoId) {
+    // Очищаем videoId от лишних символов
+    const cleanVideoId = videoId.split('&')[0].split('?')[0];
+    
+    // Получаем origin для параметра origin
+    const origin = typeof window !== 'undefined' && window.location ? window.location.origin : 'http://localhost:3000';
+    
+    // Добавляем параметры для обхода ограничений безопасности
+    const params = new URLSearchParams({
+      'enablejsapi': '1',
+      'origin': origin,
+      'rel': '0', // Отключаем показ связанных видео
+      'modestbranding': '1', // Уменьшаем брендинг YouTube
+    });
+    
+    return `https://www.youtube.com/embed/${cleanVideoId}?${params.toString()}`;
+  }
+
+  // Если уже embed URL, добавляем параметры если их нет
+  if (trimmedUrl.includes('youtube.com/embed/')) {
+    try {
+      const urlObj = new URL(trimmedUrl);
+      const origin = typeof window !== 'undefined' && window.location ? window.location.origin : 'http://localhost:3000';
+      
+      urlObj.searchParams.set('enablejsapi', '1');
+      urlObj.searchParams.set('origin', origin);
+      urlObj.searchParams.set('rel', '0');
+      urlObj.searchParams.set('modestbranding', '1');
+      return urlObj.toString();
+    } catch (e) {
+      // Если не удалось распарсить URL, просто добавляем параметры вручную
+      const separator = trimmedUrl.includes('?') ? '&' : '?';
+      const origin = typeof window !== 'undefined' && window.location ? window.location.origin : 'http://localhost:3000';
+      return `${trimmedUrl}${separator}enablejsapi=1&origin=${encodeURIComponent(origin)}&rel=0&modestbranding=1`;
+    }
+  }
+
+  // Если не удалось распознать формат, возвращаем исходный URL
+  return trimmedUrl;
+}
+
 export default function WorkoutPage() {
   const params = useParams();
-  const searchParams = useSearchParams(); // ✅ Получаем query параметры
+  const searchParams = useSearchParams(); 
   const router = useRouter();
   const { 
     isAuthenticated, 
     userName, 
     userEmail, 
     logout,
-    isLoading: authLoading // ✅ Добавляем состояние загрузки авторизации
+    isLoading: authLoading 
   } = useAuth();
   
   const [workoutId, setWorkoutId] = useState("");
@@ -59,9 +134,9 @@ export default function WorkoutPage() {
     }
   }, [params]);
 
-  // ✅ Исправленный эффект загрузки данных
+
   useEffect(() => {
-    // Ждём окончания загрузки авторизации
+
     if (authLoading) {
       console.log('[WORKOUT PAGE] Ожидание завершения загрузки авторизации');
       return;
@@ -86,15 +161,36 @@ export default function WorkoutPage() {
       setIsLoading(true);
 
       try {
-        // ✅ Получаем courseId из query параметров
+       
         const courseId = searchParams.get("courseId");
         console.log('[WORKOUT PAGE] Course ID из URL:', courseId);
 
-        // Загружаем данные тренировки
+    
         const workoutData = (await getWorkoutById(workoutId)) as Workout;
         if (!mountedRef.current) return;
 
         console.log('[WORKOUT PAGE] Данные тренировки получены:', workoutData);
+        console.log('[WORKOUT PAGE] Детали тренировки:', {
+          id: workoutData._id,
+          name: workoutData.name,
+          video: workoutData.video,
+          hasVideo: !!workoutData.video,
+          exercisesCount: workoutData.exercises?.length || 0,
+          exercises: workoutData.exercises?.map((ex, idx) => ({
+            index: idx,
+            id: ex._id,
+            name: ex.name,
+            quantity: ex.quantity
+          })) || [],
+          exercisesArray: workoutData.exercises,
+          exercisesType: Array.isArray(workoutData.exercises) ? 'array' : typeof workoutData.exercises
+        });
+        
+        // Проверяем, что exercises - это массив
+        if (!Array.isArray(workoutData.exercises)) {
+          console.warn('[WORKOUT PAGE] exercises не является массивом, преобразуем:', workoutData.exercises);
+          workoutData.exercises = [];
+        }
 
         // Инициализируем прогресс
         let savedProgress = new Array(workoutData.exercises?.length || 0).fill(0);
@@ -120,6 +216,12 @@ export default function WorkoutPage() {
         }
 
         if (mountedRef.current) {
+          console.log('[WORKOUT PAGE] Данные тренировки перед установкой:', {
+            workoutData,
+            exercisesCount: workoutData.exercises?.length || 0,
+            hasVideo: !!workoutData.video,
+            exercises: workoutData.exercises
+          });
           setWorkout(workoutData);
           setProgress(savedProgress);
           setIsLoading(false);
@@ -148,7 +250,7 @@ export default function WorkoutPage() {
     loadWorkoutData();
   }, [workoutId, isAuthenticated, authLoading, router, searchParams]);
 
-  // ... остальные функции без изменений (handleOpenProgressModal, handleCloseProgressModal и т.д.) ...
+ 
 
   const handleLogout = () => {
     if (!mountedRef.current) return;
@@ -186,8 +288,32 @@ export default function WorkoutPage() {
       
       <main className={styles.main}>
         {isLoading ? (
-          <div className={styles.container}>
-            <div className={styles.loading}>Загрузка тренировки...</div>
+          <div className={styles.workoutContainer}>
+            {/* Скелетон заголовка */}
+            <div className={styles.skeletonTitle} />
+            
+            {/* Скелетон видео */}
+            <div className={styles.videoSection}>
+              <div className={styles.skeletonVideo} />
+            </div>
+
+            {/* Скелетон секции упражнений */}
+            <div className={styles.exercisesSection}>
+              <div className={styles.skeletonExercisesTitle} />
+              <div className={styles.exercisesList}>
+                {[1, 2, 3, 4, 5].map((index) => (
+                  <div key={index} className={styles.exerciseItem}>
+                    <div className={styles.skeletonExerciseName} />
+                    <div className={styles.progressBar}>
+                      <div className={styles.skeletonProgressBar} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className={styles.actions}>
+                <div className={styles.skeletonButton} />
+              </div>
+            </div>
           </div>
         ) : !workout ? (
           <div className={styles.container}>
@@ -196,20 +322,32 @@ export default function WorkoutPage() {
         ) : (
           <div className={styles.workoutContainer}>
             <h1 className={styles.title}>
-              {workout.courseName || workout.name}
+              {workout.courseName || workout.name || 'Тренировка'}
             </h1>
             
             {/* Видео секция */}
-            {workout.video && (
+            {workout.video && workout.video.trim() ? (
               <div className={styles.videoSection}>
                 <div className={styles.videoWrapper}>
                   <iframe
-                    src={workout.video}
-                    title={workout.name}
+                    src={normalizeVideoUrl(workout.video)}
+                    title={workout.name || 'Видео тренировки'}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
+                    referrerPolicy="no-referrer-when-downgrade"
                     className={styles.video}
+                    onError={(e) => {
+                      console.error('[WORKOUT PAGE] Ошибка загрузки видео:', workout.video, e);
+                    }}
                   />
+                </div>
+              </div>
+            ) : (
+              <div className={styles.videoSection}>
+                <div className={styles.videoWrapper}>
+                  <div className={styles.noVideoMessage}>
+                    Видео для этой тренировки недоступно
+                  </div>
                 </div>
               </div>
             )}
@@ -220,26 +358,43 @@ export default function WorkoutPage() {
                 Упражнения тренировки {workout.workoutNumber || 1}
               </h2>
               <div className={styles.exercisesList}>
-                {workout.exercises && workout.exercises.length > 0
-                  ? workout.exercises.map((exercise, index) => (
-                      <div
-                        key={exercise._id || index}
-                        className={styles.exerciseItem}
-                      >
-                        <span className={styles.exerciseName}>
-                          {exercise.name} {getExerciseProgress(index)}%
-                        </span>
-                        <div className={styles.progressBar}>
-                          <div
-                            className={styles.progressFill}
-                            style={{
-                              width: `${getExerciseProgress(index)}%`,
-                            }}
-                          />
+                {workout.exercises && Array.isArray(workout.exercises) && workout.exercises.length > 0 ? (
+                  workout.exercises
+                    .filter((exercise) => {
+                      const isValid = exercise && exercise.name && exercise.name.trim();
+                      if (!isValid) {
+                        console.warn('[WORKOUT PAGE] Фильтрация: пропущено невалидное упражнение:', exercise);
+                      }
+                      return isValid;
+                    })
+                    .map((exercise, index) => {
+                      const originalIndex = workout.exercises?.indexOf(exercise) ?? index;
+                      return (
+                        <div
+                          key={exercise._id || `exercise-${originalIndex}`}
+                          className={styles.exerciseItem}
+                        >
+                          <span className={styles.exerciseName}>
+                            {exercise.name} {getExerciseProgress(originalIndex)}%
+                          </span>
+                          <div className={styles.progressBar}>
+                            <div
+                              className={styles.progressFill}
+                              style={{
+                                width: `${getExerciseProgress(originalIndex)}%`,
+                              }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  : null}
+                      );
+                    })
+                ) : (
+                  <div className={styles.noExercisesMessage}>
+                    {!workout.exercises || (Array.isArray(workout.exercises) && workout.exercises.length === 0)
+                      ? 'Упражнения для этой тренировки отсутствуют. Эта тренировка содержит только видео-материал.'
+                      : 'Загрузка упражнений...'}
+                  </div>
+                )}
               </div>
 
               {/* Кнопка заполнения прогресса */}
