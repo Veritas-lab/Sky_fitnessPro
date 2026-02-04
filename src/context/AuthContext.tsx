@@ -13,7 +13,11 @@ import {
   removeToken,
   isAuthenticated as checkAuth,
 } from "@/app/services/authToken";
-import { getMe, login as loginAPI, registerUser as registerAPI } from "@/app/services/auth/authApi";
+import {
+  getMe,
+  login as loginAPI,
+  registerUser as registerAPI,
+} from "@/app/services/auth/authApi";
 import type { UserData } from "@/types/shared";
 import { prunePendingCourses } from "@/app/services/pendingCourse";
 
@@ -44,16 +48,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const lastRefreshTimeRef = useRef(0);
 
   const loadUserData = useCallback(async (): Promise<void> => {
-    console.log('[AUTH CONTEXT] Запуск loadUserData');
-    
-    // ✅ Исправлено: не блокируем повторные вызовы при входе/регистрации
     if (loadingRef.current && !checkAuth()) {
-      console.log('[AUTH CONTEXT] loadUserData уже выполняется, пропускаем');
       return;
     }
-    
+
     loadingRef.current = true;
-    
+
     if (!mountedRef.current || typeof window === "undefined") {
       if (mountedRef.current) {
         setIsLoading(false);
@@ -61,9 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loadingRef.current = false;
       return;
     }
-    
+
     if (!checkAuth()) {
-      console.log('[AUTH CONTEXT] Пользователь не авторизован (checkAuth = false)');
       if (mountedRef.current) {
         setIsAuthenticated(false);
         setUserData(null);
@@ -77,7 +76,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const token = getToken();
     if (!token) {
-      console.log('[AUTH CONTEXT] Токен не найден в localStorage');
       if (mountedRef.current) {
         setIsAuthenticated(false);
         setUserData(null);
@@ -89,19 +87,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    console.log('[AUTH CONTEXT] Токен найден, запрашиваем данные пользователя');
-
     try {
       const data = await getMe();
-      console.log('[AUTH CONTEXT] Данные пользователя получены:', data);
-      
+
       if (!mountedRef.current) {
         loadingRef.current = false;
         return;
       }
 
       if (!data || !data.email) {
-        console.warn('[AUTH CONTEXT] Невалидные данные пользователя (нет email)');
         if (mountedRef.current) {
           setIsAuthenticated(false);
           setUserData(null);
@@ -118,7 +112,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 
       if (mountedRef.current) {
-        console.log('[AUTH CONTEXT] Устанавливаем состояние авторизованного пользователя');
         setIsAuthenticated(true);
         setUserData({
           email: data.email,
@@ -129,21 +122,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     } catch (error) {
-      console.error('[AUTH CONTEXT] Ошибка в loadUserData:', error);
+      console.error("[AUTH CONTEXT] Ошибка в loadUserData:", error);
       if (mountedRef.current) {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-        
+
+        // Обработка сетевых ошибок и ошибок авторизации
         if (
           errorMessage.includes("401") ||
           errorMessage.includes("Unauthorized") ||
           errorMessage.includes("токен") ||
-          errorMessage.includes("не найден")
+          errorMessage.includes("не найден") ||
+          errorMessage.includes("невалиден") ||
+          errorMessage.includes("истек")
         ) {
-          console.log('[AUTH CONTEXT] Удаляем токен из-за ошибки авторизации');
           removeToken();
         }
-        
+
+        // Для сетевых ошибок не удаляем токен, просто показываем неавторизованное состояние
+        // Пользователь может быть авторизован, но нет подключения к серверу
         setIsAuthenticated(false);
         setUserData(null);
         setUserName("");
@@ -152,49 +149,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } finally {
       loadingRef.current = false;
-      console.log('[AUTH CONTEXT] loadUserData завершен');
     }
   }, []);
 
   useEffect(() => {
-    console.log('[AUTH CONTEXT] Монтирование AuthProvider');
     let isMounted = true;
     mountedRef.current = true;
-    let hasLoaded = false;
-    
-    const timer = setTimeout(() => {
-      if (isMounted && mountedRef.current && !hasLoaded) {
-        hasLoaded = true;
-        loadUserData();
-      }
-    }, 100);
+
+    // Загружаем данные сразу без задержки для ускорения загрузки страницы
+    if (isMounted && mountedRef.current) {
+      loadUserData();
+    }
 
     return () => {
-      console.log('[AUTH CONTEXT] Размонтирование AuthProvider');
       isMounted = false;
       mountedRef.current = false;
-      clearTimeout(timer);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadUserData]);
 
   const login = async (email: string, password: string): Promise<void> => {
-    console.log('[AUTH CONTEXT] Вызов login:', { email });
     if (!mountedRef.current) return;
     setIsLoading(true);
 
     try {
-      console.log('[AUTH CONTEXT] Вызов loginAPI...');
       await loginAPI(email, password);
-      console.log('[AUTH CONTEXT] loginAPI успешно выполнен, вызов loadUserData');
-      
-      // ✅ Сбрасываем флаг перед вызовом loadUserData
+
       loadingRef.current = false;
       await loadUserData();
-      
-      console.log('[AUTH CONTEXT] login завершен успешно');
     } catch (error) {
-      console.error('[AUTH CONTEXT] Ошибка в login:', error);
+      console.error("[AUTH CONTEXT] Ошибка в login:", error);
       if (mountedRef.current) {
         setIsLoading(false);
       }
@@ -203,22 +186,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string): Promise<void> => {
-    console.log('[AUTH CONTEXT] Вызов register:', { email });
     if (!mountedRef.current) return;
     setIsLoading(true);
 
     try {
-      console.log('[AUTH CONTEXT] Вызов registerAPI...');
       await registerAPI(email, password);
-      console.log('[AUTH CONTEXT] registerAPI успешно выполнен, вызов loadUserData');
-      
-      // ✅ Сбрасываем флаг перед вызовом loadUserData
+
+      // После успешной регистрации автоматически выполняем вход
+      await loginAPI(email, password);
+
       loadingRef.current = false;
       await loadUserData();
-      
-      console.log('[AUTH CONTEXT] register завершен успешно');
     } catch (error) {
-      console.error('[AUTH CONTEXT] Ошибка в register:', error);
+      console.error("[AUTH CONTEXT] Ошибка в register:", error);
       if (mountedRef.current) {
         setIsLoading(false);
       }
@@ -227,7 +207,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    console.log('[AUTH CONTEXT] Вызов logout');
     if (mountedRef.current) {
       removeToken();
       setIsAuthenticated(false);
@@ -238,15 +217,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshUserData = useCallback(async (): Promise<void> => {
-    console.log('[AUTH CONTEXT] Вызов refreshUserData');
     if (!mountedRef.current) return;
     if (refreshingRef.current) return;
     if (loadingRef.current) return;
-    
+
     const now = Date.now();
     const timeSinceLastRefresh = now - lastRefreshTimeRef.current;
     if (timeSinceLastRefresh < 500) {
-      console.log('[AUTH CONTEXT] refreshUserData пропущен (debounce)');
       return;
     }
 
@@ -288,9 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUserEmail(freshData.email);
           }
         }
-      } catch (error) {
-        // Игнорируем ошибки
-      }
+      } catch (error) {}
     } finally {
       refreshingRef.current = false;
     }

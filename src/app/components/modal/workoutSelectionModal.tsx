@@ -38,11 +38,11 @@ export default function WorkoutSelectionModal({
     if (!mountedRef.current) return;
     requestAnimationFrame(() => {
       if (!mountedRef.current) return;
-    setSelectedWorkouts((prev) =>
-      prev.includes(workoutId)
-        ? prev.filter((id) => id !== workoutId)
-        : [...prev, workoutId]
-    );
+      setSelectedWorkouts((prev) =>
+        prev.includes(workoutId)
+          ? prev.filter((id) => id !== workoutId)
+          : [...prev, workoutId]
+      );
     });
   };
 
@@ -53,32 +53,32 @@ export default function WorkoutSelectionModal({
       typeof window === "undefined"
     )
       return;
-    
-      requestAnimationFrame(() => {
+
+    requestAnimationFrame(() => {
       if (!mountedRef.current) return;
-        try {
-          // ✅ Добавляем courseId в query параметры
-          router.push(`/workouts/${selectedWorkouts[0]}?courseId=${courseId}`);
+      try {
+        // ✅ Добавляем courseId в query параметры
+        router.push(`/workouts/${selectedWorkouts[0]}?courseId=${courseId}`);
         if (mountedRef.current) {
           onClose();
         }
       } catch (error) {
-        console.error('Ошибка при переходе к тренировке:', error);
+        console.error("Ошибка при переходе к тренировке:", error);
       }
-      });
+    });
   };
 
   const handleClose = () => {
     if (!mountedRef.current) return;
-    
-      requestAnimationFrame(() => {
+
+    requestAnimationFrame(() => {
       if (!mountedRef.current) return;
-        try {
-          onClose();
+      try {
+        onClose();
       } catch (error) {
-        console.error('Ошибка при закрытии модального окна:', error);
+        console.error("Ошибка при закрытии модального окна:", error);
       }
-      });
+    });
   };
 
   return (

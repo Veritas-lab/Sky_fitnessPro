@@ -42,7 +42,7 @@ export default function SuccessModal({
                   onCloseRef.current();
                 }
               } catch (error) {
-                console.error('Ошибка при закрытии модального окна:', error);
+                console.error("Ошибка при закрытии модального окна:", error);
               }
             }
           });
@@ -62,12 +62,12 @@ export default function SuccessModal({
 
   const handleClose = () => {
     if (!mountedRef.current) return;
-    
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
+
     requestAnimationFrame(() => {
       if (!mountedRef.current) return;
       try {
@@ -75,7 +75,7 @@ export default function SuccessModal({
           onCloseRef.current();
         }
       } catch (error) {
-        console.error('Ошибка при закрытии модального окна:', error);
+        console.error("Ошибка при закрытии модального окна:", error);
       }
     });
   };

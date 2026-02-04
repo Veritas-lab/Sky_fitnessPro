@@ -35,7 +35,7 @@ export default function CourseDeletedModal({
               try {
                 onCloseRef.current();
               } catch (error) {
-                console.error('Ошибка при закрытии модального окна:', error);
+                console.error("Ошибка при закрытии модального окна:", error);
               }
             }
           });
@@ -54,20 +54,20 @@ export default function CourseDeletedModal({
 
   const handleClose = () => {
     if (!mountedRef.current) return;
-    
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
-      requestAnimationFrame(() => {
+
+    requestAnimationFrame(() => {
       if (!mountedRef.current) return;
-        try {
-          onCloseRef.current();
+      try {
+        onCloseRef.current();
       } catch (error) {
-        console.error('Ошибка при закрытии модального окна:', error);
+        console.error("Ошибка при закрытии модального окна:", error);
       }
-      });
+    });
   };
 
   return (

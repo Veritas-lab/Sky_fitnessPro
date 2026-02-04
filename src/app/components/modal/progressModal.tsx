@@ -107,19 +107,22 @@ export default function ProgressModal({
                         onClose();
                       }
                     } catch (error) {
-                      console.error('Ошибка при закрытии модального окна:', error);
+                      console.error(
+                        "Ошибка при закрытии модального окна:",
+                        error
+                      );
                     }
                   }
                 });
               }
             }, 100);
           } catch (error) {
-            console.error('Ошибка при сохранении прогресса:', error);
+            console.error("Ошибка при сохранении прогресса:", error);
           }
         }
       });
     } catch (error) {
-      console.error('Ошибка в handleSave:', error);
+      console.error("Ошибка в handleSave:", error);
     }
   };
 
@@ -130,7 +133,7 @@ export default function ProgressModal({
         try {
           onClose();
         } catch (error) {
-          console.error('Ошибка при закрытии модального окна:', error);
+          console.error("Ошибка при закрытии модального окна:", error);
         }
       }
     });
