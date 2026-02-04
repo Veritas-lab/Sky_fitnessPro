@@ -48,7 +48,7 @@ export default function AuthPromptModal({
                   onCloseRef.current();
                 }
               } catch (error) {
-                console.error('Ошибка при закрытии модального окна:', error);
+                console.error("Ошибка при закрытии модального окна:", error);
               }
             }
           });
@@ -68,12 +68,12 @@ export default function AuthPromptModal({
 
   const handleClose = () => {
     if (!mountedRef.current) return;
-    
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
+
     requestAnimationFrame(() => {
       if (!mountedRef.current) return;
       try {
@@ -81,7 +81,7 @@ export default function AuthPromptModal({
           onCloseRef.current();
         }
       } catch (error) {
-        console.error('Ошибка при закрытии модального окна:', error);
+        console.error("Ошибка при закрытии модального окна:", error);
       }
     });
   };
@@ -92,12 +92,12 @@ export default function AuthPromptModal({
       e.stopPropagation();
     }
     if (!mountedRef.current) return;
-    
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
+
     requestAnimationFrame(() => {
       if (!mountedRef.current) return;
       try {
@@ -111,7 +111,7 @@ export default function AuthPromptModal({
           onLoginClickRef.current();
         }
       } catch (error) {
-        console.error('Ошибка при обработке клика входа:', error);
+        console.error("Ошибка при обработке клика входа:", error);
       }
     });
   };

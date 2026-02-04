@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/context/AuthContext";
+import ReduxProvider from "@/store/provider";
 
 const roboto = Roboto({
   weight: ["400", "600", "700"],
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={roboto.className}>
-        <AuthProvider>{children}</AuthProvider>
+        <ReduxProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ReduxProvider>
       </body>
     </html>
   );

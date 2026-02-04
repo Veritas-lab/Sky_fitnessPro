@@ -3,7 +3,7 @@ import { useState, FormEvent, useEffect, useRef, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "./authform.module.css";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 interface AuthFormProps {
   onSwitchToRegister?: () => void;
@@ -17,7 +17,7 @@ export default function AuthForm({
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
   const mountedRef = useRef(false);
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -34,7 +34,7 @@ export default function AuthForm({
   // Редирект после успешного входа
   useEffect(() => {
     if (!mountedRef.current || !isAuthenticated) return;
-    
+
     requestAnimationFrame(() => {
       if (mountedRef.current) {
         try {
@@ -45,7 +45,7 @@ export default function AuthForm({
             }
           }, 100);
         } catch (error) {
-          console.error('[AUTH FORM] Ошибка при редиректе:', error);
+          console.error("[AUTH FORM] Ошибка при редиректе:", error);
         }
       }
     });
@@ -54,13 +54,13 @@ export default function AuthForm({
   const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     if (!mountedRef.current) return;
-    
+
     requestAnimationFrame(() => {
       if (mountedRef.current) {
         try {
           setError("");
         } catch (error) {
-          console.error('[AUTH FORM] Ошибка при очистке ошибки:', error);
+          console.error("[AUTH FORM] Ошибка при очистке ошибки:", error);
         }
       }
     });
@@ -78,6 +78,30 @@ export default function AuthForm({
 
     try {
       await login(email, password);
+
+      // Вход успешен - вызываем onAuthSuccess и делаем редирект
+      if (onAuthSuccess) {
+        onAuthSuccess();
+      }
+
+      // Явный редирект на страницу профиля
+      if (!mountedRef.current) return;
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          try {
+            setIsLoading(false);
+            // Небольшая задержка для обновления состояния авторизации
+            setTimeout(() => {
+              if (mountedRef.current) {
+                router.push("/profile");
+              }
+            }, 100);
+          } catch (error) {
+            console.error("[AUTH FORM] Ошибка при редиректе:", error);
+            setIsLoading(false);
+          }
+        }
+      });
     } catch (err) {
       if (!mountedRef.current) return;
       requestAnimationFrame(() => {
@@ -104,7 +128,7 @@ export default function AuthForm({
             }
             setIsLoading(false);
           } catch (error) {
-            console.error('[AUTH FORM] Ошибка при установке ошибки:', error);
+            console.error("[AUTH FORM] Ошибка при установке ошибки:", error);
           }
         }
       });
@@ -118,7 +142,7 @@ export default function AuthForm({
         try {
           setError("");
         } catch (error) {
-          console.error('[AUTH FORM] Ошибка при очистке ошибки:', error);
+          console.error("[AUTH FORM] Ошибка при очистке ошибки:", error);
         }
       }
     });
@@ -167,17 +191,20 @@ export default function AuthForm({
               type="button"
               className={styles.eyeButton}
               onClick={() => {
-              if (!mountedRef.current) return;
-              requestAnimationFrame(() => {
-                if (mountedRef.current) {
-                  try {
-                    setShowPassword(!showPassword);
-                  } catch (error) {
-                    console.error('[AUTH FORM] Ошибка при переключении видимости пароля:', error);
+                if (!mountedRef.current) return;
+                requestAnimationFrame(() => {
+                  if (mountedRef.current) {
+                    try {
+                      setShowPassword(!showPassword);
+                    } catch (error) {
+                      console.error(
+                        "[AUTH FORM] Ошибка при переключении видимости пароля:",
+                        error
+                      );
+                    }
                   }
-                }
-              });
-            }}
+                });
+              }}
               aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
             >
               {showPassword ? (

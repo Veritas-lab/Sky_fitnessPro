@@ -1,7 +1,3 @@
-/**
- * Курсы, добавленные при ответе 500 от API — сохраняем до явного удаления пользователем.
- * Сервер при 500 может не сохранять курс, поэтому храним их в sessionStorage.
- */
 const KEY = "pending_courses";
 
 export function addPendingCourse(courseId: string): void {
@@ -36,7 +32,6 @@ export function clearPendingCourses(): void {
   sessionStorage.removeItem(KEY);
 }
 
-/** Убрать из pending те, что уже есть в selectedCourses (сервер сохранил) */
 export function prunePendingCourses(selectedCourses: string[]): void {
   const pending = getPendingCourses();
   const serverSet = new Set(selectedCourses);

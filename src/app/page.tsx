@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Header from "./components/header/header";
 import AuthHeader from "./components/header/authHeader";
 import Main from "./components/main/main";
@@ -8,7 +9,7 @@ import RegistrForm from "./components/form/registrform";
 import AuthForm from "./components/form/authform";
 import AuthPromptModal from "./components/modal/authPromptModal";
 import CourseAddModal from "./components/modal/courseAddModal";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   getCourses as getAllCourses,
   addUserCourse,
@@ -61,6 +62,7 @@ const courseOrder = [
 ];
 
 export default function Home() {
+  const router = useRouter();
   const {
     isAuthenticated,
     userName,
@@ -73,7 +75,9 @@ export default function Home() {
   const [formType, setFormType] = useState<"register" | "auth">("register");
   const [authPromptModalOpen, setAuthPromptModalOpen] = useState(false);
   const [courseAddModalOpen, setCourseAddModalOpen] = useState(false);
-  const [courseAddModalType, setCourseAddModalType] = useState<"success" | "alreadyAdded" | "error">("success");
+  const [courseAddModalType, setCourseAddModalType] = useState<
+    "success" | "alreadyAdded" | "error"
+  >("success");
   const [courses, setCourses] = useState<DisplayCourse[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(true);
   const mountedRef = useRef(true);
@@ -148,7 +152,10 @@ export default function Home() {
                 setCourses(sortedCourses);
                 setIsLoadingCourses(false);
               } catch (error) {
-                console.error('[HOME PAGE] Ошибка при установке курсов:', error);
+                console.error(
+                  "[HOME PAGE] Ошибка при установке курсов:",
+                  error
+                );
               }
             }
           });
@@ -160,7 +167,10 @@ export default function Home() {
               try {
                 setIsLoadingCourses(false);
               } catch (error) {
-                console.error('[HOME PAGE] Ошибка при установке isLoadingCourses:', error);
+                console.error(
+                  "[HOME PAGE] Ошибка при установке isLoadingCourses:",
+                  error
+                );
               }
             }
           });
@@ -180,7 +190,7 @@ export default function Home() {
           setFormType("register");
           setIsFormOpen(true);
         } catch (error) {
-          console.error('[HOME PAGE] Ошибка в handleLoginClick:', error);
+          console.error("[HOME PAGE] Ошибка в handleLoginClick:", error);
         }
       }
     });
@@ -193,7 +203,7 @@ export default function Home() {
         try {
           setAuthPromptModalOpen(false);
         } catch (error) {
-          console.error('[HOME PAGE] Ошибка в handleCloseAuthPrompt:', error);
+          console.error("[HOME PAGE] Ошибка в handleCloseAuthPrompt:", error);
         }
       }
     });
@@ -217,7 +227,7 @@ export default function Home() {
         try {
           setFormType("auth");
         } catch (error) {
-          console.error('[HOME PAGE] Ошибка в handleSwitchToAuth:', error);
+          console.error("[HOME PAGE] Ошибка в handleSwitchToAuth:", error);
         }
       }
     });
@@ -230,7 +240,7 @@ export default function Home() {
         try {
           setFormType("register");
         } catch (error) {
-          console.error('[HOME PAGE] Ошибка в handleSwitchToRegister:', error);
+          console.error("[HOME PAGE] Ошибка в handleSwitchToRegister:", error);
         }
       }
     });
@@ -243,20 +253,24 @@ export default function Home() {
         try {
           setIsFormOpen(false);
         } catch (error) {
-          console.error('[HOME PAGE] Ошибка в handleAuthSuccess:', error);
+          console.error("[HOME PAGE] Ошибка в handleAuthSuccess:", error);
         }
       }
     });
     try {
       await refreshUserData();
     } catch (error) {
-      console.error('[HOME PAGE] Ошибка при обновлении данных пользователя:', error);
+      console.error(
+        "[HOME PAGE] Ошибка при обновлении данных пользователя:",
+        error
+      );
     }
   };
 
   const handleLogout = () => {
     if (!mountedRef.current) return;
     logout();
+    router.push("/");
   };
 
   const handleAddCourse = async (courseId: string): Promise<void> => {
@@ -271,7 +285,10 @@ export default function Home() {
             try {
               setAuthPromptModalOpen(true);
             } catch (error) {
-              console.error('[HOME PAGE] Ошибка при установке authPromptModalOpen:', error);
+              console.error(
+                "[HOME PAGE] Ошибка при установке authPromptModalOpen:",
+                error
+              );
             }
           }
         });
@@ -311,7 +328,10 @@ export default function Home() {
                 setCourseAddModalType("alreadyAdded");
                 setCourseAddModalOpen(true);
               } catch (error) {
-                console.error('[HOME PAGE] Ошибка при установке модального окна:', error);
+                console.error(
+                  "[HOME PAGE] Ошибка при установке модального окна:",
+                  error
+                );
               }
             }
           });
@@ -320,11 +340,11 @@ export default function Home() {
       }
 
       try {
-      await addUserCourse(foundCourse._id);
+        await addUserCourse(foundCourse._id);
 
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-      await refreshUserData();
+        await refreshUserData();
 
         // Курс успешно добавлен - показываем модальное окно успеха
         if (mountedRef.current) {
@@ -334,7 +354,10 @@ export default function Home() {
                 setCourseAddModalType("success");
                 setCourseAddModalOpen(true);
               } catch (error) {
-                console.error('[HOME PAGE] Ошибка при установке модального окна успеха:', error);
+                console.error(
+                  "[HOME PAGE] Ошибка при установке модального окна успеха:",
+                  error
+                );
               }
             }
           });
@@ -348,7 +371,10 @@ export default function Home() {
                 setCourseAddModalType("error");
                 setCourseAddModalOpen(true);
               } catch (error) {
-                console.error('[HOME PAGE] Ошибка при установке модального окна ошибки:', error);
+                console.error(
+                  "[HOME PAGE] Ошибка при установке модального окна ошибки:",
+                  error
+                );
               }
             }
           });
@@ -363,7 +389,10 @@ export default function Home() {
               setCourseAddModalType("error");
               setCourseAddModalOpen(true);
             } catch (error) {
-              console.error('[HOME PAGE] Ошибка при установке модального окна ошибки:', error);
+              console.error(
+                "[HOME PAGE] Ошибка при установке модального окна ошибки:",
+                error
+              );
             }
           }
         });
@@ -378,7 +407,10 @@ export default function Home() {
         try {
           setCourseAddModalOpen(false);
         } catch (error) {
-          console.error('[HOME PAGE] Ошибка при закрытии модального окна:', error);
+          console.error(
+            "[HOME PAGE] Ошибка при закрытии модального окна:",
+            error
+          );
         }
       }
     });

@@ -9,7 +9,7 @@ import RegistrForm from "../../components/form/registrform";
 import AuthForm from "../../components/form/authform";
 import AuthPromptModal from "../../components/modal/authPromptModal";
 import CourseAddModal from "../../components/modal/courseAddModal";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   getCourses as getAllCourses,
   getCourseById,
@@ -37,6 +37,9 @@ const courseCardImages: Record<string, string> = {
   stretching: "/img/stretching_card.png",
   fitness: "/img/fitness_card.png",
   "step-aerobics": "/img/step_aerobics_card.png",
+  stepairobic: "/img/step_aerobics_card.png",
+  stepairobics: "/img/step_aerobics_card.png",
+  stepaerobics: "/img/step_aerobics_card.png",
   bodyflex: "/img/bodyflex_card.png",
 };
 
@@ -57,7 +60,9 @@ export default function CoursePage() {
   const [isMounted, setIsMounted] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [courseAddModalOpen, setCourseAddModalOpen] = useState(false);
-  const [courseAddModalType, setCourseAddModalType] = useState<"success" | "alreadyAdded" | "error">("success");
+  const [courseAddModalType, setCourseAddModalType] = useState<
+    "success" | "alreadyAdded" | "error"
+  >("success");
   const [courseData, setCourseData] = useState<CourseDetail | null>(null);
   const [isLoadingCourse, setIsLoadingCourse] = useState(true);
   const [courseError, setCourseError] = useState<string | null>(null);
@@ -82,7 +87,7 @@ export default function CoursePage() {
               try {
                 setShowAuthPrompt(true);
               } catch (error) {
-                console.error('Ошибка при установке showAuthPrompt:', error);
+                console.error("Ошибка при установке showAuthPrompt:", error);
               }
             }
           });
@@ -105,7 +110,7 @@ export default function CoursePage() {
           try {
             setCourseId(params.id as string);
           } catch (error) {
-            console.error('Ошибка при установке courseId:', error);
+            console.error("Ошибка при установке courseId:", error);
           }
         }
       });
@@ -163,7 +168,10 @@ export default function CoursePage() {
                 setCourseData(courseDetail as CourseDetail);
                 setCourseError(null);
               } catch (error) {
-                console.error('[COURSE PAGE] Ошибка при установке courseData:', error);
+                console.error(
+                  "[COURSE PAGE] Ошибка при установке courseData:",
+                  error
+                );
               }
             }
           });
@@ -186,7 +194,10 @@ export default function CoursePage() {
               try {
                 setIsLoadingCourse(false);
               } catch (error) {
-                console.error('[COURSE PAGE] Ошибка при установке isLoadingCourse:', error);
+                console.error(
+                  "[COURSE PAGE] Ошибка при установке isLoadingCourse:",
+                  error
+                );
               }
             }
           });
@@ -197,12 +208,35 @@ export default function CoursePage() {
     loadCourseData();
   }, [courseId]);
 
-  const courseImage = courseId
-    ? courseImages[courseId] || "/img/fitness.png"
+  // Нормализация courseId для правильного определения картинок
+  const normalizeCourseId = (id: string): string => {
+    if (!id) return "";
+    const normalized = id.toLowerCase().trim();
+
+    // Обработка различных вариантов step-aerobics
+    if (
+      normalized.includes("step") &&
+      (normalized.includes("aero") || normalized.includes("airob"))
+    ) {
+      return "step-aerobics";
+    }
+
+    // Проверяем, есть ли ключ в courseCardImages
+    if (courseCardImages[normalized]) {
+      return normalized;
+    }
+
+    return normalized;
+  };
+
+  const normalizedCourseId = courseId ? normalizeCourseId(courseId) : "";
+
+  const courseImage = normalizedCourseId
+    ? courseImages[normalizedCourseId] || "/img/fitness.png"
     : "/img/fitness.png";
 
-  const courseCardImage = courseId
-    ? courseCardImages[courseId] || "/img/fitness_card.png"
+  const courseCardImage = normalizedCourseId
+    ? courseCardImages[normalizedCourseId] || "/img/fitness_card.png"
     : "/img/fitness_card.png";
 
   const handleLoginClick = () => {
@@ -261,7 +295,7 @@ export default function CoursePage() {
     try {
       await refreshUserData();
     } catch (error) {
-      console.error('Ошибка при обновлении данных пользователя:', error);
+      console.error("Ошибка при обновлении данных пользователя:", error);
     }
   };
 
@@ -276,12 +310,12 @@ export default function CoursePage() {
               try {
                 router.push("/");
               } catch (error) {
-                console.error('Ошибка при навигации:', error);
+                console.error("Ошибка при навигации:", error);
               }
             }
           }, 100);
         } catch (error) {
-          console.error('Ошибка при выходе:', error);
+          console.error("Ошибка при выходе:", error);
         }
       }
     });
@@ -374,9 +408,9 @@ export default function CoursePage() {
       if (mountedRef.current) {
         requestAnimationFrame(() => {
           if (mountedRef.current) {
-              setCourseAddModalType("error");
-              setCourseAddModalOpen(true);
-            }
+            setCourseAddModalType("error");
+            setCourseAddModalOpen(true);
+          }
         });
       }
     }
@@ -389,7 +423,10 @@ export default function CoursePage() {
         try {
           setCourseAddModalOpen(false);
         } catch (error) {
-          console.error('[COURSE PAGE] Ошибка при закрытии модального окна добавления курса:', error);
+          console.error(
+            "[COURSE PAGE] Ошибка при закрытии модального окна добавления курса:",
+            error
+          );
         }
       }
     });

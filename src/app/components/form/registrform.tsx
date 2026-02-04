@@ -3,7 +3,7 @@ import { useState, FormEvent, useEffect, useRef, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "./registrform.module.css";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 interface RegistrFormProps {
   onSwitchToAuth: () => void;
@@ -36,7 +36,7 @@ export default function RegistrForm({
   const { register, isAuthenticated } = useAuth();
   const router = useRouter();
   const mountedRef = useRef(false);
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -46,38 +46,60 @@ export default function RegistrForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   useLayoutEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      setRegistrationSuccess(false);
     };
   }, []);
 
   // Редирект после успешной регистрации
   useEffect(() => {
-    if (!mountedRef.current || !isAuthenticated) return;
-    
+    if (!mountedRef.current || !isAuthenticated || !registrationSuccess) return;
+
+    // Вызываем onAuthSuccess для закрытия модального окна
+    if (onAuthSuccess) {
+      onAuthSuccess();
+    }
+
     requestAnimationFrame(() => {
       if (mountedRef.current) {
         try {
-          router.push("/profile");
+          // Небольшая задержка для закрытия модального окна
           setTimeout(() => {
             if (mountedRef.current) {
-              router.refresh();
+              setRegistrationSuccess(false);
+              router.push("/profile");
+              // Альтернативный вариант редиректа, если router.push не работает
+              setTimeout(() => {
+                if (mountedRef.current && typeof window !== "undefined") {
+                  const currentPath = window.location.pathname;
+                  if (currentPath !== "/profile") {
+                    window.location.href = "/profile";
+                  }
+                }
+              }, 500);
             }
-          }, 100);
+          }, 200);
         } catch (error) {
-          console.error('[REGISTER FORM] Ошибка при редиректе:', error);
+          console.error("[REGISTER FORM] Ошибка при редиректе:", error);
+          setRegistrationSuccess(false);
+          // Пробуем альтернативный способ редиректа
+          if (typeof window !== "undefined") {
+            window.location.href = "/profile";
+          }
         }
       }
     });
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, registrationSuccess, router, onAuthSuccess]);
 
   const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     if (!mountedRef.current) return;
-    
+
     requestAnimationFrame(() => {
       if (mountedRef.current) {
         try {
@@ -85,7 +107,7 @@ export default function RegistrForm({
           setPasswordError("");
           setConfirmPasswordError("");
         } catch (error) {
-          console.error('[REGISTER FORM] Ошибка при очистке ошибок:', error);
+          console.error("[REGISTER FORM] Ошибка при очистке ошибок:", error);
         }
       }
     });
@@ -101,7 +123,10 @@ export default function RegistrForm({
           try {
             setEmailError("Введите корректный Email");
           } catch (error) {
-            console.error('[REGISTER FORM] Ошибка при установке ошибки email:', error);
+            console.error(
+              "[REGISTER FORM] Ошибка при установке ошибки email:",
+              error
+            );
           }
         }
       });
@@ -116,7 +141,10 @@ export default function RegistrForm({
           try {
             setPasswordError(passwordValidationError);
           } catch (error) {
-            console.error('[REGISTER FORM] Ошибка при установке ошибки пароля:', error);
+            console.error(
+              "[REGISTER FORM] Ошибка при установке ошибки пароля:",
+              error
+            );
           }
         }
       });
@@ -130,7 +158,10 @@ export default function RegistrForm({
           try {
             setConfirmPasswordError("Пароли не совпадают");
           } catch (error) {
-            console.error('[REGISTER FORM] Ошибка при установке ошибки подтверждения пароля:', error);
+            console.error(
+              "[REGISTER FORM] Ошибка при установке ошибки подтверждения пароля:",
+              error
+            );
           }
         }
       });
@@ -146,6 +177,23 @@ export default function RegistrForm({
 
     try {
       await register(email, password);
+
+      // Регистрация успешна - устанавливаем флаг и ждем обновления isAuthenticated
+      if (!mountedRef.current) return;
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          try {
+            setIsLoading(false);
+            setRegistrationSuccess(true);
+          } catch (error) {
+            console.error(
+              "[REGISTER FORM] Ошибка при установке флага успеха:",
+              error
+            );
+            setIsLoading(false);
+          }
+        }
+      });
     } catch (err) {
       if (!mountedRef.current) return;
       requestAnimationFrame(() => {
@@ -172,8 +220,12 @@ export default function RegistrForm({
               setPasswordError("Произошла ошибка при регистрации");
             }
             setIsLoading(false);
+            setRegistrationSuccess(false);
           } catch (error) {
-            console.error('[REGISTER FORM] Ошибка при установке ошибок:', error);
+            console.error(
+              "[REGISTER FORM] Ошибка при установке ошибок:",
+              error
+            );
           }
         }
       });
@@ -190,13 +242,16 @@ export default function RegistrForm({
             try {
               setEmailError("");
             } catch (error) {
-              console.error('[REGISTER FORM] Ошибка при очистке ошибки email:', error);
+              console.error(
+                "[REGISTER FORM] Ошибка при очистке ошибки email:",
+                error
+              );
             }
           }
         });
       }
     } catch (error) {
-      console.error('[REGISTER FORM] Ошибка при изменении email:', error);
+      console.error("[REGISTER FORM] Ошибка при изменении email:", error);
     }
   };
 
@@ -210,13 +265,16 @@ export default function RegistrForm({
             try {
               setPasswordError("");
             } catch (error) {
-              console.error('[REGISTER FORM] Ошибка при очистке ошибки пароля:', error);
+              console.error(
+                "[REGISTER FORM] Ошибка при очистке ошибки пароля:",
+                error
+              );
             }
           }
         });
       }
     } catch (error) {
-      console.error('[REGISTER FORM] Ошибка при изменении пароля:', error);
+      console.error("[REGISTER FORM] Ошибка при изменении пароля:", error);
     }
   };
 
@@ -230,13 +288,19 @@ export default function RegistrForm({
             try {
               setConfirmPasswordError("");
             } catch (error) {
-              console.error('[REGISTER FORM] Ошибка при очистке ошибки подтверждения пароля:', error);
+              console.error(
+                "[REGISTER FORM] Ошибка при очистке ошибки подтверждения пароля:",
+                error
+              );
             }
           }
         });
       }
     } catch (error) {
-      console.error('[REGISTER FORM] Ошибка при изменении подтверждения пароля:', error);
+      console.error(
+        "[REGISTER FORM] Ошибка при изменении подтверждения пароля:",
+        error
+      );
     }
   };
 
@@ -283,7 +347,10 @@ export default function RegistrForm({
                     try {
                       setShowPassword(!showPassword);
                     } catch (error) {
-                      console.error('[REGISTER FORM] Ошибка при переключении видимости пароля:', error);
+                      console.error(
+                        "[REGISTER FORM] Ошибка при переключении видимости пароля:",
+                        error
+                      );
                     }
                   }
                 });
@@ -328,7 +395,10 @@ export default function RegistrForm({
                     try {
                       setShowConfirmPassword(!showConfirmPassword);
                     } catch (error) {
-                      console.error('[REGISTER FORM] Ошибка при переключении видимости подтверждения пароля:', error);
+                      console.error(
+                        "[REGISTER FORM] Ошибка при переключении видимости подтверждения пароля:",
+                        error
+                      );
                     }
                   }
                 });
