@@ -16,34 +16,41 @@ export default function CourseAddModal({
 }: CourseAddModalProps) {
   const mountedRef = useRef(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const onCloseRef = useRef(onClose);
+  const onCloseRef = useRef<() => void>(() => {});
 
   useEffect(() => {
-    onCloseRef.current = onClose;
+    if (onClose && typeof onClose === "function") {
+      onCloseRef.current = onClose;
+    }
   }, [onClose]);
 
   useEffect(() => {
     mountedRef.current = true;
 
     if (autoCloseDelay > 0 && type !== "error") {
-      timeoutRef.current = setTimeout(() => {
-        if (mountedRef.current) {
-          const timeoutId = timeoutRef.current;
-          mountedRef.current = false;
+      const timeoutId = setTimeout(() => {
+        if (mountedRef.current && timeoutRef.current === timeoutId) {
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
-            timeoutRef.current = null;
+          timeoutRef.current = null;
           }
           requestAnimationFrame(() => {
-            if (timeoutId === timeoutRef.current || timeoutRef.current === null) {
-              try {
-                onCloseRef.current();
-              } catch {
+            if (mountedRef.current) {
+          try {
+            if (
+              onCloseRef.current &&
+              typeof onCloseRef.current === "function"
+            ) {
+              onCloseRef.current();
+            }
+              } catch (error) {
+                console.error('Ошибка при закрытии модального окна:', error);
               }
             }
           });
         }
       }, autoCloseDelay);
+      timeoutRef.current = timeoutId;
     }
 
     return () => {
@@ -56,21 +63,21 @@ export default function CourseAddModal({
   }, [autoCloseDelay, type]);
 
   const handleClose = () => {
-    if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    if (wasMounted) {
-      requestAnimationFrame(() => {
-        try {
+    
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
+      try {
+        if (onCloseRef.current && typeof onCloseRef.current === "function") {
           onCloseRef.current();
-        } catch {
         }
-      });
+      } catch (error) {
+        console.error('Ошибка при закрытии модального окна:', error);
     }
+    });
   };
 
   const getText = () => {
@@ -113,14 +120,22 @@ export default function CourseAddModal({
   const iconColor = getIconColor();
 
   return (
-    <div className={styles.modalOverlay} onClick={type === "error" ? handleClose : undefined}>
+    <div
+      className={styles.modalOverlay}
+      onClick={type === "error" ? handleClose : undefined}
+    >
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <button
+          className={styles.closeButtonX}
+          onClick={handleClose}
+          aria-label="Закрыть"
+        >
+          ×
+        </button>
         <div className={styles.textContainer}>
           <p className={styles.textLine1}>{text.line1}</p>
           <p className={styles.textLine2}>{text.line2}</p>
-          {text.line3 && (
-            <p className={styles.textLine3}>{text.line3}</p>
-          )}
+          {text.line3 && <p className={styles.textLine3}>{text.line3}</p>}
         </div>
         {type !== "error" && (
           <div className={styles.iconContainer}>

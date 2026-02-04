@@ -191,3 +191,58 @@
     height: 40px;
   }
 }
+
+.closeButtonX {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: #000000;
+  font-size: 36px;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+  z-index: 10;
+}
+
+.closeButtonX:hover {
+  opacity: 0.6;
+  transform: scale(1.1);
+}
+
+.closeButtonX:active {
+  transform: scale(0.95);
+}
+
+.loginButton {
+  padding: 12px 40px;
+  background: #bcec30;
+  color: #000000;
+  border: none;
+  border-radius: 46px;
+  font-family: "Roboto", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.loginButton:hover {
+  background: #a8d428;
+  transform: scale(1.05);
+}
+
+.loginButton:active {
+  transform: scale(0.95);
+}

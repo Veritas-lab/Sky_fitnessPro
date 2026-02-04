@@ -26,17 +26,16 @@ export default function CourseDeletedModal({
     if (autoCloseDelay > 0) {
       timeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
-          const timeoutId = timeoutRef.current;
-          mountedRef.current = false;
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
             timeoutRef.current = null;
           }
           requestAnimationFrame(() => {
-            if (timeoutId === timeoutRef.current || timeoutRef.current === null) {
+            if (mountedRef.current) {
               try {
                 onCloseRef.current();
-              } catch {
+              } catch (error) {
+                console.error('Ошибка при закрытии модального окна:', error);
               }
             }
           });
@@ -55,20 +54,20 @@ export default function CourseDeletedModal({
 
   const handleClose = () => {
     if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
+    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    if (wasMounted) {
+    
       requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
         try {
           onCloseRef.current();
-        } catch {
-        }
+      } catch (error) {
+        console.error('Ошибка при закрытии модального окна:', error);
+      }
       });
-    }
   };
 
   return (

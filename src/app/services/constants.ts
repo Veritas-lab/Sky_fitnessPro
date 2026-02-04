@@ -1,1 +1,1 @@
-export const BASE_URL = 'https://wedev-api.sky.pro';
+export const BASE_URL = "https://wedev-api.sky.pro";

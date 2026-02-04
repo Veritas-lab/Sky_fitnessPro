@@ -36,8 +36,7 @@ export default function ProfileModal({
         try {
           onClose();
           router.push("/profile");
-        } catch {
-        }
+        } catch {}
       });
     }
   };
@@ -53,8 +52,7 @@ export default function ProfileModal({
             onLogout();
           }
           onClose();
-        } catch {
-        }
+        } catch {}
       });
     }
   };
@@ -67,8 +65,7 @@ export default function ProfileModal({
       requestAnimationFrame(() => {
         try {
           onClose();
-        } catch {
-        }
+        } catch {}
       });
     }
   };

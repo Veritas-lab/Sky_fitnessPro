@@ -9,36 +9,20 @@ import RegistrForm from "../../components/form/registrform";
 import AuthForm from "../../components/form/authform";
 import AuthPromptModal from "../../components/modal/authPromptModal";
 import CourseAddModal from "../../components/modal/courseAddModal";
+import { useAuth } from "@/contexts/AuthContext";
 import {
-  isAuthenticated as checkAuth,
-  removeToken,
-} from "../../services/authToken";
+  getCourses as getAllCourses,
+  getCourseById,
+  addUserCourse,
+} from "../../services/courses/coursesApi";
+import { Course as ApiCourse, CourseDetail } from "@/types/shared";
 import styles from "../course.module.css";
 import pageStyles from "../../page.module.css";
 
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
   ssr: false,
+  loading: () => null,
 });
-
-const STORAGE_KEY = "sky_fitness_auth";
-
-interface Course {
-  id: string;
-  name: string;
-  image: string;
-  duration: number;
-  dailyDuration: { from: number; to: number };
-  difficulty: string;
-  progress: number;
-  workoutId?: string;
-}
-
-interface AuthData {
-  isAuthenticated: boolean;
-  userName: string;
-  userEmail: string;
-  courses?: Course[];
-}
 
 const courseImages: Record<string, string> = {
   yoga: "/img/yoga.png",
@@ -59,18 +43,24 @@ const courseCardImages: Record<string, string> = {
 export default function CoursePage() {
   const params = useParams();
   const router = useRouter();
+  const {
+    isAuthenticated,
+    userName,
+    userEmail,
+    userData,
+    refreshUserData,
+    logout,
+  } = useAuth();
   const [courseId, setCourseId] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formType, setFormType] = useState<"register" | "auth">("register");
   const [isMounted, setIsMounted] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userName, setUserName] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const [courseAddModal, setCourseAddModal] = useState<{
-    isOpen: boolean;
-    type: "success" | "alreadyAdded" | "error";
-  }>({ isOpen: false, type: "success" });
+  const [courseAddModalOpen, setCourseAddModalOpen] = useState(false);
+  const [courseAddModalType, setCourseAddModalType] = useState<"success" | "alreadyAdded" | "error">("success");
+  const [courseData, setCourseData] = useState<CourseDetail | null>(null);
+  const [isLoadingCourse, setIsLoadingCourse] = useState(true);
+  const [courseError, setCourseError] = useState<string | null>(null);
   const mountedRef = useRef(false);
 
   useLayoutEffect(() => {
@@ -82,66 +72,130 @@ export default function CoursePage() {
   }, []);
 
   useEffect(() => {
-    if (!mountedRef.current) return;
-
-    if (typeof window !== "undefined" && checkAuth()) {
-      const savedAuth = localStorage.getItem(STORAGE_KEY);
-      if (savedAuth) {
-        try {
-          const authData: AuthData = JSON.parse(savedAuth);
-          if (authData.isAuthenticated && authData.userName && authData.userEmail) {
-            if (mountedRef.current) {
-              setIsAuthenticated(true);
-              setUserName(authData.userName);
-              setUserEmail(authData.userEmail);
-              
-              if (!authData.courses || authData.courses.length === 0) {
-                const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
-                const savedHistory = localStorage.getItem(HISTORY_KEY);
-                if (savedHistory) {
-                  try {
-                    const history = JSON.parse(savedHistory);
-                    if (history.courses && history.courses.length > 0) {
-                      const updatedAuthData: AuthData = {
-                        ...authData,
-                        courses: history.courses,
-                      };
-                      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
-                    }
-                  } catch {
-                  }
-                }
-              }
-            }
-          }
-        } catch {
-          localStorage.removeItem(STORAGE_KEY);
-        }
-      }
-    }
-  }, []);
-
-  useEffect(() => {
     if (!mountedRef.current || !courseId) return;
 
     if (!isAuthenticated && courseId) {
       const timer = setTimeout(() => {
         if (mountedRef.current) {
-          setShowAuthPrompt(true);
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              try {
+                setShowAuthPrompt(true);
+              } catch (error) {
+                console.error('Ошибка при установке showAuthPrompt:', error);
+              }
+            }
+          });
         }
       }, 500);
 
       return () => {
-        clearTimeout(timer);
+        if (timer) {
+          clearTimeout(timer);
+        }
       };
     }
   }, [isAuthenticated, courseId]);
 
   useEffect(() => {
+    if (!mountedRef.current) return;
     if (params?.id && typeof params.id === "string") {
-      setCourseId(params.id);
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          try {
+            setCourseId(params.id as string);
+          } catch (error) {
+            console.error('Ошибка при установке courseId:', error);
+          }
+        }
+      });
     }
   }, [params]);
+
+  useEffect(() => {
+    if (!mountedRef.current || !courseId) return;
+
+    const loadCourseData = async (): Promise<void> => {
+      if (!mountedRef.current) return;
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          setIsLoadingCourse(true);
+          setCourseError(null);
+        }
+      });
+      try {
+        const allCourses = await getAllCourses();
+        if (!mountedRef.current) return;
+
+        const courseNameMap: Record<string, string> = {
+          yoga: "yoga",
+          stretching: "stretching",
+          fitness: "fitness",
+          "step-aerobics": "step-aerobics",
+          bodyflex: "bodyflex",
+        };
+
+        const courseNameEN = courseNameMap[courseId] || courseId.toLowerCase();
+        const foundCourse = allCourses.find(
+          (course: ApiCourse) =>
+            course.nameEN.toLowerCase() === courseNameEN.toLowerCase() ||
+            course.nameRU.toLowerCase() === courseNameEN.toLowerCase()
+        );
+
+        if (!foundCourse) {
+          if (mountedRef.current) {
+            requestAnimationFrame(() => {
+              if (mountedRef.current) {
+                setCourseError("Курс не найден");
+                setCourseData(null);
+                setIsLoadingCourse(false);
+              }
+            });
+          }
+          return;
+        }
+
+        const courseDetail = await getCourseById(foundCourse._id);
+        if (mountedRef.current) {
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              try {
+                setCourseData(courseDetail as CourseDetail);
+                setCourseError(null);
+              } catch (error) {
+                console.error('[COURSE PAGE] Ошибка при установке courseData:', error);
+              }
+            }
+          });
+        }
+      } catch (error) {
+        if (mountedRef.current) {
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              const errorMessage =
+                error instanceof Error ? error.message : String(error);
+              setCourseError(errorMessage || "Ошибка загрузки данных курса");
+              setCourseData(null);
+            }
+          });
+        }
+      } finally {
+        if (mountedRef.current) {
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              try {
+                setIsLoadingCourse(false);
+              } catch (error) {
+                console.error('[COURSE PAGE] Ошибка при установке isLoadingCourse:', error);
+              }
+            }
+          });
+        }
+      }
+    };
+
+    loadCourseData();
+  }, [courseId]);
 
   const courseImage = courseId
     ? courseImages[courseId] || "/img/fitness.png"
@@ -152,18 +206,20 @@ export default function CoursePage() {
     : "/img/fitness_card.png";
 
   const handleLoginClick = () => {
-    setFormType("register");
-    setIsFormOpen(true);
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setFormType("register");
+        setIsFormOpen(true);
+      }
+    });
   };
 
   const handleCloseForm = () => {
     if (!mountedRef.current) return;
     requestAnimationFrame(() => {
       if (mountedRef.current) {
-        try {
-          setIsFormOpen(false);
-        } catch {
-        }
+        setIsFormOpen(false);
       }
     });
   };
@@ -172,117 +228,157 @@ export default function CoursePage() {
     if (!mountedRef.current) return;
     requestAnimationFrame(() => {
       if (mountedRef.current) {
-        try {
-          setShowAuthPrompt(false);
-        } catch {
-        }
+        setShowAuthPrompt(false);
       }
     });
   };
 
   const handleSwitchToAuth = () => {
-    setFormType("auth");
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setFormType("auth");
+      }
+    });
   };
 
   const handleSwitchToRegister = () => {
-    setFormType("register");
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setFormType("register");
+      }
+    });
   };
 
-  const handleAuthSuccess = (name: string, email: string) => {
-    setUserName(name);
-    setUserEmail(email);
-    setIsAuthenticated(true);
-    setIsFormOpen(false);
-    if (typeof window !== "undefined") {
-      const HISTORY_KEY = `sky_fitness_history_${email}`;
-      const savedHistory = localStorage.getItem(HISTORY_KEY);
-      let savedCourses: Course[] = [];
-
-      if (savedHistory) {
-        try {
-          const history = JSON.parse(savedHistory);
-          savedCourses = history.courses || [];
-        } catch {
-          savedCourses = [];
-        }
+  const handleAuthSuccess = async (): Promise<void> => {
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        setIsFormOpen(false);
       }
-
-      const authData: AuthData = {
-        isAuthenticated: true,
-        userName: name,
-        userEmail: email,
-        courses: savedCourses,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
+    });
+    try {
+      await refreshUserData();
+    } catch (error) {
+      console.error('Ошибка при обновлении данных пользователя:', error);
     }
   };
 
   const handleLogout = () => {
-    if (!mountedRef.current) return;
-    setIsAuthenticated(false);
-    if (typeof window !== "undefined") {
-      removeToken();
-      localStorage.removeItem(STORAGE_KEY);
-      router.push("/");
-    }
+    if (!mountedRef.current || typeof window === "undefined") return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          logout();
+          setTimeout(() => {
+            if (mountedRef.current && typeof window !== "undefined") {
+              try {
+                router.push("/");
+              } catch (error) {
+                console.error('Ошибка при навигации:', error);
+              }
+            }
+          }, 100);
+        } catch (error) {
+          console.error('Ошибка при выходе:', error);
+        }
+      }
+    });
   };
 
-  const handleAddCourse = () => {
+  const handleAddCourse = async (): Promise<void> => {
     if (!mountedRef.current || !courseId || typeof window === "undefined") {
-      setCourseAddModal({ isOpen: true, type: "error" });
       return;
     }
 
-    const savedAuth = localStorage.getItem(STORAGE_KEY);
-    if (!savedAuth) {
-      setCourseAddModal({ isOpen: true, type: "error" });
+    if (!isAuthenticated) {
+      if (mountedRef.current) {
+        requestAnimationFrame(() => {
+          if (mountedRef.current) {
+            setShowAuthPrompt(true);
+          }
+        });
+      }
+      return;
+    }
+
+    if (!userData) {
       return;
     }
 
     try {
-      const authData: AuthData = JSON.parse(savedAuth);
-      const courses = authData.courses || [];
+      const allCourses = await getAllCourses();
+      const courseNameMap: Record<string, string> = {
+        yoga: "yoga",
+        stretching: "stretching",
+        fitness: "fitness",
+        "step-aerobics": "step-aerobics",
+        bodyflex: "bodyflex",
+      };
 
-      const courseExists = courses.some((course) => course.id === courseId);
-      if (courseExists) {
-        setCourseAddModal({ isOpen: true, type: "alreadyAdded" });
+      const courseNameEN = courseNameMap[courseId] || courseId.toLowerCase();
+      const foundCourse = allCourses.find(
+        (course: ApiCourse) =>
+          course.nameEN.toLowerCase() === courseNameEN.toLowerCase() ||
+          course.nameRU.toLowerCase() === courseNameEN.toLowerCase()
+      );
+
+      if (!foundCourse) {
         return;
       }
 
-      const courseNameMap: Record<string, string> = {
-        yoga: "Йога",
-        stretching: "Стретчинг",
-        fitness: "Фитнес",
-        "step-aerobics": "Степ-аэробика",
-        bodyflex: "Бодифлекс",
-      };
+      const courseExists = userData.selectedCourses.includes(foundCourse._id);
 
-      const courseImage = courseImages[courseId] || "/img/fitness.png";
-      const courseName = courseNameMap[courseId] || "Курс";
+      if (courseExists) {
+        if (mountedRef.current) {
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              setCourseAddModalType("alreadyAdded");
+              setCourseAddModalOpen(true);
+            }
+          });
+        }
+        return;
+      }
 
-      const newCourse: Course = {
-        id: courseId,
-        name: courseName,
-        image: courseImage,
-        duration: 25,
-        dailyDuration: { from: 20, to: 50 },
-        difficulty: "Сложность",
-        progress: 0,
-      };
+      try {
+        await addUserCourse(foundCourse._id);
 
-      const updatedAuthData: AuthData = {
-        ...authData,
-        courses: [...courses, newCourse],
-      };
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
-      
-      const HISTORY_KEY = `sky_fitness_history_${userEmail}`;
-      localStorage.setItem(HISTORY_KEY, JSON.stringify({ courses: updatedAuthData.courses }));
-      
-      setCourseAddModal({ isOpen: true, type: "success" });
-    } catch {
-      setCourseAddModal({ isOpen: true, type: "error" });
+        await refreshUserData();
+
+        // Курс успешно добавлен - показываем модальное окно успеха
+        if (mountedRef.current) {
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              setCourseAddModalType("success");
+              setCourseAddModalOpen(true);
+            }
+          });
+        }
+      } catch (addError) {
+        // Ошибка при добавлении курса - показываем модальное окно ошибки
+        if (mountedRef.current) {
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              setCourseAddModalType("error");
+              setCourseAddModalOpen(true);
+            }
+          });
+        }
+      }
+    } catch (error) {
+      // Ошибка при загрузке курсов или другой ошибке
+      if (mountedRef.current) {
+        requestAnimationFrame(() => {
+          if (mountedRef.current) {
+              setCourseAddModalType("error");
+              setCourseAddModalOpen(true);
+            }
+        });
+      }
     }
   };
 
@@ -291,8 +387,9 @@ export default function CoursePage() {
     requestAnimationFrame(() => {
       if (mountedRef.current) {
         try {
-          setCourseAddModal({ isOpen: false, type: "success" });
-        } catch {
+          setCourseAddModalOpen(false);
+        } catch (error) {
+          console.error('[COURSE PAGE] Ошибка при закрытии модального окна добавления курса:', error);
         }
       }
     });
@@ -311,126 +408,173 @@ export default function CoursePage() {
       )}
       <main className={styles.courseMain}>
         <div className={styles.courseImageContainer}>
-          {courseId ? (
+          {isLoadingCourse ? (
+            <div className={styles.skeletonImage} />
+          ) : courseId ? (
             <>
               <Image
                 src={courseCardImage}
                 alt={courseId}
                 fill
+                sizes="(max-width: 768px) 100vw, 1440px"
                 className={styles.courseImage}
+                priority
               />
               <Image
                 src={courseImage}
                 alt={courseId}
                 fill
+                sizes="(max-width: 768px) 100vw, 1440px"
                 className={styles.courseImageMobile}
               />
             </>
           ) : (
-            <div>Загрузка...</div>
+            <div className={styles.skeletonImage} />
           )}
         </div>
         {courseId && (
           <div className={styles.courseFrame}>
             <h2 className={styles.courseTitle}>Подойдет для вас, если:</h2>
-            <div className={styles.courseTextBlocksContainer}>
-              <div className={styles.courseTextBlock}>
-                <span className={styles.courseTextNumber}>1</span>
-                <p className={styles.courseTextDescription}>
-                  Давно хотели попробовать йогу, но не решались начать
-                </p>
+            {isLoadingCourse ? (
+              <div className={styles.courseTextBlocksContainer}>
+                <div className={styles.courseTextBlock}>
+                  <span className={styles.courseTextNumber}>1</span>
+                  <div className={styles.skeletonText}>
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLineShort} />
+                  </div>
+                </div>
+                <div className={styles.courseTextBlock2}>
+                  <span className={styles.courseTextNumber2}>2</span>
+                  <div className={styles.skeletonText}>
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLineShort} />
+                  </div>
+                </div>
+                <div className={styles.courseTextBlock3}>
+                  <span className={styles.courseTextNumber3}>3</span>
+                  <div className={styles.skeletonText}>
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLineShort} />
+                  </div>
+                </div>
               </div>
-              <div className={styles.courseTextBlock2}>
-                <span className={styles.courseTextNumber2}>2</span>
-                <p className={styles.courseTextDescription2}>
-                  Хотите укрепить позвоночник, избавиться от болей в спине и
-                  суставах
-                </p>
+            ) : courseError ? (
+              <div className={styles.courseTextBlocksContainer}>
+                <p className={styles.errorText}>{courseError}</p>
               </div>
-              <div className={styles.courseTextBlock3}>
-                <span className={styles.courseTextNumber3}>3</span>
-                <p className={styles.courseTextDescription}>
-                  Ищете активность, полезную для тела и души
-                </p>
+            ) : courseData &&
+              courseData.fitting &&
+              courseData.fitting.length > 0 ? (
+              <div className={styles.courseTextBlocksContainer}>
+                {courseData.fitting.slice(0, 3).map((item, index) => {
+                  const blockClass =
+                    index === 0
+                      ? styles.courseTextBlock
+                      : index === 1
+                        ? styles.courseTextBlock2
+                        : styles.courseTextBlock3;
+                  const numberClass =
+                    index === 0
+                      ? styles.courseTextNumber
+                      : index === 1
+                        ? styles.courseTextNumber2
+                        : styles.courseTextNumber3;
+                  const descriptionClass =
+                    index === 1
+                      ? styles.courseTextDescription2
+                      : styles.courseTextDescription;
+
+                  return (
+                    <div key={index} className={blockClass}>
+                      <span className={numberClass}>{index + 1}</span>
+                      <p className={descriptionClass}>{item}</p>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            ) : (
+              <div className={styles.courseTextBlocksContainer}>
+                <p className={styles.errorText}>Данные недоступны</p>
+              </div>
+            )}
           </div>
         )}
         {courseId && (
           <div className={styles.directionsSection}>
             <h2 className={styles.directionsTitle}>Направления</h2>
-            <div className={styles.directionsFrame}>
-              <div className={styles.directionBlock}>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>
-                    Йога для новичков
-                  </span>
+            {isLoadingCourse ? (
+              <div className={styles.directionsFrame}>
+                <div className={styles.directionBlock}>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
                 </div>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>
-                    Классическая йога
-                  </span>
+                <div className={styles.directionBlock}>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
                 </div>
-              </div>
-              <div className={styles.directionBlock}>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>Кундалини-йога</span>
-                </div>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>Йогатерапия</span>
+                <div className={styles.directionBlock}>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
+                  <div className={styles.directionItem}>
+                    <div className={styles.skeletonIcon} />
+                    <div className={styles.skeletonDirectionText} />
+                  </div>
                 </div>
               </div>
-              <div className={styles.directionBlock}>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>Хатха-йога</span>
-                </div>
-                <div className={styles.directionItem}>
-                  <Image
-                    src="/img/Sparcle.svg"
-                    alt="icon"
-                    width={24}
-                    height={24}
-                    className={styles.directionsIcon}
-                  />
-                  <span className={styles.directionsText}>Аштанга-йога</span>
-                </div>
+            ) : courseError ? (
+              <div className={styles.directionsFrame}>
+                <p className={styles.errorText}>{courseError}</p>
               </div>
-            </div>
+            ) : courseData &&
+              courseData.directions &&
+              courseData.directions.length > 0 ? (
+              <div className={styles.directionsFrame}>
+                {Array.from({
+                  length: Math.ceil(courseData.directions.length / 2),
+                }).map((_, blockIndex) => (
+                  <div key={blockIndex} className={styles.directionBlock}>
+                    {courseData.directions
+                      .slice(blockIndex * 2, blockIndex * 2 + 2)
+                      .map((direction, itemIndex) => (
+                        <div key={itemIndex} className={styles.directionItem}>
+                          <Image
+                            src="/img/Sparcle.svg"
+                            alt="icon"
+                            width={24}
+                            height={24}
+                            className={styles.directionsIcon}
+                          />
+                          <span className={styles.directionsText}>
+                            {direction}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.directionsFrame}>
+                <p className={styles.errorText}>Данные недоступны</p>
+              </div>
+            )}
           </div>
         )}
         {courseId && (
@@ -457,34 +601,48 @@ export default function CoursePage() {
               className={styles.courseVectorImageMobile}
             />
             <div className={styles.courseContentBlock}>
-              <div className={styles.courseContentRight}>
-                <h2 className={styles.courseContentTitle}>
-                  Начните путь
-                  <br />к новому телу
-                </h2>
-                <ul className={styles.courseContentList}>
-                  <li>проработка всех групп мышц</li>
-                  <li>тренировка суставов</li>
-                  <li>улучшение циркуляции крови</li>
-                  <li>упражнения заряжают бодростью</li>
-                  <li>помогают противостоять стрессам</li>
-                </ul>
-                {isAuthenticated ? (
-                  <button
-                    className={styles.courseContentButton}
-                    onClick={handleAddCourse}
-                  >
-                    Добавить курс
-                  </button>
-                ) : (
-                  <button
-                    className={styles.courseContentButton}
-                    onClick={handleLoginClick}
-                  >
-                    Войдите, чтобы добавить курс
-                  </button>
-                )}
-              </div>
+              {isLoadingCourse ? (
+                <div className={styles.courseContentRight}>
+                  <div className={styles.skeletonTitle} />
+                  <div className={styles.skeletonContentList}>
+                    <div className={styles.skeletonContentItem} />
+                    <div className={styles.skeletonContentItem} />
+                    <div className={styles.skeletonContentItem} />
+                    <div className={styles.skeletonContentItem} />
+                    <div className={styles.skeletonContentItem} />
+                  </div>
+                  <div className={styles.skeletonButton} />
+                </div>
+              ) : (
+                <div className={styles.courseContentRight}>
+                  <h2 className={styles.courseContentTitle}>
+                    Начните путь
+                    <br />к новому телу
+                  </h2>
+                  <ul className={styles.courseContentList}>
+                    <li>проработка всех групп мышц</li>
+                    <li>тренировка суставов</li>
+                    <li>улучшение циркуляции крови</li>
+                    <li>упражнения заряжают бодростью</li>
+                    <li>помогают противостоять стрессам</li>
+                  </ul>
+                  {isAuthenticated ? (
+                    <button
+                      className={styles.courseContentButton}
+                      onClick={handleAddCourse}
+                    >
+                      Добавить курс
+                    </button>
+                  ) : (
+                    <button
+                      className={styles.courseContentButton}
+                      onClick={handleLoginClick}
+                    >
+                      Войдите, чтобы добавить курс
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </>
         )}
@@ -528,10 +686,11 @@ export default function CoursePage() {
           onLoginClick={handleLoginClick}
         />
       )}
-      {courseAddModal.isOpen && (
+      {courseAddModalOpen && (
         <CourseAddModal
-          type={courseAddModal.type}
+          type={courseAddModalType}
           onClose={handleCloseCourseAddModal}
+          autoCloseDelay={courseAddModalType === "error" ? 0 : 3000}
         />
       )}
     </>

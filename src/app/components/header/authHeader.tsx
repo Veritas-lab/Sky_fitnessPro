@@ -14,7 +14,7 @@ interface AuthHeaderProps {
 
 export default function AuthHeader({
   userName,
-  userEmail = "sergey.petrov96@mail.ru",
+  userEmail,
   onLogout,
 }: AuthHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,20 +31,22 @@ export default function AuthHeader({
     e.preventDefault();
     e.stopPropagation();
     if (mountedRef.current) {
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
       setIsModalOpen(true);
+        }
+      });
     }
   };
 
   const handleCloseModal = () => {
-    if (!mountedRef.current) return;
-    requestAnimationFrame(() => {
-      if (mountedRef.current) {
-        try {
-          setIsModalOpen(false);
-        } catch {
+    if (mountedRef.current) {
+      requestAnimationFrame(() => {
+    if (mountedRef.current) {
+      setIsModalOpen(false);
         }
-      }
-    });
+      });
+    }
   };
 
   return (
@@ -85,10 +87,10 @@ export default function AuthHeader({
           </button>
         </div>
       </header>
-      {isModalOpen && (
+      {mountedRef.current && isModalOpen && (
         <ProfileModal
           userName={userName}
-          userEmail={userEmail}
+          userEmail={userEmail || ""}
           onClose={handleCloseModal}
           onLogout={onLogout}
         />

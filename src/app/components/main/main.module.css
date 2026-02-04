@@ -85,6 +85,78 @@
   display: flex;
   gap: 40px;
   flex-wrap: wrap;
+  min-height: 501px;
+}
+
+.cardSkeleton {
+  width: 360px;
+  height: 501px;
+  border-radius: 30px;
+  background: #ffffff;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.skeletonImage {
+  width: 360px;
+  height: 325px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 30px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeletonContent {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+.skeletonTitle {
+  width: 200px;
+  height: 35px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeletonBadges {
+  display: flex;
+  gap: 6px;
+}
+
+.skeletonBadge {
+  width: 100px;
+  height: 38px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 50px;
 }
 
 .scrollTopButton {
@@ -105,8 +177,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 34px;
-  margin-left: calc(656px - 140px);
+  margin: 34px auto 0;
   transition:
     opacity 0.2s,
     transform 0.2s;
@@ -224,6 +295,17 @@
     flex-direction: column;
     align-items: center;
     gap: 24px;
+    min-height: 492px;
+  }
+
+  .cardSkeleton {
+    width: 343px;
+    height: 492px;
+  }
+
+  .skeletonImage {
+    width: 343px;
+    height: 325px;
   }
 
   .scrollTopButton {

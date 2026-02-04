@@ -2,148 +2,31 @@
 
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import Image from "next/image";
-import WorkoutSelectionModal from "../components/modal/workoutSelectionModal";
-import DeleteConfirmModal from "../components/modal/deleteConfirmModal";
-import CourseDeletedModal from "../components/modal/courseDeletedModal";
-import { removeToken, isAuthenticated as checkAuth } from "../services/authToken";
+import dynamic from "next/dynamic";
 import styles from "./profile.module.css";
+import {
+  getCourseById,
+  getCourseWorkouts,
+  getCourseProgress,
+  deleteUserCourse,
+} from "@/app/services/courses/coursesApi";
+import { CourseDetail } from "@/types/shared";
+import { useAuth } from "@/contexts/AuthContext";
+import WorkoutSelectionModal from "@/app/components/modal/workoutSelectionModal";
+import CourseDeletedModal from "@/app/components/modal/courseDeletedModal";
 
-interface CourseCardProps {
-  course: Course;
-  onDelete: (courseId: string) => void;
-  onStartWorkout: (course: Course) => void;
-  getButtonText: (progress: number) => string;
-}
-
-function CourseCard({
-  course,
-  onDelete,
-  onStartWorkout,
-  getButtonText,
-}: CourseCardProps) {
-  const [showTooltip, setShowTooltip] = useState(false);
-
-  return (
-    <div className={styles.courseCard}>
-      <div className={styles.courseImageWrapper}>
-        <Image
-          src={course.image}
-          alt={course.name}
-          fill
-          className={styles.courseImage}
-        />
-        <div
-          className={styles.deleteButtonContainer}
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-        >
-          <button
-            className={styles.deleteButton}
-            onClick={() => onDelete(course.id)}
-            aria-label="Удалить курс"
-            title="Удалить курс"
-          >
-            <Image
-              src="/img/minus.svg"
-              alt="Удалить курс"
-              width={30}
-              height={30}
-              className={styles.deleteIcon}
-            />
-          </button>
-          {showTooltip && (
-            <div className={styles.tooltip}>Удалить курс</div>
-          )}
-        </div>
-      </div>
-      <div className={styles.courseInfo}>
-        <h3 className={styles.courseName}>{course.name}</h3>
-        <div className={styles.courseDetails}>
-          <div className={styles.firstRow}>
-            <div className={styles.daysBadge}>
-              <Image
-                src="/img/calendar.svg"
-                alt="Calendar"
-                width={16}
-                height={16}
-                className={styles.calendarIcon}
-              />
-              <span className={styles.daysText}>
-                {course.duration} дней
-              </span>
-            </div>
-            <div className={styles.clockBadge}>
-              <Image
-                src="/img/clock.svg"
-                alt="Clock"
-                width={16}
-                height={16}
-                className={styles.clockIcon}
-              />
-              <span className={styles.clockText}>
-                {course.dailyDuration.from}-
-                {course.dailyDuration.to} мин/день
-              </span>
-            </div>
-          </div>
-          <div className={styles.complexityBadge}>
-            <Image
-              src="/img/complexity.svg"
-              alt="Complexity"
-              width={16}
-              height={16}
-              className={styles.complexityIcon}
-            />
-            <span className={styles.complexityText}>
-              {course.difficulty}
-            </span>
-          </div>
-        </div>
-        <div className={styles.progressSection}>
-          <div className={styles.progressText}>
-            Прогресс {course.progress}%
-          </div>
-          <div className={styles.progressBar}>
-            <div
-              className={styles.progressFill}
-              style={{ width: `${course.progress}%` }}
-            />
-          </div>
-        </div>
-        <button
-          className={styles.courseButton}
-          onClick={() => onStartWorkout(course)}
-        >
-          {getButtonText(course.progress)}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-const AuthHeader = dynamic(() => import("../components/header/authHeader"), {
+const AuthHeader = dynamic(() => import("@/app/components/header/authHeader"), {
   ssr: false,
+  loading: () => <div style={{ height: '80px' }} />,
 });
 
-// Mock data - будет заменено на реальные данные из API
-interface Course {
-  id: string;
-  name: string;
-  image: string;
-  duration: number;
-  dailyDuration: { from: number; to: number };
-  difficulty: string;
-  progress: number;
-  workoutId?: string; // ID первой тренировки курса
-  workouts?: Record<string, number[]>;
-}
-
-interface User {
-  email: string;
-  name: string;
-  courses: Course[];
+interface CourseWithWorkouts extends CourseDetail {
+  workouts: any[];
+  progress?: {
+    courseCompleted: boolean;
+    progressPercent: number;
+  };
 }
 
 const courseImages: Record<string, string> = {
@@ -154,26 +37,52 @@ const courseImages: Record<string, string> = {
   bodyflex: "/img/bodyflex.png",
 };
 
-const STORAGE_KEY = "sky_fitness_auth";
+const courseNameMap: Record<string, string> = {
+  Yoga: "yoga",
+  Stretching: "stretching",
+  Fitness: "fitness",
+  "Step Aerobics": "step-aerobics",
+  StepAerobics: "step-aerobics",
+  Bodyflex: "bodyflex",
+};
 
-interface AuthData {
-  isAuthenticated: boolean;
-  userName: string;
-  userEmail: string;
-  courses?: Course[];
-}
+const courseNameRUMap: Record<string, string> = {
+  Йога: "yoga",
+  Стретчинг: "stretching",
+  Фитнес: "fitness",
+  "Степ-аэробика": "step-aerobics",
+  Бодифлекс: "bodyflex",
+};
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { 
+    isAuthenticated, 
+    userName, 
+    userEmail, 
+    logout,
+    isLoading: authLoading,
+    userData
+  } = useAuth();
+  
+  const [courses, setCourses] = useState<CourseWithWorkouts[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [isCourseDeletedOpen, setIsCourseDeletedOpen] = useState(false);
-  const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<CourseWithWorkouts | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const mountedRef = useRef(false);
+  const userDataRef = useRef(userData);
+  const isAuthenticatedRef = useRef(isAuthenticated);
+  const authLoadingRef = useRef(authLoading);
+
+  // Обновляем refs при изменении значений
+  useEffect(() => {
+    userDataRef.current = userData;
+    isAuthenticatedRef.current = isAuthenticated;
+    authLoadingRef.current = authLoading;
+  }, [userData, isAuthenticated, authLoading]);
 
   useLayoutEffect(() => {
     mountedRef.current = true;
@@ -183,351 +92,624 @@ export default function ProfilePage() {
     };
   }, []);
 
-  const loadUserData = () => {
-    if (!mountedRef.current || typeof window === "undefined") return;
+  // Редирект на /login если не авторизован
+  useEffect(() => {
+    if (!mountedRef.current) return;
+    if (!authLoading && !isAuthenticated) {
+      // Используем requestAnimationFrame для избежания конфликтов с размонтированием
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          setTimeout(() => {
+            if (mountedRef.current) {
+              router.push("/");
+            }
+          }, 0);
+        }
+      });
+    }
+  }, [authLoading, isAuthenticated, router]);
 
-    if (!checkAuth()) {
-      if (mountedRef.current) {
-        setIsLoading(false);
-      }
+
+  // Загрузка курсов пользователя
+  useEffect(() => {
+    if (!mountedRef.current || authLoading || !isAuthenticated) {
       return;
     }
 
-    const savedAuth = localStorage.getItem(STORAGE_KEY);
-    if (savedAuth) {
+    console.log('[PROFILE PAGE] Запуск загрузки курсов пользователя');
+    loadCoursesData();
+  }, [authLoading, isAuthenticated, userData?.selectedCourses]);
+
+  // Функция загрузки курсов (используется в разных местах)
+  const loadCoursesData = async (): Promise<void> => {
+    if (!mountedRef.current || authLoadingRef.current || !isAuthenticatedRef.current) {
+      return;
+    }
+    
+    // Используем requestAnimationFrame для безопасного обновления состояния
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
+      setIsLoading(true);
+    });
+
       try {
-        const authData: AuthData = JSON.parse(savedAuth);
-        if (authData.isAuthenticated && authData.userName && authData.userEmail) {
-          let courses = authData.courses || [];
+      const userCourseIds = userDataRef.current?.selectedCourses || [];
+        
+        if (userCourseIds.length === 0) {
+        requestAnimationFrame(() => {
+          if (mountedRef.current) {
+            setCourses([]);
+            setIsLoading(false);
+          }
+        });
+          return;
+        }
+
+        const coursesData = await Promise.all(
+          userCourseIds.map(async (courseId) => {
+          // Проверяем mountedRef перед каждой асинхронной операцией
+          if (!mountedRef.current) return null;
           
-          if (courses.length === 0) {
-            const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
-            const savedHistory = localStorage.getItem(HISTORY_KEY);
-            if (savedHistory) {
-              try {
-                const history = JSON.parse(savedHistory);
-                if (history.courses && history.courses.length > 0) {
-                  courses = history.courses;
-                  const updatedAuthData: AuthData = {
-                    ...authData,
-                    courses: courses,
-                  };
-                  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
+            try {
+            const course = await getCourseById(courseId) as CourseDetail;
+            if (!mountedRef.current) return null;
+            
+            const workouts = await getCourseWorkouts(courseId);
+            if (!mountedRef.current) return null;
+            
+            let progress: { courseCompleted: boolean; progressPercent: number } | undefined = undefined;
+            try {
+              const progressData = await getCourseProgress(courseId);
+              if (!mountedRef.current) return null;
+              
+              // Используем общее количество тренировок в курсе
+              const totalWorkouts = workouts.length;
+              
+              if (progressData && progressData.workoutsProgress && totalWorkouts > 0) {
+                let totalProgressPercent = 0;
+                let workoutsWithProgress = 0;
+                
+                // Рассчитываем прогресс для каждой тренировки на основе progressData
+                for (const workoutProgress of progressData.workoutsProgress) {
+                  // Находим соответствующую тренировку
+                  const workout = workouts.find(w => w._id === workoutProgress.workoutId);
+                  
+                  if (workout && workout.exercises && workout.exercises.length > 0) {
+                    let workoutPercent = 0;
+                    
+                    // Если тренировка полностью завершена, считаем её как 100%
+                    if (workoutProgress.workoutCompleted === true) {
+                      workoutPercent = 100;
+                    } else if (workoutProgress.progressData && workoutProgress.progressData.length > 0) {
+                      // Рассчитываем процент выполнения на основе progressData
+                      let totalCompleted = 0;
+                      let totalRequired = 0;
+                      
+                      // Сопоставляем progressData с exercises
+                      const exercisesCount = workout.exercises.length;
+                      const progressDataCount = workoutProgress.progressData.length;
+                      const minLength = Math.min(exercisesCount, progressDataCount);
+                      
+                      for (let i = 0; i < minLength; i++) {
+                        const exercise = workout.exercises[i];
+                        const completed = workoutProgress.progressData[i] || 0;
+                        const required = exercise.quantity || 0;
+                        
+                        if (required > 0) {
+                          // Ограничиваем выполненное значение максимумом требуемого
+                          totalCompleted += Math.min(Math.max(0, completed), required);
+                          totalRequired += required;
+                        }
+                      }
+                      
+                      // Рассчитываем процент выполнения этой тренировки
+                      workoutPercent = totalRequired > 0 
+                        ? Math.round((totalCompleted / totalRequired) * 100)
+                        : 0;
+                    }
+                    
+                    // Добавляем процент этой тренировки к общему прогрессу
+                    totalProgressPercent += workoutPercent;
+                    workoutsWithProgress++;
+                  }
                 }
-              } catch {
-                // Игнорируем ошибки
+                
+                // Рассчитываем общий процент прогресса курса
+                // Учитываем тренировки с прогрессом и тренировки без прогресса (0%)
+                const averageProgress = workoutsWithProgress > 0 
+                  ? totalProgressPercent / totalWorkouts
+                  : 0;
+                
+                const progressPercent = Math.round(Math.min(averageProgress, 100));
+                
+                progress = {
+                  progressPercent,
+                  courseCompleted: progressData.courseCompleted || false,
+                };
+              } else {
+                // Если нет данных о прогрессе, но есть тренировки - прогресс 0%
+                progress = {
+                  progressPercent: 0,
+                  courseCompleted: false,
+                };
+              }
+            } catch (error) {
+              if (error instanceof Error) {
+                const errorMessage = error.message.toLowerCase();
+                if (
+                  errorMessage.includes("не был добавлен") ||
+                  errorMessage.includes("не найден") ||
+                  errorMessage.includes("not found") ||
+                  errorMessage.includes("not added")
+                ) {
+                  // Курс добавлен, но прогресс еще не начат - прогресс 0%
+                  progress = {
+                    progressPercent: 0,
+                    courseCompleted: false,
+                  };
+                } else {
+                  // Для других ошибок тоже устанавливаем 0%
+                  progress = {
+                    progressPercent: 0,
+                    courseCompleted: false,
+                  };
+                }
+              } else {
+                // Если ошибка не является Error, устанавливаем 0%
+                progress = {
+                  progressPercent: 0,
+                  courseCompleted: false,
+                };
               }
             }
-          }
-          
-          const userData: User = {
-            email: authData.userEmail,
-            name: authData.userName,
-            courses: courses,
-          };
-          if (mountedRef.current) {
-            setUser(userData);
-            setIsLoading(false);
-          }
-        } else {
-          if (mountedRef.current) {
-            setIsLoading(false);
-          }
-        }
-      } catch {
-        localStorage.removeItem(STORAGE_KEY);
+              
+              return {
+                ...course,
+                workouts,
+              progress,
+            } as CourseWithWorkouts;
+            } catch (error) {
+              console.error(`[PROFILE PAGE] Ошибка загрузки курса ${courseId}:`, error);
+              return null;
+            }
+          })
+        );
+
+      // Проверяем mountedRef перед обновлением состояния
+      if (!mountedRef.current) return;
+
+        const validCourses = coursesData.filter(
+          (course): course is CourseWithWorkouts => course !== null
+        );
+
+      requestAnimationFrame(() => {
         if (mountedRef.current) {
+          setCourses(validCourses);
           setIsLoading(false);
         }
-      }
-    } else {
-      if (mountedRef.current) {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (!mountedRef.current) return;
-    loadUserData();
-
-    const handleStorageChange = () => {
-      if (mountedRef.current) {
-        loadUserData();
+      });
+      } catch (error) {
+        console.error('[PROFILE PAGE] Ошибка загрузки курсов:', error);
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          setCourses([]);
+          setIsLoading(false);
+        }
+      });
       }
     };
+
+  // Обновление при возврате на страницу (фокус окна)
+  useEffect(() => {
+    if (!mountedRef.current || !isAuthenticated || authLoading) {
+      return;
+    }
 
     const handleFocus = () => {
+      // Обновляем курсы при возврате на страницу
       if (mountedRef.current) {
-        loadUserData();
+        loadCoursesData();
       }
     };
 
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("focus", handleFocus);
-    const interval = setInterval(() => {
-      if (document.hasFocus() && mountedRef.current) {
-        loadUserData();
-      }
-    }, 2000);
-
+    window.addEventListener('focus', handleFocus);
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("focus", handleFocus);
-      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [isAuthenticated, authLoading]);
+
+  // Показ/скрытие кнопки "Наверх"
+  useEffect(() => {
+    if (!mountedRef.current || typeof window === "undefined") return;
+
+    let rafId: number | null = null;
+
+    const handleScroll = () => {
+      if (!mountedRef.current) return;
+      
+      // Отменяем предыдущий запрос, если он еще не выполнен
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      
+      rafId = requestAnimationFrame(() => {
+        if (!mountedRef.current) return;
+        try {
+          const scrollY = window.scrollY || window.pageYOffset;
+          if (mountedRef.current) {
+            setShowScrollTop(scrollY > 300);
+          }
+        } catch (error) {
+          console.error('[PROFILE PAGE] Ошибка в handleScroll:', error);
+        }
+        rafId = null;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
+  const handleScrollToTop = () => {
+    if (!mountedRef.current || typeof window === "undefined") return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  };
+
   const handleLogout = () => {
     if (!mountedRef.current) return;
-    if (typeof window !== "undefined") {
-      removeToken();
-      localStorage.removeItem(STORAGE_KEY);
-      router.push("/");
-    }
-  };
-
-  const handleDeleteCourse = (courseId: string) => {
-    if (!mountedRef.current) return;
-    setCourseToDelete(courseId);
-    setIsDeleteConfirmOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (!mountedRef.current || !courseToDelete || typeof window === "undefined") {
-      setIsDeleteConfirmOpen(false);
-      setCourseToDelete(null);
-      return;
-    }
-
-    const savedAuth = localStorage.getItem(STORAGE_KEY);
-    if (!savedAuth) {
-      setIsDeleteConfirmOpen(false);
-      setCourseToDelete(null);
-      return;
-    }
-
     try {
-      const courseIdToDelete = courseToDelete;
-      const authData: AuthData = JSON.parse(savedAuth);
-      const courses = authData.courses || [];
-
-      const updatedCourses = courses.filter(
-        (course) => course.id !== courseIdToDelete
-      );
-
-      const updatedAuthData: AuthData = {
-        ...authData,
-        courses: updatedCourses,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAuthData));
-      
-      const HISTORY_KEY = `sky_fitness_history_${authData.userEmail}`;
-      localStorage.setItem(HISTORY_KEY, JSON.stringify({ courses: updatedCourses }));
-
-      setIsDeleteConfirmOpen(false);
-      setCourseToDelete(null);
-
-      if (user && mountedRef.current) {
-        const updatedUser: User = {
-          ...user,
-          courses: updatedCourses,
-        };
-        setUser(updatedUser);
-      }
-
-      setTimeout(() => {
+      logout();
+      // Используем requestAnimationFrame и setTimeout для избежания конфликтов с размонтированием
+      requestAnimationFrame(() => {
         if (mountedRef.current) {
-          setIsCourseDeletedOpen(true);
+          setTimeout(() => {
+            if (mountedRef.current) {
+              router.push("/");
+            }
+          }, 0);
         }
-      }, 300);
-    } catch {
-      setIsDeleteConfirmOpen(false);
-      setCourseToDelete(null);
+      });
+    } catch (error) {
+      console.error('Ошибка при выходе:', error);
     }
   };
 
-  const handleCancelDelete = () => {
+  const handleStartWorkout = (course: CourseWithWorkouts) => {
     if (!mountedRef.current) return;
-    setIsDeleteConfirmOpen(false);
-    setCourseToDelete(null);
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+    setSelectedCourse(course);
+    setIsWorkoutModalOpen(true);
+      }
+    });
   };
 
-  const handleCloseCourseDeleted = () => {
+  const handleCloseWorkoutModal = () => {
     if (!mountedRef.current) return;
     requestAnimationFrame(() => {
       if (mountedRef.current) {
         try {
-          setIsCourseDeletedOpen(false);
-        } catch {
+          setIsWorkoutModalOpen(false);
+          setSelectedCourse(null);
+          // Обновляем курсы после закрытия модального окна тренировки
+          // чтобы обновить прогресс, если тренировка была завершена
+          setTimeout(() => {
+            if (mountedRef.current) {
+              loadCoursesData();
+            }
+          }, 500);
+        } catch (error) {
+          console.error('[PROFILE PAGE] Ошибка при закрытии модального окна тренировки:', error);
         }
       }
     });
   };
 
-  const handleAddCourseClick = () => {
+  const handleDeleteCourse = async (courseId: string) => {
     if (!mountedRef.current) return;
-    router.push("/");
-  };
-
-  const handleScrollToTop = () => {
-    if (!mountedRef.current || typeof window === "undefined") return;
     try {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch {
-      // Игнорируем ошибки прокрутки
+      await deleteUserCourse(courseId);
+      if (!mountedRef.current) return;
+      
+      // Обновляем список курсов
+      const updatedCourses = courses.filter((c) => c._id !== courseId);
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
+          setCourses(updatedCourses);
+          // Показываем модальное окно об успешном удалении
+          setIsDeleteModalOpen(true);
+        }
+      });
+    } catch (error) {
+      // Обрабатываем ошибки удаления
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        // Если курс не был добавлен или уже удален - просто обновляем список
+        if (
+          errorMessage.includes("не был добавлен") ||
+          errorMessage.includes("не найден") ||
+          errorMessage.includes("not found") ||
+          errorMessage.includes("not added")
+        ) {
+          // Курс уже удален или не был добавлен - просто обновляем список
+          const updatedCourses = courses.filter((c) => c._id !== courseId);
+          requestAnimationFrame(() => {
+            if (mountedRef.current) {
+              setCourses(updatedCourses);
+            }
+          });
+        } else {
+          // Для других ошибок просто логируем
+          console.error('Ошибка при удалении курса:', error);
+        }
+      } else {
+        console.error('Ошибка при удалении курса:', error);
+      }
     }
   };
 
-  const getButtonText = (progress: number) => {
-    if (progress === 0) return "Начать тренировки";
-    if (progress === 100) return "Начать заново";
-    return "Продолжить";
+  const handleCloseDeleteModal = () => {
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        try {
+          setIsDeleteModalOpen(false);
+        } catch (error) {
+          console.error('[PROFILE PAGE] Ошибка при закрытии модального окна удаления:', error);
+        }
+      }
+    });
   };
 
-  const handleStartWorkout = (course: Course) => {
-    if (!mountedRef.current) return;
-    setSelectedCourse(course);
-    setIsWorkoutModalOpen(true);
-  };
-
-  const handleCloseWorkoutModal = () => {
-    if (!mountedRef.current) return;
-    try {
-      setIsWorkoutModalOpen(false);
-      setSelectedCourse(null);
-    } catch {
-      // Игнорируем ошибки
+  const getCourseCardImage = (course: CourseWithWorkouts) => {
+    // Сначала пробуем по английскому названию
+    let courseId = courseNameMap[course.nameEN || ""];
+    
+    // Если не нашли, пробуем по русскому названию
+    if (!courseId) {
+      courseId = courseNameRUMap[course.nameRU || ""];
     }
+    
+    // Если все еще не нашли, нормализуем английское название
+    if (!courseId && course.nameEN) {
+      courseId = course.nameEN.toLowerCase().replace(/\s+/g, "-");
+    }
+    
+    // Если и это не помогло, используем дефолтное
+    return courseImages[courseId || ""] || "/img/fitness.png";
   };
 
-  // Mock данные тренировок для курса
+  const getButtonText = (course: CourseWithWorkouts) => {
+    if (!course.progress) return "Начать тренировки";
+    if (course.progress.courseCompleted) return "Начать заново";
+    if (course.progress.progressPercent > 0) return "Продолжить";
+    return "Начать тренировки";
+  };
+
   const getWorkoutsForCourse = (courseId: string) => {
-    const workouts = [
-      {
-        id: "workout1",
-        name: "Утренняя практика",
-        subtitle: "Йога на каждый день",
-        day: 1,
-      },
-      {
-        id: "workout2",
-        name: "Красота и здоровье",
-        subtitle: "Йога на каждый день",
-        day: 2,
-      },
-      {
-        id: "workout3",
-        name: "Асаны стоя",
-        subtitle: "Йога на каждый день",
-        day: 3,
-      },
-      {
-        id: "workout4",
-        name: "Растягиваем мышцы бедра",
-        subtitle: "Йога на каждый день",
-        day: 4,
-      },
-      {
-        id: "workout5",
-        name: "Гибкость спины",
-        subtitle: "Йога на каждый день",
-        day: 5,
-      },
-    ];
-    return workouts;
+    const course = courses.find((c) => c._id === courseId);
+    if (!course || !course.workouts) return [];
+    
+    return course.workouts.map((workout, index) => ({
+      id: workout._id,
+      name: workout.name || `Тренировка ${index + 1}`,
+      subtitle: workout.description || "Описание тренировки",
+      day: index + 1,
+    }));
   };
+
+  if (authLoading || !isMounted) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loading}>Загрузка...</div>
+      </div>
+    );
+  }
+
+  if (!isMounted || !isAuthenticated) {
+    return null;
+  }
 
   return (
     <>
-      {user && isMounted && (
+      {userName && userEmail && (
         <AuthHeader
-          userName={user.name}
-          userEmail={user.email}
+          userName={userName}
+          userEmail={userEmail}
           onLogout={handleLogout}
         />
       )}
-      <main className={styles.main}>
-        {isLoading ? (
-          <div className={styles.container}>
-            <div className={styles.loading}>Загрузка...</div>
-          </div>
-        ) : !user ? (
-          <div className={styles.container}>
-            <div className={styles.error}>Пользователь не найден</div>
-          </div>
-        ) : (
-          <div className={styles.profileContainer}>
-            <h1 className={styles.title}>Профиль</h1>
 
+      <main className={styles.profileMain}>
+        <div className={styles.profileContainer}>
+          <div className={styles.profileFrame}>
+            <h1 className={styles.profileTitle}>Профиль</h1>
             <div className={styles.userInfoBlock}>
               <Image
                 src="/img/Profile_1.png"
-                alt="Profile"
+                alt="Profile Avatar"
                 width={200}
                 height={200}
                 className={styles.profileAvatar}
               />
               <div className={styles.userData}>
-                <h2 className={styles.userName}>{user.name}</h2>
-                <p className={styles.userLogin}>Логин: {user.email}</p>
-                <button className={styles.logoutButton} onClick={handleLogout}>
+                <div className={styles.userName}>{userName}</div>
+                <div className={styles.userLogin}>Логин: {userEmail}</div>
+                <button
+                  className={styles.logoutButton}
+                  onClick={handleLogout}
+                >
                   Выйти
                 </button>
               </div>
             </div>
+          </div>
 
+          <div className={styles.coursesSection}>
             <h2 className={styles.coursesTitle}>Мои курсы</h2>
-            {user.courses.length > 0 ? (
-              <div className={styles.coursesList}>
-                {user.courses.map((course) => (
-                  <CourseCard
-                    key={course.id}
-                    course={course}
-                    onDelete={handleDeleteCourse}
-                    onStartWorkout={handleStartWorkout}
-                    getButtonText={getButtonText}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className={styles.noCoursesContainer}>
-                <p className={styles.noCourses}>
-                  У вас пока нет выбранных курсов
-                </p>
-                <button
-                  className={styles.addCourseButton}
-                  onClick={handleAddCourseClick}
+            
+            {isLoading ? (
+              <div className={styles.loading}>Загрузка курсов...</div>
+            ) : courses.length === 0 ? (
+              <div className={styles.emptyState}>
+                <p>У вас пока нет выбранных курсов</p>
+                <button 
+                  className={styles.emptyStateButton}
+                  onClick={() => {
+                    if (!mountedRef.current) return;
+                    requestAnimationFrame(() => {
+                      if (mountedRef.current) {
+                        router.push("/");
+                      }
+                    });
+                  }}
                 >
-                  Добавить курс
+                  Выбрать курс
                 </button>
               </div>
+            ) : (
+              <div className={styles.coursesList}>
+                {courses.map((course) => (
+                  <div key={course._id} className={styles.courseCard}>
+                    <div className={styles.courseImageWrapper}>
+                      <Image
+                        src={getCourseCardImage(course)}
+                        alt={course.nameRU || course.nameEN || "Курс"}
+                        fill
+                        sizes="360px"
+                        className={styles.courseImage}
+                      />
+                      <div className={styles.deleteButtonContainer}>
+                        <button
+                          className={styles.deleteButton}
+                          onClick={() => handleDeleteCourse(course._id)}
+                          aria-label="Удалить курс"
+                        >
+                          <Image
+                            src="/img/minus.svg"
+                            alt="Delete"
+                            width={27}
+                            height={27}
+                            className={styles.deleteIcon}
+                          />
+                          <div className={styles.tooltip}>Удалить курс</div>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className={styles.courseInfo}>
+                      <h3 className={styles.courseName}>
+                        {course.nameRU || course.nameEN}
+                      </h3>
+                      
+                      <div className={styles.badgesContainer}>
+                        <div className={styles.firstRow}>
+                          {'durationInDays' in course && (
+                            <div className={styles.daysBadge}>
+                              <Image
+                                src="/img/calendar.svg"
+                                alt="Calendar"
+                                width={15}
+                                height={15}
+                                className={styles.calendarIcon}
+                              />
+                              <span className={styles.daysText}>
+                                {course.durationInDays || 0} дней
+                              </span>
+                            </div>
+                          )}
+                          
+                          {'dailyDurationInMinutes' in course && (
+                            <div className={styles.clockBadge}>
+                              <Image
+                                src="/img/clock.svg"
+                                alt="Clock"
+                                width={15}
+                                height={15}
+                                className={styles.clockIcon}
+                              />
+                              <span className={styles.clockText}>
+                                {course.dailyDurationInMinutes?.from || 0}-
+                                {course.dailyDurationInMinutes?.to || 0} мин/день
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {'difficulty' in course && (
+                          <div className={styles.complexityBadge}>
+                            <Image
+                              src="/img/complexity.svg"
+                              alt="Complexity"
+                              width={18}
+                              height={18}
+                              className={styles.complexityIcon}
+                            />
+                            <span className={styles.complexityText}>
+                              Сложность
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className={styles.progressSection}>
+                        <div className={styles.progressText}>
+                          Прогресс {course.progress?.progressPercent || 0}%
+                        </div>
+                        <div className={styles.progressBar}>
+                          <div
+                            className={styles.progressFill}
+                            style={{ width: `${course.progress?.progressPercent || 0}%` }}
+                          />
+                        </div>
+                      </div>
+                      
+                        <button
+                        className={styles.courseButton}
+                          onClick={() => handleStartWorkout(course)}
+                        >
+                        {getButtonText(course)}
+                        </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
-            <button
-              className={styles.scrollTopButton}
-              onClick={handleScrollToTop}
-            >
-              Наверх!
-            </button>
           </div>
-        )}
+        </div>
       </main>
-      {isWorkoutModalOpen && selectedCourse && (
+
+      {isMounted && isWorkoutModalOpen && selectedCourse && (
         <WorkoutSelectionModal
-          courseName={selectedCourse.name}
-          workouts={getWorkoutsForCourse(selectedCourse.id)}
+          courseName={selectedCourse.nameRU || selectedCourse.nameEN || ""}
+          courseId={selectedCourse._id}
+          workouts={getWorkoutsForCourse(selectedCourse._id)}
           onClose={handleCloseWorkoutModal}
         />
       )}
-      {isDeleteConfirmOpen && !isCourseDeletedOpen && (
-        <DeleteConfirmModal
-          onConfirm={handleConfirmDelete}
-          onCancel={handleCancelDelete}
+      {isMounted && isDeleteModalOpen && (
+        <CourseDeletedModal
+          onClose={handleCloseDeleteModal}
+          autoCloseDelay={3000}
         />
       )}
-      {isCourseDeletedOpen && !isDeleteConfirmOpen && (
-        <CourseDeletedModal onClose={handleCloseCourseDeleted} />
+      {isMounted && mountedRef.current && showScrollTop && (
+        <button
+          className={styles.scrollTopButton}
+          onClick={handleScrollToTop}
+          aria-label="Наверх"
+        >
+          Наверх ↑
+        </button>
       )}
     </>
   );

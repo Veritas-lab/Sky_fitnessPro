@@ -14,35 +14,41 @@ export default function SuccessModal({
 }: SuccessModalProps) {
   const mountedRef = useRef(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const onCloseRef = useRef(onClose);
+  const onCloseRef = useRef<() => void>(() => {});
 
-  // Обновляем ref при изменении onClose
   useEffect(() => {
-    onCloseRef.current = onClose;
+    if (onClose && typeof onClose === "function") {
+      onCloseRef.current = onClose;
+    }
   }, [onClose]);
 
   useEffect(() => {
     mountedRef.current = true;
 
     if (autoCloseDelay > 0) {
-      timeoutRef.current = setTimeout(() => {
-        if (mountedRef.current) {
-          const timeoutId = timeoutRef.current;
-          mountedRef.current = false;
+      const timeoutId = setTimeout(() => {
+        if (mountedRef.current && timeoutRef.current === timeoutId) {
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
             timeoutRef.current = null;
           }
           requestAnimationFrame(() => {
-            if (timeoutId === timeoutRef.current || timeoutRef.current === null) {
+            if (mountedRef.current) {
               try {
-                onCloseRef.current();
-              } catch {
+                if (
+                  onCloseRef.current &&
+                  typeof onCloseRef.current === "function"
+                ) {
+                  onCloseRef.current();
+                }
+              } catch (error) {
+                console.error('Ошибка при закрытии модального окна:', error);
               }
             }
           });
         }
       }, autoCloseDelay);
+      timeoutRef.current = timeoutId;
     }
 
     return () => {
@@ -56,20 +62,22 @@ export default function SuccessModal({
 
   const handleClose = () => {
     if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
+    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    if (wasMounted) {
-      requestAnimationFrame(() => {
-        try {
+    
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
+      try {
+        if (onCloseRef.current && typeof onCloseRef.current === "function") {
           onCloseRef.current();
-        } catch {
         }
-      });
-    }
+      } catch (error) {
+        console.error('Ошибка при закрытии модального окна:', error);
+      }
+    });
   };
 
   return (

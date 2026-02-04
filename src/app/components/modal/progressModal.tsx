@@ -44,7 +44,12 @@ export default function ProgressModal({
 
   const handleProgressChange = (index: number, value: string) => {
     if (!mountedRef.current) return;
-    if (index < 0 || index >= exercises.length || index >= progressValues.length) return;
+    if (
+      index < 0 ||
+      index >= exercises.length ||
+      index >= progressValues.length
+    )
+      return;
 
     // Разрешаем пустую строку или только цифры
     if (value === "" || /^\d+$/.test(value)) {
@@ -56,8 +61,13 @@ export default function ProgressModal({
 
   const handleBlur = (index: number) => {
     if (!mountedRef.current) return;
-    if (index < 0 || index >= exercises.length || index >= progressValues.length) return;
-    
+    if (
+      index < 0 ||
+      index >= exercises.length ||
+      index >= progressValues.length
+    )
+      return;
+
     const value = progressValues[index];
     const numValue = parseInt(value) || 0;
     const maxValue = exercises[index]?.quantity || 0;
@@ -71,7 +81,7 @@ export default function ProgressModal({
   const handleSave = () => {
     if (!mountedRef.current || typeof window === "undefined") return;
     if (!exercises || exercises.length === 0) return;
-    
+
     try {
       const numericProgress = progressValues.map((value, index) => {
         if (index >= exercises.length) return 0;
@@ -79,40 +89,51 @@ export default function ProgressModal({
         const maxValue = exercises[index]?.quantity || 0;
         return Math.max(0, Math.min(numValue, maxValue));
       });
-      
+
       if (numericProgress.length !== exercises.length) {
         return;
       }
-      
-      const wasMounted = mountedRef.current;
-      mountedRef.current = false;
-      
-      onSave(numericProgress);
-      
-      if (wasMounted) {
-        requestAnimationFrame(() => {
+
+      requestAnimationFrame(() => {
+        if (mountedRef.current) {
           try {
-            onClose();
-          } catch {
+            onSave(numericProgress);
+            setTimeout(() => {
+              if (mountedRef.current) {
+                requestAnimationFrame(() => {
+                  if (mountedRef.current) {
+                    try {
+                      if (onClose && typeof onClose === "function") {
+                        onClose();
+                      }
+                    } catch (error) {
+                      console.error('Ошибка при закрытии модального окна:', error);
+                    }
+                  }
+                });
+              }
+            }, 100);
+          } catch (error) {
+            console.error('Ошибка при сохранении прогресса:', error);
           }
-        });
-      }
-    } catch {
+        }
+      });
+    } catch (error) {
+      console.error('Ошибка в handleSave:', error);
     }
   };
 
   const handleClose = () => {
     if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
-    if (wasMounted) {
-      requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
         try {
           onClose();
-        } catch {
+        } catch (error) {
+          console.error('Ошибка при закрытии модального окна:', error);
         }
-      });
-    }
+      }
+    });
   };
 
   const getExerciseQuestion = (exerciseName: string): string => {

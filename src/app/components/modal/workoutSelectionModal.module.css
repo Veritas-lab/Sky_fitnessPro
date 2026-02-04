@@ -140,7 +140,9 @@
   font-size: 18px;
   font-weight: 400;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
   margin: 0;
   flex-shrink: 0;
 }

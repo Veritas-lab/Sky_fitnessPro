@@ -38,12 +38,8 @@ export default function DeleteConfirmModal({
     <div className={styles.modalOverlay} onClick={handleCancel}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.textContainer}>
-          <p className={styles.questionText}>
-            Вы точно хотите удалить курс?
-          </p>
-          <p className={styles.warningText}>
-            Прогресс будет утерян.
-          </p>
+          <p className={styles.questionText}>Вы точно хотите удалить курс?</p>
+          <p className={styles.warningText}>Прогресс будет утерян.</p>
         </div>
         <div className={styles.buttonsContainer}>
           <button className={styles.confirmButton} onClick={handleConfirm}>

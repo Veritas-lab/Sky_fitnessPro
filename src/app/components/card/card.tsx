@@ -11,6 +11,7 @@ interface CardProps {
   courseName: string;
   isAuthenticated?: boolean;
   onAddCourse?: (courseId: string) => void;
+  priority?: boolean;
 }
 
 const courseIdMap: Record<string, string> = {
@@ -27,6 +28,7 @@ export default function Card({
   courseName,
   isAuthenticated = false,
   onAddCourse,
+  priority = false,
 }: CardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const courseId = courseIdMap[title] || title.toLowerCase();
@@ -40,16 +42,19 @@ export default function Card({
     }
   };
 
+  const imageSrc = image || "/img/fitness.png";
+
   return (
     <Link href={courseUrl} className={styles.cardLink}>
       <div className={styles.card}>
         <div className={styles.imageContainer}>
           <Image
-            src={image}
+            src={imageSrc}
             alt={title}
             width={360}
             height={325}
             className={styles.cardImage}
+            priority={priority}
           />
           {isAuthenticated && (
             <div
@@ -69,12 +74,7 @@ export default function Card({
                   cursor: "pointer",
                 }}
               >
-                <Image
-                  src="/img/plus.svg"
-                  alt="Add"
-                  width={30}
-                  height={30}
-                />
+                <Image src="/img/plus.svg" alt="Add" width={30} height={30} />
               </button>
               {showTooltip && (
                 <div className={styles.tooltip}>Добавить курс</div>
