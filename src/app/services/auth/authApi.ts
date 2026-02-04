@@ -21,13 +21,14 @@ export const registerUser = async (
     body: JSON.stringify({ email: email.trim(), password }),
   });
 
-  const data = await response.json();
+  const data = (await response.json()) as RegisterResponse | { message?: string };
 
   if (!response.ok) {
-    throw new Error(data.message || "Ошибка регистрации");
+    const errorData = data as { message?: string };
+    throw new Error(errorData.message || "Ошибка регистрации");
   }
 
-  return data;
+  return data as RegisterResponse;
 };
 
 export const login = async (
@@ -52,19 +53,21 @@ export const login = async (
     }),
   });
 
-  const data = await response.json();
+  const data = (await response.json()) as LoginResponse | { message?: string };
 
   if (!response.ok) {
-    throw new Error(data.message || "Ошибка входа");
+    const errorData = data as { message?: string };
+    throw new Error(errorData.message || "Ошибка входа");
   }
 
-  if (data.token) {
-    saveToken(data.token);
+  const loginData = data as LoginResponse;
+  if (loginData.token) {
+    saveToken(loginData.token);
   } else {
     throw new Error("Сервер не вернул токен авторизации");
   }
 
-  return data;
+  return loginData;
 };
 
 export type AuthApiError = Error & { status?: number };
@@ -73,6 +76,11 @@ let getMePromise: Promise<User> | null = null;
 let getMeInProgress = false;
 let lastGetMeTime = 0;
 const GET_ME_DEBOUNCE_MS = 1000;
+
+interface TokenPayload {
+  exp?: number;
+  [key: string]: unknown;
+}
 
 const validateToken = (token: string): boolean => {
   try {
@@ -86,7 +94,7 @@ const validateToken = (token: string): boolean => {
     }
     const decodedPayload = JSON.parse(
       atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
-    );
+    ) as TokenPayload;
     if (decodedPayload.exp) {
       const expirationTime = decodedPayload.exp * 1000;
       const currentTime = Date.now();
@@ -141,14 +149,31 @@ export const getMe = async (): Promise<User> => {
 
       const cleanToken = token.trim();
 
-      const response = await fetch(`${BASE_URL}/api/fitness/users/me`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${cleanToken}`,
-        },
-      });
+      let response: Response;
+      try {
+        response = await fetch(`${BASE_URL}/api/fitness/users/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${cleanToken}`,
+          },
+        });
+      } catch (fetchError) {
+        // Обработка сетевых ошибок (Failed to fetch, CORS, и т.д.)
+        getMeInProgress = false;
+        getMePromise = null;
+        const err = new Error(
+          "Не удалось подключиться к серверу. Проверьте подключение к интернету."
+        ) as AuthApiError;
+        err.status = 0; // 0 означает сетевую ошибку
+        throw err;
+      }
 
-      const data = await response.json().catch(() => ({}));
+      const data = (await response.json().catch(() => ({}))) as {
+        user?: User;
+        email?: string;
+        selectedCourses?: string[];
+        message?: string;
+      };
 
       if (!response.ok && response.status !== 201) {
         const err = new Error(

@@ -127,15 +127,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
 
+        // Обработка сетевых ошибок и ошибок авторизации
         if (
           errorMessage.includes("401") ||
           errorMessage.includes("Unauthorized") ||
           errorMessage.includes("токен") ||
-          errorMessage.includes("не найден")
+          errorMessage.includes("не найден") ||
+          errorMessage.includes("невалиден") ||
+          errorMessage.includes("истек")
         ) {
           removeToken();
         }
 
+        // Для сетевых ошибок не удаляем токен, просто показываем неавторизованное состояние
+        // Пользователь может быть авторизован, но нет подключения к серверу
         setIsAuthenticated(false);
         setUserData(null);
         setUserName("");
@@ -150,21 +155,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     mountedRef.current = true;
-    let hasLoaded = false;
 
-    const timer = setTimeout(() => {
-      if (isMounted && mountedRef.current && !hasLoaded) {
-        hasLoaded = true;
-        loadUserData();
-      }
-    }, 100);
+    // Загружаем данные сразу без задержки для ускорения загрузки страницы
+    if (isMounted && mountedRef.current) {
+      loadUserData();
+    }
 
     return () => {
       isMounted = false;
       mountedRef.current = false;
-      clearTimeout(timer);
     };
-  }, []);
+  }, [loadUserData]);
 
   const login = async (email: string, password: string): Promise<void> => {
     if (!mountedRef.current) return;

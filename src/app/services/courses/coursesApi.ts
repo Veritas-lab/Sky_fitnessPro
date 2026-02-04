@@ -52,8 +52,9 @@ async function fetchWithAuth<T>(
     throw new Error("Токен авторизации не найден");
   }
 
+  const existingHeaders = options.headers as Record<string, string> | undefined;
   const headers: Record<string, string> = {
-    ...(options.headers as Record<string, string>),
+    ...(existingHeaders || {}),
     Authorization: `Bearer ${token.trim()}`,
   };
 
@@ -69,13 +70,16 @@ async function fetchWithAuth<T>(
 
     const contentType = response.headers.get("content-type") ?? "";
     const isJson = contentType.includes("application/json");
-    const data = isJson ? await response.json() : await response.text();
+    const data: unknown = isJson ? await response.json() : await response.text();
 
     if (!response.ok) {
+      const errorData = data as { message?: string } | string;
       const message =
-        typeof data === "object" && data?.message
-          ? data.message
-          : `Ошибка запроса: ${response.status}`;
+        typeof errorData === "object" && errorData !== null && "message" in errorData
+          ? errorData.message
+          : typeof errorData === "string"
+            ? errorData
+            : `Ошибка запроса: ${response.status}`;
 
       const error = new Error(message) as Error & { status?: number };
       error.status = response.status;
@@ -111,13 +115,14 @@ export const getCourses = async (): Promise<Course[]> => {
       {},
       30000
     );
-    const data = await response.json();
+    const data = (await response.json()) as Course[] | { message?: string };
 
     if (!response.ok) {
-      throw new Error(data.message || "Ошибка получения курсов");
+      const errorData = data as { message?: string };
+      throw new Error(errorData.message || "Ошибка получения курсов");
     }
 
-    return data;
+    return data as Course[];
   } catch (error) {
     if (error instanceof Error) {
       if (
@@ -141,13 +146,14 @@ export const getCourseById = async (courseId: string): Promise<Course> => {
       {},
       30000
     );
-    const data = await response.json();
+    const data = (await response.json()) as Course | { message?: string };
 
     if (!response.ok) {
-      throw new Error(data.message || "Ошибка получения курса");
+      const errorData = data as { message?: string };
+      throw new Error(errorData.message || "Ошибка получения курса");
     }
 
-    return data;
+    return data as Course;
   } catch (error) {
     if (error instanceof Error) {
       if (
