@@ -29,6 +29,7 @@ export default function ProgressModal({
       : new Array(exercises.length).fill("");
   });
   const mountedRef = useRef(true);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -39,6 +40,10 @@ export default function ProgressModal({
     );
     return () => {
       mountedRef.current = false;
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
   }, [exercises.length, initialProgress]);
 
@@ -94,13 +99,21 @@ export default function ProgressModal({
         return;
       }
 
-      requestAnimationFrame(() => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
         if (mountedRef.current) {
           try {
             onSave(numericProgress);
             setTimeout(() => {
               if (mountedRef.current) {
-                requestAnimationFrame(() => {
+                if (rafRef.current !== null) {
+                  cancelAnimationFrame(rafRef.current);
+                }
+                rafRef.current = requestAnimationFrame(() => {
+                  rafRef.current = null;
                   if (mountedRef.current) {
                     try {
                       if (onClose && typeof onClose === "function") {
@@ -128,13 +141,16 @@ export default function ProgressModal({
 
   const handleClose = () => {
     if (!mountedRef.current) return;
-    requestAnimationFrame(() => {
-      if (mountedRef.current) {
-        try {
-          onClose();
-        } catch (error) {
-          console.error("Ошибка при закрытии модального окна:", error);
-        }
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!mountedRef.current) return;
+      try {
+        onClose();
+      } catch (error) {
+        console.error("Ошибка при закрытии модального окна:", error);
       }
     });
   };

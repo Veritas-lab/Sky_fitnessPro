@@ -16,6 +16,7 @@ export default function AuthPromptModal({
 }: AuthPromptModalProps) {
   const mountedRef = useRef(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafRef = useRef<number | null>(null);
   const onCloseRef = useRef<() => void>(() => {});
   const onLoginClickRef = useRef<() => void>(() => {});
 
@@ -38,7 +39,11 @@ export default function AuthPromptModal({
             clearTimeout(timeoutRef.current);
             timeoutRef.current = null;
           }
-          requestAnimationFrame(() => {
+          if (rafRef.current !== null) {
+            cancelAnimationFrame(rafRef.current);
+          }
+          rafRef.current = requestAnimationFrame(() => {
+            rafRef.current = null;
             if (mountedRef.current) {
               try {
                 if (
@@ -63,6 +68,10 @@ export default function AuthPromptModal({
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
   }, [autoCloseDelay]);
 
@@ -74,7 +83,11 @@ export default function AuthPromptModal({
       timeoutRef.current = null;
     }
 
-    requestAnimationFrame(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
       if (!mountedRef.current) return;
       try {
         if (onCloseRef.current && typeof onCloseRef.current === "function") {
@@ -98,7 +111,11 @@ export default function AuthPromptModal({
       timeoutRef.current = null;
     }
 
-    requestAnimationFrame(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
       if (!mountedRef.current) return;
       try {
         if (onCloseRef.current && typeof onCloseRef.current === "function") {

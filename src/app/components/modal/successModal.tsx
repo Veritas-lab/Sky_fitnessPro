@@ -14,6 +14,7 @@ export default function SuccessModal({
 }: SuccessModalProps) {
   const mountedRef = useRef(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafRef = useRef<number | null>(null);
   const onCloseRef = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -32,7 +33,11 @@ export default function SuccessModal({
             clearTimeout(timeoutRef.current);
             timeoutRef.current = null;
           }
-          requestAnimationFrame(() => {
+          if (rafRef.current !== null) {
+            cancelAnimationFrame(rafRef.current);
+          }
+          rafRef.current = requestAnimationFrame(() => {
+            rafRef.current = null;
             if (mountedRef.current) {
               try {
                 if (
@@ -57,6 +62,10 @@ export default function SuccessModal({
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
   }, [autoCloseDelay]);
 
@@ -68,7 +77,11 @@ export default function SuccessModal({
       timeoutRef.current = null;
     }
 
-    requestAnimationFrame(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
       if (!mountedRef.current) return;
       try {
         if (onCloseRef.current && typeof onCloseRef.current === "function") {
