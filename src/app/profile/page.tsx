@@ -526,7 +526,7 @@ export default function ProfilePage() {
             }
           });
         } else {
-          // Для других ошибок просто логируем
+    
           console.error("Ошибка при удалении курса:", error);
           if (mountedRef.current) {
             setCourseToDelete(null);
