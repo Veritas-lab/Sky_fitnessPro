@@ -261,11 +261,11 @@
 }
 
 .courseRunnerImage {
-  width: 487px;
-  height: 542.49px;
+  width: 500px;
+  height: 546px;
   position: absolute;
   top: 850px;
-  left: 770px;
+  left: 585px;
   transform: rotate(-2deg);
   z-index: 2;
   pointer-events: none;
@@ -704,34 +704,37 @@
     display: none;
   }
   .courseRunnerImageMobile {
-    display: block;
+    display: block !important;
     width: 313px;
     height: 349px;
     position: absolute;
-    top: 1080px;
+    top: 1160px;
     left: 120px;
     transform: rotate(-3deg);
     object-fit: contain;
     z-index: 1;
+    pointer-events: none;
+    will-change: transform;
   }
 
   .courseVectorImageMobile {
-    display: block;
-    width: 474px;
-    height: auto;
-    max-width: calc(100vw + 108px);
-    aspect-ratio: 474 / 369;
+    display: block !important;
+    width: 431px;
+    height: 251px;
     position: absolute;
-    top: 1203px;
-    left: 50%;
-    transform: translateX(calc(-50% - 27px));
-    object-fit: contain;
+    top: 1280px;
+    left: -54px;
+    transform: rotate(-3deg);
+    opacity: 1;
     z-index: 0;
+    object-fit: contain;
+    pointer-events: none;
+    will-change: transform;
   }
 
   .courseContentBlock {
     min-height: 412px;
-    margin-top: 40px;
+    margin-top: 106px;
     margin-bottom: 0;
     flex-direction: column;
     padding: 30px;

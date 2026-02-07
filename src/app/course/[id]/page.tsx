@@ -432,6 +432,10 @@ export default function CoursePage() {
     });
   };
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <>
       {isAuthenticated && userName && userEmail ? (
@@ -616,25 +620,22 @@ export default function CoursePage() {
         )}
         {courseId && (
           <>
-            <Image
+            <img
+              key="runner-desktop"
               src="/img/runner.png"
               alt="runner"
-              width={500}
-              height={500}
               className={styles.courseRunnerImage}
             />
-            <Image
+            <img
+              key="runner-mobile"
               src="/img/runner.png"
               alt="runner"
-              width={300}
-              height={300}
               className={styles.courseRunnerImageMobile}
             />
-            <Image
-              src="/img/vector.png"
+            <img
+              key="vector-mobile"
+              src="/img/vector_mob.png"
               alt="vector"
-              width={200}
-              height={200}
               className={styles.courseVectorImageMobile}
             />
             <div className={styles.courseContentBlock}>
@@ -723,7 +724,7 @@ export default function CoursePage() {
           onLoginClick={handleLoginClick}
         />
       )}
-      {courseAddModalOpen && (
+      {isMounted && courseAddModalOpen && (
         <CourseAddModal
           type={courseAddModalType}
           onClose={handleCloseCourseAddModal}
