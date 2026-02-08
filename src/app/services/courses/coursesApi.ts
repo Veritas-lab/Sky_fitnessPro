@@ -27,9 +27,9 @@ function fetchWithTimeout(
         clearTimeout(timeoutId);
         resolve(response);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         clearTimeout(timeoutId);
-        if (error.name === "AbortError") {
+        if (error instanceof Error && error.name === "AbortError") {
           reject(
             new Error(
               "Превышено время ожидания ответа от сервера. Проверьте подключение к интернету."

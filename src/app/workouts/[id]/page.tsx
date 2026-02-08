@@ -14,6 +14,12 @@ import { useAuth } from "@/context/AuthContext";
 import { normalizeVideoUrl } from "@/utils/videoUtils";
 import styles from "./workout.module.css";
 
+// Required for static export with dynamic routes
+export function generateStaticParams() {
+  // Return empty array - pages will be generated on client side
+  return [];
+}
+
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
   ssr: false,
   loading: () => null,
@@ -66,13 +72,12 @@ export default function WorkoutPage() {
       return;
     }
 
-    // Перенаправляем неавторизованных пользователей
+
     if (!isAuthenticated) {
       router.push("/");
       return;
     }
 
-    // Загружаем данные только если есть workoutId
     if (!mountedRef.current || !workoutId) {
       return;
     }
@@ -87,17 +92,17 @@ export default function WorkoutPage() {
         const workoutData = (await getWorkoutById(workoutId)) as Workout;
         if (!mountedRef.current) return;
 
-        // Проверяем, что exercises - это массив
+
         if (!Array.isArray(workoutData.exercises)) {
           workoutData.exercises = [];
         }
 
-        // Инициализируем прогресс
+
         let savedProgress = new Array(workoutData.exercises?.length || 0).fill(
           0
         );
 
-        // Загружаем прогресс, если есть courseId
+    
         if (courseId && workoutData.exercises) {
           try {
             const workoutProgress = await getWorkoutProgress(
@@ -116,7 +121,7 @@ export default function WorkoutPage() {
               });
             }
           } catch (progressError) {
-            // Игнорируем ошибки загрузки прогресса
+
           }
         }
 
@@ -131,7 +136,6 @@ export default function WorkoutPage() {
         if (mountedRef.current) {
           setIsLoading(false);
 
-          // Показываем ошибку пользователю
           const errorMessage =
             error instanceof Error
               ? error.message
@@ -140,7 +144,6 @@ export default function WorkoutPage() {
                 : "Неизвестная ошибка";
           alert(`Ошибка загрузки тренировки: ${errorMessage}`);
 
-          // Возвращаем на предыдущую страницу
           setTimeout(() => {
             if (mountedRef.current) {
               router.back();

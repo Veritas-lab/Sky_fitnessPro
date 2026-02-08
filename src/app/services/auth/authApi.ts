@@ -190,7 +190,20 @@ export const getMe = async (): Promise<User> => {
         throw err;
       }
 
-      const userData = data.user || data;
+      
+      const userData: User = data.user || {
+        email: data.email || "",
+        selectedCourses: data.selectedCourses || [],
+      };
+
+     
+      if (!userData.email) {
+        getMeInProgress = false;
+        getMePromise = null;
+        const err = new Error("Сервер не вернул email пользователя") as AuthApiError;
+        err.status = 400;
+        throw err;
+      }
 
       getMeInProgress = false;
       getMePromise = null;

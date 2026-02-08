@@ -19,6 +19,12 @@ import { Course as ApiCourse, CourseDetail } from "@/types/shared";
 import styles from "../course.module.css";
 import pageStyles from "../../page.module.css";
 
+// Required for static export with dynamic routes
+export function generateStaticParams() {
+  // Return empty array - pages will be generated on client side
+  return [];
+}
+
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
   ssr: false,
   loading: () => null,
@@ -432,6 +438,10 @@ export default function CoursePage() {
     });
   };
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <>
       {isAuthenticated && userName && userEmail ? (
@@ -616,25 +626,22 @@ export default function CoursePage() {
         )}
         {courseId && (
           <>
-            <Image
+            <img
+              key="runner-desktop"
               src="/img/runner.png"
               alt="runner"
-              width={500}
-              height={500}
               className={styles.courseRunnerImage}
             />
-            <Image
+            <img
+              key="runner-mobile"
               src="/img/runner.png"
               alt="runner"
-              width={300}
-              height={300}
               className={styles.courseRunnerImageMobile}
             />
-            <Image
-              src="/img/vector.png"
+            <img
+              key="vector-mobile"
+              src="/img/vector_mob.png"
               alt="vector"
-              width={200}
-              height={200}
               className={styles.courseVectorImageMobile}
             />
             <div className={styles.courseContentBlock}>
@@ -723,7 +730,7 @@ export default function CoursePage() {
           onLoginClick={handleLoginClick}
         />
       )}
-      {courseAddModalOpen && (
+      {isMounted && courseAddModalOpen && (
         <CourseAddModal
           type={courseAddModalType}
           onClose={handleCloseCourseAddModal}

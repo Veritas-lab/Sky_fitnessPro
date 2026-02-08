@@ -26,17 +26,26 @@ export default function WorkoutSelectionModal({
   const router = useRouter();
   const [selectedWorkouts, setSelectedWorkouts] = useState<string[]>([]);
   const mountedRef = useRef(true);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
   }, []);
 
   const handleToggleWorkout = (workoutId: string) => {
     if (!mountedRef.current) return;
-    requestAnimationFrame(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
       if (!mountedRef.current) return;
       setSelectedWorkouts((prev) =>
         prev.includes(workoutId)
@@ -54,7 +63,11 @@ export default function WorkoutSelectionModal({
     )
       return;
 
-    requestAnimationFrame(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
       if (!mountedRef.current) return;
       try {
         // ✅ Добавляем courseId в query параметры
@@ -71,7 +84,11 @@ export default function WorkoutSelectionModal({
   const handleClose = () => {
     if (!mountedRef.current) return;
 
-    requestAnimationFrame(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
       if (!mountedRef.current) return;
       try {
         onClose();
@@ -89,7 +106,9 @@ export default function WorkoutSelectionModal({
         </button>
         <h2 className={styles.title}>Выберите тренировку</h2>
         <div className={styles.workoutsList}>
-          {workouts.map((workout) => {
+          {[...workouts]
+            .sort((a, b) => a.day - b.day)
+            .map((workout) => {
             const isSelected = selectedWorkouts.includes(workout.id);
             return (
               <div
