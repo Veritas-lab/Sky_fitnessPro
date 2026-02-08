@@ -36,27 +36,35 @@ jobs:
         continue-on-error: true
 
       - name: Build
+        id: build
         run: |
-          set -e
           echo "Starting build..."
           echo "NODE_ENV: $NODE_ENV"
           echo "GITHUB_ACTIONS: $GITHUB_ACTIONS"
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          
+          # Запускаем сборку и сохраняем код возврата
           npm run build 2>&1 | tee build.log
+          BUILD_EXIT_CODE=${PIPESTATUS[0]}
+          
+          echo "Build exit code: $BUILD_EXIT_CODE"
+          
+          if [ $BUILD_EXIT_CODE -ne 0 ]; then
+            echo "=== Build failed. Showing full log ==="
+            cat build.log
+            echo "=== Checking for out directory ==="
+            ls -la out 2>&1 || echo "out directory does not exist"
+            echo "=== Checking .next directory ==="
+            ls -la .next 2>&1 || echo ".next directory does not exist"
+            exit $BUILD_EXIT_CODE
+          fi
         env:
           NODE_ENV: production
           GITHUB_ACTIONS: true
           CI: false
           ESLINT_NO_DEV_ERRORS: true
           NEXT_TELEMETRY_DISABLED: 1
-
-      - name: Show build logs on failure
-        if: failure()
-        run: |
-          echo "=== Build failed. Full build log ==="
-          cat build.log || echo "No build.log file found"
-          echo "=== Checking for out directory ==="
-          ls -la out 2>&1 || echo "out directory does not exist"
-        continue-on-error: true
 
       - name: Check build output
         run: |
