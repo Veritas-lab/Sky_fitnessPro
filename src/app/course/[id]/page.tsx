@@ -19,6 +19,12 @@ import { Course as ApiCourse, CourseDetail } from "@/types/shared";
 import styles from "../course.module.css";
 import pageStyles from "../../page.module.css";
 
+// Required for static export with dynamic routes
+export function generateStaticParams() {
+  // Return empty array - pages will be generated on client side
+  return [];
+}
+
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
   ssr: false,
   loading: () => null,

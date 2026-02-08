@@ -14,6 +14,12 @@ import { useAuth } from "@/context/AuthContext";
 import { normalizeVideoUrl } from "@/utils/videoUtils";
 import styles from "./workout.module.css";
 
+// Required for static export with dynamic routes
+export function generateStaticParams() {
+  // Return empty array - pages will be generated on client side
+  return [];
+}
+
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
   ssr: false,
   loading: () => null,
