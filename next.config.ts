@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 
+const isProduction = process.env.NODE_ENV === 'production';
+const basePath = isProduction ? '/Sky_fitnessPro' : '';
+
 const nextConfig: NextConfig = {
   output: 'export',
-  basePath: '/Sky_fitnessPro',
-  assetPrefix: '/Sky_fitnessPro',
+  basePath: basePath,
+  assetPrefix: basePath,
   images: {
     unoptimized: true,
   },
