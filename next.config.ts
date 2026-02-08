@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'export',
+  basePath: '/Sky_fitnessPro',
+  assetPrefix: '/Sky_fitnessPro',
   images: {
     unoptimized: true,
   },
