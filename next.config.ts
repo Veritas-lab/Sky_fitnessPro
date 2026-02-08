@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
-const isProduction = process.env.NODE_ENV === 'production';
+// Для GitHub Pages всегда используем basePath
+// В локальной разработке (npm run dev) basePath будет пустым
+const isProduction = process.env.NODE_ENV === 'production' || process.env.GITHUB_ACTIONS === 'true';
 const basePath = isProduction ? '/Sky_fitnessPro' : '';
 
 const nextConfig: NextConfig = {
