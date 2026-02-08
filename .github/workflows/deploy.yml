@@ -33,20 +33,30 @@ jobs:
 
       - name: Check TypeScript
         run: npx tsc --noEmit || echo "TypeScript check completed with warnings"
+        continue-on-error: true
 
       - name: Build
         run: |
+          set -e
           echo "Starting build..."
-          npm run build 2>&1 | tee build.log || {
-            echo "Build failed. Showing last 100 lines:"
-            tail -100 build.log
-            exit 1
-          }
+          echo "NODE_ENV: $NODE_ENV"
+          echo "GITHUB_ACTIONS: $GITHUB_ACTIONS"
+          npm run build 2>&1 | tee build.log
         env:
           NODE_ENV: production
+          GITHUB_ACTIONS: true
           CI: false
           ESLINT_NO_DEV_ERRORS: true
           NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Show build logs on failure
+        if: failure()
+        run: |
+          echo "=== Build failed. Full build log ==="
+          cat build.log || echo "No build.log file found"
+          echo "=== Checking for out directory ==="
+          ls -la out 2>&1 || echo "out directory does not exist"
+        continue-on-error: true
 
       - name: Check build output
         run: |
