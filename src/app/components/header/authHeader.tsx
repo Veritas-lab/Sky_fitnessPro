@@ -52,15 +52,18 @@ export default function AuthHeader({
   return (
     <>
       <header className={styles.header}>
-        <Link href="/" className={styles.logoLink}>
-          <Image
-            src="/img/logo.svg"
-            alt="Sky Fitness Pro"
-            width={220}
-            height={35}
-            className={styles.logo}
-          />
-        </Link>
+        <div className={styles.leftSection}>
+          <Link href="/" className={styles.logoLink}>
+            <Image
+              src="/img/logo.svg"
+              alt="Sky Fitness Pro"
+              width={220}
+              height={35}
+              className={styles.logo}
+            />
+          </Link>
+          <p className={styles.subtitle}>Онлайн-тренировки для занятий дома</p>
+        </div>
         <div className={styles.profileBlock}>
           <Link href="/profile" className={styles.profileLink}>
             <Image

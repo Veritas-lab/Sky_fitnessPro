@@ -265,7 +265,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUserEmail(freshData.email);
           }
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error("Ошибка при обновлении данных пользователя:", error);
+      }
     } finally {
       refreshingRef.current = false;
     }

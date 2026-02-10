@@ -1,33 +1,29 @@
 .main {
-  width: 1440px;
-  height: 1559px;
+  max-width: 1160px;
+  width: 100%;
+
+  margin: 0 auto;
   transform: rotate(0deg);
   opacity: 1;
 }
 
 .titleSection {
   padding-top: 60px;
-  padding-left: 140px;
-  padding-right: 140px;
+
   display: flex;
   gap: 24px;
   align-items: flex-start;
 }
 
 .mainTitle {
-  width: 947px;
-  height: 120px;
-  transform: rotate(0deg);
+
   opacity: 1;
   font-family: "Roboto", sans-serif;
   font-weight: 500;
   font-style: normal;
   font-size: 60px;
-  line-height: 100%;
-  letter-spacing: 0px;
-  font-variant-numeric: lining-nums proportional-nums;
+
   color: #000000;
-  margin: 0;
 }
 
 .promoContainer {
@@ -50,47 +46,40 @@
 
 .promoText {
   width: 248px;
-  height: 70px;
+
   transform: rotate(0deg);
   opacity: 1;
   font-family: "Roboto", sans-serif;
   font-weight: 400;
   font-style: normal;
   font-size: 32px;
-  line-height: 110%;
-  letter-spacing: 0px;
-  font-variant-numeric: lining-nums proportional-nums;
+
   color: #000000;
-  margin: 0;
+
 }
 
 .polygonIcon {
   position: absolute;
-  left: 141px;
-  top: 85px;
-  width: 30.24px;
-  height: 35.17px;
-  transform: rotate(0deg);
+
   opacity: 1;
   display: block;
 }
 
 .cardsSection {
   padding-top: 50px;
-  padding-left: 140px;
-  padding-right: 140px;
+
 }
 
 .cardsContainer {
   display: flex;
   gap: 40px;
   flex-wrap: wrap;
-  min-height: 501px;
+
 }
 
 .cardSkeleton {
   width: 360px;
-  height: 501px;
+
   border-radius: 30px;
   background: #ffffff;
   box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);

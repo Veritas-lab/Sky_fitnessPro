@@ -78,7 +78,7 @@ export function normalizeVideoUrl(url: string): string {
       urlObj.searchParams.set("playsinline", "1");
 
       return urlObj.toString();
-    } catch (e: unknown) {
+    } catch {
       // Если не удалось распарсить URL, просто добавляем параметры вручную
       const separator = trimmedUrl.includes("?") ? "&" : "?";
       const origin =

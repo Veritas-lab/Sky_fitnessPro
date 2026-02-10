@@ -55,7 +55,7 @@ describe("DeleteConfirmModal", () => {
   });
 
   it("должен вызывать onCancel при клике на overlay", () => {
-    const { container } = render(
+    render(
       <DeleteConfirmModal onConfirm={mockOnConfirm} onCancel={mockOnCancel} />
     );
 

@@ -19,55 +19,63 @@ export default function ProfileModal({
 }: ProfileModalProps) {
   const router = useRouter();
   const mountedRef = useRef(true);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
   }, []);
 
   const handleProfileClick = () => {
     if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
-    if (wasMounted) {
-      requestAnimationFrame(() => {
-        try {
-          onClose();
-          router.push("/profile");
-        } catch {}
-      });
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
     }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!mountedRef.current) return;
+      try {
+        onClose();
+        router.push("/profile");
+      } catch {}
+    });
   };
 
   const handleLogout = () => {
     if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
-    if (wasMounted) {
-      requestAnimationFrame(() => {
-        try {
-          if (onLogout) {
-            onLogout();
-          }
-          onClose();
-        } catch {}
-      });
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
     }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!mountedRef.current) return;
+      try {
+        if (onLogout) {
+          onLogout();
+        }
+        onClose();
+      } catch {}
+    });
   };
 
   const handleClose = () => {
     if (!mountedRef.current) return;
-    const wasMounted = mountedRef.current;
-    mountedRef.current = false;
-    if (wasMounted) {
-      requestAnimationFrame(() => {
-        try {
-          onClose();
-        } catch {}
-      });
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
     }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!mountedRef.current) return;
+      try {
+        onClose();
+      } catch {}
+    });
   };
 
   return (

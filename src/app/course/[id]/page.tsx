@@ -394,6 +394,7 @@ export default function CoursePage() {
         }
       } catch (addError) {
         // Ошибка при добавлении курса - показываем модальное окно ошибки
+        console.error("Ошибка при добавлении курса:", addError);
         if (mountedRef.current) {
           requestAnimationFrame(() => {
             if (mountedRef.current) {
@@ -405,6 +406,7 @@ export default function CoursePage() {
       }
     } catch (error) {
       // Ошибка при загрузке курсов или другой ошибке
+      console.error("Ошибка при загрузке курсов:", error);
       if (mountedRef.current) {
         requestAnimationFrame(() => {
           if (mountedRef.current) {
@@ -431,6 +433,10 @@ export default function CoursePage() {
       }
     });
   };
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <>
@@ -617,27 +623,31 @@ export default function CoursePage() {
         {courseId && (
           <>
             <Image
+              key="runner-mobile"
               src="/img/runner.png"
               alt="runner"
-              width={500}
-              height={500}
-              className={styles.courseRunnerImage}
-            />
-            <Image
-              src="/img/runner.png"
-              alt="runner"
-              width={300}
-              height={300}
+              width={360}
+              height={400}
               className={styles.courseRunnerImageMobile}
             />
             <Image
-              src="/img/vector.png"
+              key="vector-mobile"
+              src="/img/vector_mob.png"
               alt="vector"
-              width={200}
-              height={200}
+              width={343}
+              height={412}
               className={styles.courseVectorImageMobile}
             />
             <div className={styles.courseContentBlock}>
+              <Image
+                key="runner-desktop"
+                src="/img/runner.png"
+                alt="runner"
+                width={360}
+                height={400}
+                className={styles.courseRunnerImage}
+                priority
+              />
               {isLoadingCourse ? (
                 <div className={styles.courseContentRight}>
                   <div className={styles.skeletonTitle} />
@@ -723,7 +733,7 @@ export default function CoursePage() {
           onLoginClick={handleLoginClick}
         />
       )}
-      {courseAddModalOpen && (
+      {isMounted && courseAddModalOpen && (
         <CourseAddModal
           type={courseAddModalType}
           onClose={handleCloseCourseAddModal}
