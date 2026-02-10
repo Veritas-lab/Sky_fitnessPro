@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Header from "./components/header/header";
-import AuthHeader from "./components/header/authHeader";
 import Main from "./components/main/main";
 import RegistrForm from "./components/form/registrform";
 import AuthForm from "./components/form/authform";
@@ -16,6 +16,11 @@ import {
 } from "./services/courses/coursesApi";
 import { Course as ApiCourse } from "@/types/shared";
 import styles from "./page.module.css";
+
+const AuthHeader = dynamic(() => import("./components/header/authHeader"), {
+  ssr: false,
+  loading: () => <div style={{ height: "80px" }} />,
+});
 
 interface DisplayCourse {
   _id: string;
@@ -80,10 +85,12 @@ export default function Home() {
   >("success");
   const [courses, setCourses] = useState<DisplayCourse[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
     mountedRef.current = true;
+    setIsMounted(true);
     return () => {
       mountedRef.current = false;
     };
@@ -285,6 +292,17 @@ export default function Home() {
     if (!mountedRef.current) return;
     setCourseAddModalOpen(false);
   };
+
+  if (!isMounted) {
+    return (
+      <>
+        <div style={{ height: "80px" }} />
+        <main>
+          <div style={{ padding: "40px", textAlign: "center" }}>Загрузка...</div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>
