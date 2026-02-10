@@ -21,7 +21,9 @@ export const registerUser = async (
     body: JSON.stringify({ email: email.trim(), password }),
   });
 
-  const data = (await response.json()) as RegisterResponse | { message?: string };
+  const data = (await response.json()) as
+    | RegisterResponse
+    | { message?: string };
 
   if (!response.ok) {
     const errorData = data as { message?: string };
@@ -159,6 +161,7 @@ export const getMe = async (): Promise<User> => {
         });
       } catch (fetchError) {
         // Обработка сетевых ошибок (Failed to fetch, CORS, и т.д.)
+        console.error("Ошибка при получении данных пользователя:", fetchError);
         getMeInProgress = false;
         getMePromise = null;
         const err = new Error(
@@ -190,17 +193,17 @@ export const getMe = async (): Promise<User> => {
         throw err;
       }
 
-      
       const userData: User = data.user || {
         email: data.email || "",
         selectedCourses: data.selectedCourses || [],
       };
 
-     
       if (!userData.email) {
         getMeInProgress = false;
         getMePromise = null;
-        const err = new Error("Сервер не вернул email пользователя") as AuthApiError;
+        const err = new Error(
+          "Сервер не вернул email пользователя"
+        ) as AuthApiError;
         err.status = 400;
         throw err;
       }

@@ -265,6 +265,7 @@ export default function Home() {
         }
       } catch (addError) {
         // Ошибка при добавлении курса - показываем модальное окно ошибки
+        console.error("Ошибка при добавлении курса:", addError);
         if (mountedRef.current) {
           setCourseAddModalType("error");
           setCourseAddModalOpen(true);
@@ -272,6 +273,7 @@ export default function Home() {
       }
     } catch (error) {
       // Ошибка при добавлении курса - показываем модальное окно ошибки
+      console.error("Ошибка при загрузке курсов:", error);
       if (mountedRef.current) {
         setCourseAddModalType("error");
         setCourseAddModalOpen(true);

@@ -66,7 +66,6 @@ export default function WorkoutPage() {
       return;
     }
 
-
     if (!isAuthenticated) {
       router.push("/");
       return;
@@ -86,17 +85,14 @@ export default function WorkoutPage() {
         const workoutData = (await getWorkoutById(workoutId)) as Workout;
         if (!mountedRef.current) return;
 
-
         if (!Array.isArray(workoutData.exercises)) {
           workoutData.exercises = [];
         }
-
 
         let savedProgress = new Array(workoutData.exercises?.length || 0).fill(
           0
         );
 
-    
         if (courseId && workoutData.exercises) {
           try {
             const workoutProgress = await getWorkoutProgress(
@@ -115,7 +111,7 @@ export default function WorkoutPage() {
               });
             }
           } catch (progressError) {
-
+            console.error("Ошибка при загрузке прогресса:", progressError);
           }
         }
 

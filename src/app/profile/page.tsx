@@ -113,7 +113,6 @@ export default function ProfilePage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  
   useEffect(() => {
     if (!mountedRef.current || authLoading || !isAuthenticated) {
       return;
@@ -122,7 +121,6 @@ export default function ProfilePage() {
     loadCoursesData();
   }, [authLoading, isAuthenticated, userData?.selectedCourses]);
 
-  
   const loadCoursesData = async (): Promise<void> => {
     if (
       !mountedRef.current ||
@@ -274,20 +272,17 @@ export default function ProfilePage() {
                   errorMessage.includes("not found") ||
                   errorMessage.includes("not added")
                 ) {
-                  
                   progress = {
                     progressPercent: 0,
                     courseCompleted: false,
                   };
                 } else {
-                
                   progress = {
                     progressPercent: 0,
                     courseCompleted: false,
                   };
                 }
               } else {
-          
                 progress = {
                   progressPercent: 0,
                   courseCompleted: false,
@@ -344,7 +339,10 @@ export default function ProfilePage() {
         try {
           await refreshUserData();
         } catch (refreshError) {
-          console.error("Ошибка при обновлении данных пользователя:", refreshError);
+          console.error(
+            "Ошибка при обновлении данных пользователя:",
+            refreshError
+          );
         }
         // Затем загружаем курсы с актуальными данными
         if (mountedRef.current) {
@@ -357,7 +355,7 @@ export default function ProfilePage() {
     return () => {
       window.removeEventListener("focus", handleFocus);
     };
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, refreshUserData]);
 
   useEffect(() => {
     if (!mountedRef.current || typeof window === "undefined") return;
@@ -385,7 +383,6 @@ export default function ProfilePage() {
       });
     };
 
-    
     const scrollOptions: AddEventListenerOptions = { passive: true };
     window.addEventListener("scroll", handleScroll, scrollOptions);
 
@@ -482,11 +479,13 @@ export default function ProfilePage() {
       await deleteUserCourse(courseToDelete);
       if (!mountedRef.current) return;
 
-
       try {
         await refreshUserData();
       } catch (refreshError) {
-        console.error("Ошибка при обновлении данных пользователя:", refreshError);
+        console.error(
+          "Ошибка при обновлении данных пользователя:",
+          refreshError
+        );
       }
 
       // Обновляем список курсов
@@ -514,7 +513,10 @@ export default function ProfilePage() {
           try {
             await refreshUserData();
           } catch (refreshError) {
-            console.error("Ошибка при обновлении данных пользователя:", refreshError);
+            console.error(
+              "Ошибка при обновлении данных пользователя:",
+              refreshError
+            );
           }
           const updatedCourses = courses.filter(
             (c) => c._id !== courseToDelete
@@ -526,7 +528,6 @@ export default function ProfilePage() {
             }
           });
         } else {
-    
           console.error("Ошибка при удалении курса:", error);
           if (mountedRef.current) {
             setCourseToDelete(null);

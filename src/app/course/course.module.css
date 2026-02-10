@@ -36,7 +36,7 @@
 
 .courseMain {
   width: 100%;
-  min-height: calc(100vh - 200px);
+
   padding: 40px 0;
   display: flex;
   flex-direction: column;
@@ -95,7 +95,6 @@
   margin-bottom: 16px;
 }
 
-/* Фреймы и секции */
 .courseFrame,
 .directionsSection {
   width: 100%;
@@ -105,12 +104,7 @@
 }
 
 .courseFrame {
-  min-height: 225px;
   gap: 17px;
-  margin-top: 40px;
-}
-
-.directionsSection {
   margin-top: 40px;
 }
 
@@ -128,7 +122,7 @@
 .courseTextBlock3 {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 141px;
+
   border-radius: 28px;
   padding: 20px;
   background: linear-gradient(115.81deg, #151720 34.98%, #1e212e 91.5%);
@@ -154,7 +148,7 @@
   font-size: 75px;
   line-height: 135%;
   letter-spacing: 0;
-  font-variant-numeric: lining-nums proportional-nums;
+
   color: #bcec30;
   flex-shrink: 0;
   display: inline-block;
@@ -162,26 +156,23 @@
 
 .courseTextNumber {
   width: 35px;
-  height: 101px;
 }
 .courseTextNumber2,
 .courseTextNumber3 {
   width: 43px;
-  height: 101px;
 }
 
 .courseTextDescription,
 .courseTextDescription2 {
   flex: 1;
-  min-width: 0;
-  min-height: 78px;
+
   font-weight: 400;
   font-size: 24px;
   line-height: 110%;
   letter-spacing: 0;
-  font-variant-numeric: lining-nums proportional-nums;
+
   color: #fff;
-  margin: 0;
+
   padding-top: 12px;
 }
 
@@ -216,24 +207,17 @@
   gap: 8px;
 }
 
-.directionsIcon {
-  width: 26px;
-  height: 26px;
-}
-
 .directionsText {
   font-weight: 400;
   font-size: 24px;
 
-  font-variant-numeric: lining-nums proportional-nums;
   color: #000;
-  margin: 0;
 }
 
 .courseContentBlock {
   width: 100%;
   max-width: 1160px;
-  min-height: 486px;
+
   border-radius: 30px;
   background: #fff;
   box-shadow: 0 4px 67px -12px rgba(0, 0, 0, 0.13);
@@ -294,11 +278,10 @@
 
 .courseContentList {
   max-width: 437px;
-  min-height: 178px;
+
   font-weight: 400;
   font-size: 24px;
 
-  font-variant-numeric: lining-nums proportional-nums;
   color: #000;
   opacity: 0.6;
   margin: 0;
@@ -612,20 +595,13 @@
   }
 
   .courseFrame {
-    min-height: 389px;
     margin-top: 24px;
     margin-bottom: 0;
-  }
-
-  .courseTitle {
-    max-width: 327px;
-    line-height: 110%;
   }
 
   .courseTextBlocksContainer {
     flex-direction: column;
     gap: 12px;
-    margin-top: 0;
   }
 
   .courseTextBlock,
@@ -633,8 +609,7 @@
   .courseTextBlock3 {
     width: 100%;
     max-width: 343px;
-    height: 140px;
-    min-height: 100px;
+
     padding: 16px;
   }
 
@@ -647,7 +622,7 @@
   .courseTextDescription,
   .courseTextDescription2 {
     width: 243px;
-    height: 40px;
+
     font-size: 18px;
   }
 
@@ -659,7 +634,6 @@
   }
 
   .directionsSection {
-    min-height: 386px;
     gap: 16px;
     margin-top: 0;
     margin-bottom: 0;
