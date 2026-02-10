@@ -16,7 +16,7 @@
 }
 
 .mainTitle {
-  transform: rotate(0deg);
+
   opacity: 1;
   font-family: "Roboto", sans-serif;
   font-weight: 500;
@@ -55,30 +55,26 @@
   font-size: 32px;
 
   color: #000000;
-  margin: 0;
+
 }
 
 .polygonIcon {
   position: absolute;
-  left: 141px;
-  top: 85px;
 
-  transform: rotate(0deg);
   opacity: 1;
   display: block;
 }
 
 .cardsSection {
   padding-top: 50px;
-  padding-left: 0;
-  padding-right: 0;
+
 }
 
 .cardsContainer {
   display: flex;
   gap: 40px;
   flex-wrap: wrap;
-  min-height: 501px;
+
 }
 
 .cardSkeleton {

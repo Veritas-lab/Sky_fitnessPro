@@ -190,7 +190,7 @@
 
 .directionBlock {
   padding: 30px;
-  height: 86px;
+
   border-radius: 28px;
   padding: 30px;
   background: #bcec30;
@@ -216,7 +216,7 @@
 
 .courseContentBlock {
   width: 100%;
-  max-width: 1160px;
+ 
 
   border-radius: 30px;
   background: #fff;
@@ -227,7 +227,7 @@
   align-items: flex-start;
   padding: 40px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .courseContentBlock::before {
@@ -237,21 +237,24 @@
   height: 391px;
   top: 140px;
   right: 23px;
-  transform: rotate(-1deg);
+  transform: rotate(-2deg);
   background: url("/img/vector.png") center / 670px 391px no-repeat;
   background-size: 670px 391px;
   z-index: 0;
   pointer-events: none;
+  clip-path: inset(5px 5px 30px 5px);
 }
 
 .courseRunnerImage {
-  width: 500px;
-  height: 546px;
   position: absolute;
-  top: 850px;
-  left: 585px;
-  transform: rotate(-2deg);
+  right: 15px;
+  bottom: 20px;
+
+  width: 604px;
+  height: 604px;
+  transform: rotate(-3deg);
   z-index: 2;
+  object-fit: contain;
   pointer-events: none;
 }
 
@@ -549,11 +552,7 @@
     align-items: flex-start;
   }
 
-  .courseRunnerImage {
-    transform: translateX(calc(-50% + 150px)) rotate(-2deg);
-    max-width: calc(100vw - 120px);
-  }
-}
+
 
 @media (max-width: 768px) {
   .courseMain {
@@ -683,7 +682,7 @@
     height: 349px;
     position: absolute;
     top: 1160px;
-    left: 120px;
+    right: 15px;
     transform: rotate(-3deg);
     object-fit: contain;
     z-index: 1;
@@ -771,4 +770,5 @@
     height: auto;
     max-width: calc(100vw + 50px);
   }
+}
 }

@@ -623,15 +623,6 @@ export default function CoursePage() {
         {courseId && (
           <>
             <Image
-              key="runner-desktop"
-              src="/img/runner.png"
-              alt="runner"
-              width={360}
-              height={400}
-              className={styles.courseRunnerImage}
-              priority
-            />
-            <Image
               key="runner-mobile"
               src="/img/runner.png"
               alt="runner"
@@ -648,6 +639,15 @@ export default function CoursePage() {
               className={styles.courseVectorImageMobile}
             />
             <div className={styles.courseContentBlock}>
+              <Image
+                key="runner-desktop"
+                src="/img/runner.png"
+                alt="runner"
+                width={360}
+                height={400}
+                className={styles.courseRunnerImage}
+                priority
+              />
               {isLoadingCourse ? (
                 <div className={styles.courseContentRight}>
                   <div className={styles.skeletonTitle} />
