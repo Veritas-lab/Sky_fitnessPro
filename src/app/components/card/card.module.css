@@ -153,8 +153,7 @@
 }
 
 .daysBadge {
-  width: 103px;
-  height: 38px;
+ padding: 10px 10px;
   transform: rotate(0deg);
   opacity: 1;
   border-radius: 50px;
@@ -164,11 +163,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 }
 
 .clockBadge {
-  width: 163px;
-  height: 38px;
+  padding: 10px 10px;
   transform: rotate(0deg);
   opacity: 1;
   border-radius: 50px;
@@ -178,6 +177,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 }
 
 .calendarIcon {
@@ -193,8 +193,7 @@
   font-weight: 400;
   font-style: normal;
   font-size: 16px;
-  line-height: 110%;
-  letter-spacing: 0px;
+ 
   vertical-align: bottom;
   font-variant-numeric: lining-nums proportional-nums;
   color: #202020;
@@ -213,16 +212,14 @@
   font-weight: 400;
   font-style: normal;
   font-size: 16px;
-  line-height: 110%;
-  letter-spacing: 0px;
+
   vertical-align: bottom;
   font-variant-numeric: lining-nums proportional-nums;
   color: #202020;
 }
 
 .complexityBadge {
-  width: 129px;
-  height: 38px;
+  width: fit-content;
   transform: rotate(0deg);
   opacity: 1;
   border-radius: 50px;
@@ -230,7 +227,8 @@
   background: #f7f7f7;
   display: flex;
   align-items: center;
-  justify-content: center;
+  white-space: nowrap;
+  padding: 10px;
 }
 
 .complexityIcon {

@@ -87,12 +87,16 @@
   margin: 0;
 }
 
+.courseTitle {
+  margin-bottom: 40px;
+}
+
 .sectionTitle {
   margin-bottom: 40px;
 }
 
 .directionsTitle {
-  margin-bottom: 16px;
+  margin-bottom: 40px;
 }
 
 .courseFrame,
@@ -106,6 +110,10 @@
 .courseFrame {
   gap: 17px;
   margin-top: 40px;
+}
+
+.directionsSection {
+  margin-top: 60px;
 }
 
 .courseTextBlocksContainer {
@@ -221,7 +229,7 @@
   border-radius: 30px;
   background: #fff;
   box-shadow: 0 4px 67px -12px rgba(0, 0, 0, 0.13);
-  margin: 60px 0 40px;
+  margin-top: 102px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
