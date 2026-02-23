@@ -458,8 +458,8 @@ export default function CoursePage() {
               <Image
                 src={courseCardImage}
                 alt={courseId}
-                fill
-                sizes="(max-width: 768px) 100vw, 1440px"
+                width={1160}
+                height={310}
                 className={styles.courseImage}
                 priority
               />

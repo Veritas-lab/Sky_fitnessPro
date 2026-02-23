@@ -62,7 +62,14 @@
   overflow: hidden;
 }
 
-.courseImage,
+.courseImage {
+  width: 1160px;
+ 
+  object-fit: cover;
+  border-radius: 30px;
+  display: block;
+}
+
 .courseImageMobile {
   width: 100%;
   height: 100%;
@@ -695,13 +702,13 @@
     width: 313px;
     height: 349px;
     position: absolute;
-    top: 1160px;
-    right: 15px;
+    top: 1000px;
+    right: -30px;
+ 
     transform: rotate(-3deg);
     object-fit: contain;
     z-index: 1;
     pointer-events: none;
-    will-change: transform;
   }
 
   .courseVectorImageMobile {
@@ -709,14 +716,13 @@
     width: 431px;
     height: 251px;
     position: absolute;
-    top: 1280px;
-    left: -54px;
+    top: 1150px;
+    
     transform: rotate(-3deg);
     opacity: 1;
     z-index: 0;
     object-fit: contain;
-    pointer-events: none;
-    will-change: transform;
+
   }
 
   .courseContentBlock {
