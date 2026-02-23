@@ -208,12 +208,12 @@ export default function CoursePage() {
     loadCourseData();
   }, [courseId]);
 
-  // Нормализация courseId для правильного определения картинок
+
   const normalizeCourseId = (id: string): string => {
     if (!id) return "";
     const normalized = id.toLowerCase().trim();
 
-    // Обработка различных вариантов step-aerobics
+   
     if (
       normalized.includes("step") &&
       (normalized.includes("aero") || normalized.includes("airob"))
@@ -221,7 +221,7 @@ export default function CoursePage() {
       return "step-aerobics";
     }
 
-    // Проверяем, есть ли ключ в courseCardImages
+ 
     if (courseCardImages[normalized]) {
       return normalized;
     }
@@ -476,7 +476,7 @@ export default function CoursePage() {
           )}
         </div>
         {courseId && (
-          <div className={styles.courseFrame}>
+          <section className={styles.courseFrame}>
             <h2 className={styles.courseTitle}>Подойдет для вас, если:</h2>
             {isLoadingCourse ? (
               <div className={styles.courseTextBlocksContainer}>
@@ -544,10 +544,10 @@ export default function CoursePage() {
                 <p className={styles.errorText}>Данные недоступны</p>
               </div>
             )}
-          </div>
+          </section>
         )}
         {courseId && (
-          <div className={styles.directionsSection}>
+          <section className={styles.directionsSection}>
             <h2 className={styles.directionsTitle}>Направления</h2>
             {isLoadingCourse ? (
               <div className={styles.directionsFrame}>
@@ -618,7 +618,7 @@ export default function CoursePage() {
                 <p className={styles.errorText}>Данные недоступны</p>
               </div>
             )}
-          </div>
+          </section>
         )}
         {courseId && (
           <>
@@ -638,7 +638,7 @@ export default function CoursePage() {
               height={412}
               className={styles.courseVectorImageMobile}
             />
-            <div className={styles.courseContentBlock}>
+            <section className={styles.courseContentBlock}>
               <Image
                 key="runner-desktop"
                 src="/img/runner.png"
@@ -690,7 +690,7 @@ export default function CoursePage() {
                   )}
                 </div>
               )}
-            </div>
+            </section>
           </>
         )}
       </main>
