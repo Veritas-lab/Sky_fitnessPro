@@ -621,7 +621,7 @@ export default function CoursePage() {
           </section>
         )}
         {courseId && (
-          <>
+          <section className={styles.courseContentBlock}>
             <Image
               key="runner-mobile"
               src="/img/runner.png"
@@ -638,8 +638,7 @@ export default function CoursePage() {
               height={412}
               className={styles.courseVectorImageMobile}
             />
-            <section className={styles.courseContentBlock}>
-              <Image
+            <Image
                 key="runner-desktop"
                 src="/img/runner.png"
                 alt="runner"
@@ -690,8 +689,7 @@ export default function CoursePage() {
                   )}
                 </div>
               )}
-            </section>
-          </>
+          </section>
         )}
       </main>
       {isMounted && isFormOpen && (
