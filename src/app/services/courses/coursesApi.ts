@@ -36,7 +36,13 @@ function fetchWithTimeout(
             )
           );
         } else {
-          reject(error);
+          reject(
+            error instanceof Error
+              ? error
+              : new Error(
+                  "Не удалось подключиться к серверу. Проверьте подключение к интернету."
+                )
+          );
         }
       });
   });
