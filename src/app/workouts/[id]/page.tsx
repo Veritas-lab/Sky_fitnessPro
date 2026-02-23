@@ -16,7 +16,12 @@ import styles from "./workout.module.css";
 
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
   ssr: false,
-  loading: () => null,
+  loading: () => <div style={{ height: "80px" }} />,
+});
+
+const Header = dynamic(() => import("../../components/header/header"), {
+  ssr: false,
+  loading: () => <div style={{ height: "80px" }} />,
 });
 
 interface Workout extends BaseWorkout {
@@ -168,16 +173,27 @@ export default function WorkoutPage() {
     );
   };
 
+  if (!isMounted || authLoading) {
+    return (
+      <>
+        <div style={{ height: "80px" }} />
+        <main className={styles.main}>
+          <div style={{ padding: "40px", textAlign: "center" }}>Загрузка...</div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
-      {isMounted && isAuthenticated && userName && userEmail && (
-        <Suspense fallback={null}>
-          <AuthHeader
-            userName={userName}
-            userEmail={userEmail}
-            onLogout={handleLogout}
-          />
-        </Suspense>
+      {isAuthenticated && userName && userEmail ? (
+        <AuthHeader
+          userName={userName}
+          userEmail={userEmail}
+          onLogout={handleLogout}
+        />
+      ) : (
+        <Header onLoginClick={() => router.push("/")} />
       )}
 
       <main className={styles.main}>

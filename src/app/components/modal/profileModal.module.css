@@ -1,19 +1,19 @@
 .modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  
   background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
+max-width: 1160px;
+margin: 0 auto;
+position: relative;
 }
 
 .modalContent {
-  position: absolute;
-  top: 120px;
-  left: 1034px;
+  position: fixed;
+  top: 11px;
+ right: 0;
+
   width: 266px;
-  height: 258px;
+
   background: #ffffff;
   border-radius: 30px;
   padding: 30px;
