@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import styles from "./profile.module.css";
 import {
   getCourseById,
@@ -13,14 +12,10 @@ import {
 } from "@/app/services/courses/coursesApi";
 import { CourseDetail, Workout } from "@/types/shared";
 import { useAuth } from "@/context/AuthContext";
+import AuthHeader from "@/app/components/header/authHeader";
 import WorkoutSelectionModal from "@/app/components/modal/workoutSelectionModal";
 import CourseDeletedModal from "@/app/components/modal/courseDeletedModal";
 import DeleteConfirmModal from "@/app/components/modal/deleteConfirmModal";
-
-const AuthHeader = dynamic(() => import("@/app/components/header/authHeader"), {
-  ssr: false,
-  loading: () => <div style={{ height: "80px" }} />,
-});
 
 interface CourseWithWorkouts extends Omit<CourseDetail, "workouts"> {
   workouts: Workout[];
@@ -64,6 +59,7 @@ export default function ProfilePage() {
     logout,
     isLoading: authLoading,
     userData,
+    refreshUserData,
   } = useAuth();
 
   const [courses, setCourses] = useState<CourseWithWorkouts[]>([]);
@@ -82,7 +78,6 @@ export default function ProfilePage() {
   const isAuthenticatedRef = useRef(isAuthenticated);
   const authLoadingRef = useRef(authLoading);
 
-  // Обновляем refs при изменении значений
   useEffect(() => {
     userDataRef.current = userData;
     isAuthenticatedRef.current = isAuthenticated;
@@ -97,7 +92,6 @@ export default function ProfilePage() {
     };
   }, []);
 
-  // Редирект на /login если не авторизован
   useEffect(() => {
     if (!mountedRef.current) return;
     if (!authLoading && !isAuthenticated) {
@@ -114,7 +108,6 @@ export default function ProfilePage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Загрузка курсов пользователя
   useEffect(() => {
     if (!mountedRef.current || authLoading || !isAuthenticated) {
       return;
@@ -123,7 +116,6 @@ export default function ProfilePage() {
     loadCoursesData();
   }, [authLoading, isAuthenticated, userData?.selectedCourses]);
 
-  // Функция загрузки курсов (используется в разных местах)
   const loadCoursesData = async (): Promise<void> => {
     if (
       !mountedRef.current ||
@@ -275,20 +267,17 @@ export default function ProfilePage() {
                   errorMessage.includes("not found") ||
                   errorMessage.includes("not added")
                 ) {
-                  // Курс добавлен, но прогресс еще не начат - прогресс 0%
                   progress = {
                     progressPercent: 0,
                     courseCompleted: false,
                   };
                 } else {
-                  // Для других ошибок тоже устанавливаем 0%
                   progress = {
                     progressPercent: 0,
                     courseCompleted: false,
                   };
                 }
               } else {
-                // Если ошибка не является Error, устанавливаем 0%
                 progress = {
                   progressPercent: 0,
                   courseCompleted: false,
@@ -311,7 +300,6 @@ export default function ProfilePage() {
         })
       );
 
-      // Проверяем mountedRef перед обновлением состояния
       if (!mountedRef.current) return;
 
       const validCourses = coursesData.filter(
@@ -340,9 +328,21 @@ export default function ProfilePage() {
       return;
     }
 
-    const handleFocus = () => {
+    const handleFocus = async () => {
       if (mountedRef.current) {
-        loadCoursesData();
+        // Обновляем данные пользователя при возврате на страницу
+        try {
+          await refreshUserData();
+        } catch (refreshError) {
+          console.error(
+            "Ошибка при обновлении данных пользователя:",
+            refreshError
+          );
+        }
+        // Затем загружаем курсы с актуальными данными
+        if (mountedRef.current) {
+          loadCoursesData();
+        }
       }
     };
 
@@ -350,7 +350,7 @@ export default function ProfilePage() {
     return () => {
       window.removeEventListener("focus", handleFocus);
     };
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, refreshUserData]);
 
   useEffect(() => {
     if (!mountedRef.current || typeof window === "undefined") return;
@@ -378,8 +378,6 @@ export default function ProfilePage() {
       });
     };
 
-    // Используем passive listener для лучшей производительности
-    // Passive listeners не блокируют прокрутку страницы
     const scrollOptions: AddEventListenerOptions = { passive: true };
     window.addEventListener("scroll", handleScroll, scrollOptions);
 
@@ -476,6 +474,15 @@ export default function ProfilePage() {
       await deleteUserCourse(courseToDelete);
       if (!mountedRef.current) return;
 
+      try {
+        await refreshUserData();
+      } catch (refreshError) {
+        console.error(
+          "Ошибка при обновлении данных пользователя:",
+          refreshError
+        );
+      }
+
       // Обновляем список курсов
       const updatedCourses = courses.filter((c) => c._id !== courseToDelete);
       requestAnimationFrame(() => {
@@ -497,7 +504,15 @@ export default function ProfilePage() {
           errorMessage.includes("not found") ||
           errorMessage.includes("not added")
         ) {
-          // Курс уже удален или не был добавлен - просто обновляем список
+          // Курс уже удален или не был добавлен - обновляем данные пользователя и список
+          try {
+            await refreshUserData();
+          } catch (refreshError) {
+            console.error(
+              "Ошибка при обновлении данных пользователя:",
+              refreshError
+            );
+          }
           const updatedCourses = courses.filter(
             (c) => c._id !== courseToDelete
           );
@@ -508,7 +523,6 @@ export default function ProfilePage() {
             }
           });
         } else {
-          // Для других ошибок просто логируем
           console.error("Ошибка при удалении курса:", error);
           if (mountedRef.current) {
             setCourseToDelete(null);

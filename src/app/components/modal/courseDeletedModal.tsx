@@ -14,6 +14,7 @@ export default function CourseDeletedModal({
 }: CourseDeletedModalProps) {
   const mountedRef = useRef(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafRef = useRef<number | null>(null);
   const onCloseRef = useRef(onClose);
 
   useEffect(() => {
@@ -30,7 +31,11 @@ export default function CourseDeletedModal({
             clearTimeout(timeoutRef.current);
             timeoutRef.current = null;
           }
-          requestAnimationFrame(() => {
+          if (rafRef.current !== null) {
+            cancelAnimationFrame(rafRef.current);
+          }
+          rafRef.current = requestAnimationFrame(() => {
+            rafRef.current = null;
             if (mountedRef.current) {
               try {
                 onCloseRef.current();
@@ -49,6 +54,10 @@ export default function CourseDeletedModal({
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
   }, [autoCloseDelay]);
 
@@ -60,7 +69,11 @@ export default function CourseDeletedModal({
       timeoutRef.current = null;
     }
 
-    requestAnimationFrame(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
       if (!mountedRef.current) return;
       try {
         onCloseRef.current();

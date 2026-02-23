@@ -1,14 +1,15 @@
 .main {
-  width: 1440px;
-  height: 1559px;
+  max-width: 1160px;
+  width: 100%;
+
+  margin: 0 auto;
   transform: rotate(0deg);
   opacity: 1;
 }
 
 .titleSection {
   padding-top: 60px;
-  padding-left: 140px;
-  padding-right: 140px;
+
   display: flex;
   gap: 24px;
   align-items: flex-start;
@@ -16,7 +17,6 @@
 
 .mainTitle {
   width: 947px;
-  height: 120px;
   transform: rotate(0deg);
   opacity: 1;
   font-family: "Roboto", sans-serif;
@@ -25,7 +25,6 @@
   font-size: 60px;
   line-height: 100%;
   letter-spacing: 0px;
-  font-variant-numeric: lining-nums proportional-nums;
   color: #000000;
   margin: 0;
 }
@@ -49,19 +48,17 @@
 }
 
 .promoText {
-  width: 248px;
-  height: 70px;
+
+
   transform: rotate(0deg);
   opacity: 1;
   font-family: "Roboto", sans-serif;
   font-weight: 400;
   font-style: normal;
   font-size: 32px;
-  line-height: 110%;
-  letter-spacing: 0px;
-  font-variant-numeric: lining-nums proportional-nums;
+
   color: #000000;
-  margin: 0;
+
 }
 
 .polygonIcon {
@@ -77,20 +74,19 @@
 
 .cardsSection {
   padding-top: 50px;
-  padding-left: 140px;
-  padding-right: 140px;
+
 }
 
 .cardsContainer {
   display: flex;
   gap: 40px;
   flex-wrap: wrap;
-  min-height: 501px;
+
 }
 
 .cardSkeleton {
   width: 360px;
-  height: 501px;
+
   border-radius: 30px;
   background: #ffffff;
   box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
@@ -177,7 +173,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 34px auto 0;
+margin-top: 34px;
+margin-left: auto;
+margin-right: auto;
+margin-bottom: 80px;
   transition:
     opacity 0.2s,
     transform 0.2s;

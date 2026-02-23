@@ -16,7 +16,12 @@ import styles from "./workout.module.css";
 
 const AuthHeader = dynamic(() => import("../../components/header/authHeader"), {
   ssr: false,
-  loading: () => null,
+  loading: () => <div style={{ height: "80px" }} />,
+});
+
+const Header = dynamic(() => import("../../components/header/header"), {
+  ssr: false,
+  loading: () => <div style={{ height: "80px" }} />,
 });
 
 interface Workout extends BaseWorkout {
@@ -66,13 +71,11 @@ export default function WorkoutPage() {
       return;
     }
 
-    // Перенаправляем неавторизованных пользователей
     if (!isAuthenticated) {
       router.push("/");
       return;
     }
 
-    // Загружаем данные только если есть workoutId
     if (!mountedRef.current || !workoutId) {
       return;
     }
@@ -87,17 +90,14 @@ export default function WorkoutPage() {
         const workoutData = (await getWorkoutById(workoutId)) as Workout;
         if (!mountedRef.current) return;
 
-        // Проверяем, что exercises - это массив
         if (!Array.isArray(workoutData.exercises)) {
           workoutData.exercises = [];
         }
 
-        // Инициализируем прогресс
         let savedProgress = new Array(workoutData.exercises?.length || 0).fill(
           0
         );
 
-        // Загружаем прогресс, если есть courseId
         if (courseId && workoutData.exercises) {
           try {
             const workoutProgress = await getWorkoutProgress(
@@ -116,7 +116,7 @@ export default function WorkoutPage() {
               });
             }
           } catch (progressError) {
-            // Игнорируем ошибки загрузки прогресса
+            console.error("Ошибка при загрузке прогресса:", progressError);
           }
         }
 
@@ -131,7 +131,6 @@ export default function WorkoutPage() {
         if (mountedRef.current) {
           setIsLoading(false);
 
-          // Показываем ошибку пользователю
           const errorMessage =
             error instanceof Error
               ? error.message
@@ -140,7 +139,6 @@ export default function WorkoutPage() {
                 : "Неизвестная ошибка";
           alert(`Ошибка загрузки тренировки: ${errorMessage}`);
 
-          // Возвращаем на предыдущую страницу
           setTimeout(() => {
             if (mountedRef.current) {
               router.back();
@@ -175,16 +173,27 @@ export default function WorkoutPage() {
     );
   };
 
+  if (!isMounted || authLoading) {
+    return (
+      <>
+        <div style={{ height: "80px" }} />
+        <main className={styles.main}>
+          <div style={{ padding: "40px", textAlign: "center" }}>Загрузка...</div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
-      {isMounted && isAuthenticated && userName && userEmail && (
-        <Suspense fallback={null}>
-          <AuthHeader
-            userName={userName}
-            userEmail={userEmail}
-            onLogout={handleLogout}
-          />
-        </Suspense>
+      {isAuthenticated && userName && userEmail ? (
+        <AuthHeader
+          userName={userName}
+          userEmail={userEmail}
+          onLogout={handleLogout}
+        />
+      ) : (
+        <Header onLoginClick={() => router.push("/")} />
       )}
 
       <main className={styles.main}>

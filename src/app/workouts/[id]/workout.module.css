@@ -21,11 +21,11 @@
 .main {
   width: 100%;
   min-height: calc(100vh - 200px);
-  padding: 40px 140px;
+  padding: 40px 0;
 }
 
 .workoutContainer {
-  max-width: 1200px;
+  max-width: 1160px;
   margin: 0 auto;
 }
 
@@ -99,6 +99,10 @@
   font-weight: 400;
   color: #000000;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
 }
 
 .progressBar {

@@ -208,12 +208,12 @@ export default function CoursePage() {
     loadCourseData();
   }, [courseId]);
 
-  // Нормализация courseId для правильного определения картинок
+
   const normalizeCourseId = (id: string): string => {
     if (!id) return "";
     const normalized = id.toLowerCase().trim();
 
-    // Обработка различных вариантов step-aerobics
+   
     if (
       normalized.includes("step") &&
       (normalized.includes("aero") || normalized.includes("airob"))
@@ -221,7 +221,7 @@ export default function CoursePage() {
       return "step-aerobics";
     }
 
-    // Проверяем, есть ли ключ в courseCardImages
+ 
     if (courseCardImages[normalized]) {
       return normalized;
     }
@@ -394,6 +394,7 @@ export default function CoursePage() {
         }
       } catch (addError) {
         // Ошибка при добавлении курса - показываем модальное окно ошибки
+        console.error("Ошибка при добавлении курса:", addError);
         if (mountedRef.current) {
           requestAnimationFrame(() => {
             if (mountedRef.current) {
@@ -405,6 +406,7 @@ export default function CoursePage() {
       }
     } catch (error) {
       // Ошибка при загрузке курсов или другой ошибке
+      console.error("Ошибка при загрузке курсов:", error);
       if (mountedRef.current) {
         requestAnimationFrame(() => {
           if (mountedRef.current) {
@@ -432,6 +434,10 @@ export default function CoursePage() {
     });
   };
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <>
       {isAuthenticated && userName && userEmail ? (
@@ -452,8 +458,8 @@ export default function CoursePage() {
               <Image
                 src={courseCardImage}
                 alt={courseId}
-                fill
-                sizes="(max-width: 768px) 100vw, 1440px"
+                width={1160}
+                height={310}
                 className={styles.courseImage}
                 priority
               />
@@ -470,7 +476,7 @@ export default function CoursePage() {
           )}
         </div>
         {courseId && (
-          <div className={styles.courseFrame}>
+          <section className={styles.courseFrame}>
             <h2 className={styles.courseTitle}>Подойдет для вас, если:</h2>
             {isLoadingCourse ? (
               <div className={styles.courseTextBlocksContainer}>
@@ -538,10 +544,10 @@ export default function CoursePage() {
                 <p className={styles.errorText}>Данные недоступны</p>
               </div>
             )}
-          </div>
+          </section>
         )}
         {courseId && (
-          <div className={styles.directionsSection}>
+          <section className={styles.directionsSection}>
             <h2 className={styles.directionsTitle}>Направления</h2>
             {isLoadingCourse ? (
               <div className={styles.directionsFrame}>
@@ -612,32 +618,35 @@ export default function CoursePage() {
                 <p className={styles.errorText}>Данные недоступны</p>
               </div>
             )}
-          </div>
+          </section>
         )}
         {courseId && (
-          <>
+          <section className={styles.courseContentBlock}>
             <Image
+              key="runner-mobile"
               src="/img/runner.png"
               alt="runner"
-              width={500}
-              height={500}
-              className={styles.courseRunnerImage}
-            />
-            <Image
-              src="/img/runner.png"
-              alt="runner"
-              width={300}
-              height={300}
+              width={360}
+              height={400}
               className={styles.courseRunnerImageMobile}
             />
             <Image
-              src="/img/vector.png"
+              key="vector-mobile"
+              src="/img/vector_mob.png"
               alt="vector"
-              width={200}
-              height={200}
+              width={343}
+              height={412}
               className={styles.courseVectorImageMobile}
             />
-            <div className={styles.courseContentBlock}>
+            <Image
+                key="runner-desktop"
+                src="/img/runner.png"
+                alt="runner"
+                width={360}
+                height={400}
+                className={styles.courseRunnerImage}
+                priority
+              />
               {isLoadingCourse ? (
                 <div className={styles.courseContentRight}>
                   <div className={styles.skeletonTitle} />
@@ -680,8 +689,7 @@ export default function CoursePage() {
                   )}
                 </div>
               )}
-            </div>
-          </>
+          </section>
         )}
       </main>
       {isMounted && isFormOpen && (
@@ -723,7 +731,7 @@ export default function CoursePage() {
           onLoginClick={handleLoginClick}
         />
       )}
-      {courseAddModalOpen && (
+      {isMounted && courseAddModalOpen && (
         <CourseAddModal
           type={courseAddModalType}
           onClose={handleCloseCourseAddModal}

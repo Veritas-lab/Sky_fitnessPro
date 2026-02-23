@@ -18,7 +18,7 @@ interface WorkoutSelectionModalProps {
 }
 
 export default function WorkoutSelectionModal({
-  courseName: _courseName,
+  courseName,
   courseId, // ✅ Получаем courseId
   workouts,
   onClose,
@@ -26,17 +26,26 @@ export default function WorkoutSelectionModal({
   const router = useRouter();
   const [selectedWorkouts, setSelectedWorkouts] = useState<string[]>([]);
   const mountedRef = useRef(true);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
   }, []);
 
   const handleToggleWorkout = (workoutId: string) => {
     if (!mountedRef.current) return;
-    requestAnimationFrame(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
       if (!mountedRef.current) return;
       setSelectedWorkouts((prev) =>
         prev.includes(workoutId)
@@ -54,7 +63,11 @@ export default function WorkoutSelectionModal({
     )
       return;
 
-    requestAnimationFrame(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
       if (!mountedRef.current) return;
       try {
         // ✅ Добавляем courseId в query параметры
@@ -71,7 +84,11 @@ export default function WorkoutSelectionModal({
   const handleClose = () => {
     if (!mountedRef.current) return;
 
-    requestAnimationFrame(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
       if (!mountedRef.current) return;
       try {
         onClose();
@@ -87,48 +104,52 @@ export default function WorkoutSelectionModal({
         <button className={styles.closeButton} onClick={handleClose}>
           ×
         </button>
-        <h2 className={styles.title}>Выберите тренировку</h2>
+        <h2 className={styles.title}>
+          Выберите тренировку{courseName ? ` для курса «${courseName}»` : ""}
+        </h2>
         <div className={styles.workoutsList}>
-          {workouts.map((workout) => {
-            const isSelected = selectedWorkouts.includes(workout.id);
-            return (
-              <div
-                key={workout.id}
-                className={styles.workoutItem}
-                onClick={() => handleToggleWorkout(workout.id)}
-              >
+          {[...workouts]
+            .sort((a, b) => a.day - b.day)
+            .map((workout) => {
+              const isSelected = selectedWorkouts.includes(workout.id);
+              return (
                 <div
-                  className={`${styles.checkbox} ${
-                    isSelected ? styles.checkboxSelected : ""
-                  }`}
+                  key={workout.id}
+                  className={styles.workoutItem}
+                  onClick={() => handleToggleWorkout(workout.id)}
                 >
-                  {isSelected && (
-                    <svg
-                      className={styles.checkmark}
-                      width="12"
-                      height="12"
-                      viewBox="0 0 12 12"
-                      fill="none"
-                    >
-                      <path
-                        d="M1 6L4 9L11 1"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
+                  <div
+                    className={`${styles.checkbox} ${
+                      isSelected ? styles.checkboxSelected : ""
+                    }`}
+                  >
+                    {isSelected && (
+                      <svg
+                        className={styles.checkmark}
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                      >
+                        <path
+                          d="M1 6L4 9L11 1"
+                          stroke="white"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <div className={styles.workoutInfo}>
+                    <h3 className={styles.workoutName}>{workout.name}</h3>
+                    <p className={styles.workoutSubtitle}>
+                      {workout.subtitle} / {workout.day} день
+                    </p>
+                  </div>
                 </div>
-                <div className={styles.workoutInfo}>
-                  <h3 className={styles.workoutName}>{workout.name}</h3>
-                  <p className={styles.workoutSubtitle}>
-                    {workout.subtitle} / {workout.day} день
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
         <button
           className={styles.startButton}

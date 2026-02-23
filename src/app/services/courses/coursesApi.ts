@@ -1,6 +1,6 @@
 import { BASE_URL } from "../constants";
 import { getToken, removeToken } from "@/app/services/authToken";
-import { Course, Workout, ProgressResponse, ApiError } from "@/types/shared";
+import { Course, Workout, ProgressResponse } from "@/types/shared";
 import { addPendingCourse } from "../pendingCourse";
 
 function fetchWithTimeout(
@@ -27,16 +27,22 @@ function fetchWithTimeout(
         clearTimeout(timeoutId);
         resolve(response);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         clearTimeout(timeoutId);
-        if (error.name === "AbortError") {
+        if (error instanceof Error && error.name === "AbortError") {
           reject(
             new Error(
               "Превышено время ожидания ответа от сервера. Проверьте подключение к интернету."
             )
           );
         } else {
-          reject(error);
+          reject(
+            error instanceof Error
+              ? error
+              : new Error(
+                  "Не удалось подключиться к серверу. Проверьте подключение к интернету."
+                )
+          );
         }
       });
   });
@@ -70,12 +76,16 @@ async function fetchWithAuth<T>(
 
     const contentType = response.headers.get("content-type") ?? "";
     const isJson = contentType.includes("application/json");
-    const data: unknown = isJson ? await response.json() : await response.text();
+    const data: unknown = isJson
+      ? await response.json()
+      : await response.text();
 
     if (!response.ok) {
       const errorData = data as { message?: string } | string;
       const message =
-        typeof errorData === "object" && errorData !== null && "message" in errorData
+        typeof errorData === "object" &&
+        errorData !== null &&
+        "message" in errorData
           ? errorData.message
           : typeof errorData === "string"
             ? errorData
