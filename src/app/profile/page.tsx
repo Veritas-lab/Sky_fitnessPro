@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import styles from "./profile.module.css";
 import {
   getCourseById,
@@ -13,14 +12,10 @@ import {
 } from "@/app/services/courses/coursesApi";
 import { CourseDetail, Workout } from "@/types/shared";
 import { useAuth } from "@/context/AuthContext";
+import AuthHeader from "@/app/components/header/authHeader";
 import WorkoutSelectionModal from "@/app/components/modal/workoutSelectionModal";
 import CourseDeletedModal from "@/app/components/modal/courseDeletedModal";
 import DeleteConfirmModal from "@/app/components/modal/deleteConfirmModal";
-
-const AuthHeader = dynamic(() => import("@/app/components/header/authHeader"), {
-  ssr: false,
-  loading: () => <div style={{ height: "80px" }} />,
-});
 
 interface CourseWithWorkouts extends Omit<CourseDetail, "workouts"> {
   workouts: Workout[];
